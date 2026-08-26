@@ -15,7 +15,7 @@
    VERSION wird beim Bauen (build-pwa.sh) automatisch gesetzt. Ändert
    sich die App, ändert sich die Version, und der alte Speicher wird
    verworfen. */
-const VERSION = '176fc33bbd7c';
+const VERSION = '30428a64e580';
 const CACHE = 'koreanisch-' + VERSION;
 const ASSETS = [
   './',
@@ -29,7 +29,11 @@ const ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE)
-      .then((cache) => cache.addAll(ASSETS))
+      /* cache:'reload' ist wichtig: Ohne das darf der Browser die Dateien
+         aus seinem EIGENEN Zwischenspeicher nehmen — und legt dann eine
+         alte Fassung als "neu" ab. Manche Webspeicher (u. a. GitHub
+         Pages) erlauben ihm das für einige Minuten. */
+      .then((cache) => cache.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' }))))
       .then(() => self.skipWaiting())
   );
 });

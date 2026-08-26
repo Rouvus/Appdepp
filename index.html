@@ -1170,8 +1170,8 @@
    öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
    statt eine leere Zeile zu zeigen.
    ========================================================= */
-const APP_VERSION = '1.6.0';
-const APP_BUILD = '176fc33bbd7c';
+const APP_VERSION = '1.8.0';
+const APP_BUILD = '30428a64e580';
 const APP_CONTACT = {
   name: '',                 // z. B. 'Vorname Nachname'
   ort: '',                  // z. B. 'Musterstadt' (nur wenn du ein Impressum führst)
@@ -1185,6 +1185,8 @@ function appBuildLabel(){
    will, was ihm entgeht. Bewusst nur die letzten Einträge — eine
    vollständige Chronik gehört ins Projekt-Dokument, nicht in die App. */
 const CHANGELOG = [
+  { v:'1.8.0', text:'Kursinhalte von der Programmlogik getrennt — Grundlage für neue Lektionen ohne neues Programm.' },
+  { v:'1.7.0', text:'Sucht selbst nach neuen Fassungen — auch vom Startbildschirm aus.' },
   { v:'1.6.0', text:'Einstellungen gegliedert, Fassung am Fuß des Lernpfads.' },
   { v:'1.5.0', text:'Töne und Vibration bei richtig/falsch, Sprung zu einer Einheit, Wochenrückblick.' },
   { v:'1.4.1', text:'Der Landschafts-Hintergrund zittert beim Scrollen nicht mehr.' },
@@ -1216,6 +1218,29 @@ const CHANGELOG = [
 /* =========================================================
    DATENGRUNDLAGE: HANGUL + KURSDATEN
 ========================================================= */
+/* ==== KURSDATEN ANFANG — eingesetzt aus kurs/kurs.js, hier nicht bearbeiten ==== */
+/* =========================================================
+   DER KURS — alle Inhalte an einer Stelle
+   =========================================================
+   Diese Datei enthält AUSSCHLIESSLICH Inhalt: Buchstaben, Wörter,
+   Lektionen, Grammatik-Beispiele, Kultur-Texte, den Ausblick. Keine
+   Logik, keine Funktionen — was hier steht, kann man lesen und ändern,
+   ohne die App zu verstehen.
+
+   Sie wird von build-pwa.sh in koreanisch-lernen.html eingesetzt (dort
+   zwischen den KURSDATEN-Markierungen). Änderungen also HIER machen und
+   danach bauen — Änderungen direkt in der HTML-Datei gehen beim
+   nächsten Bauen verloren.
+
+   Aus derselben Quelle entsteht kurs.json: dieselben Inhalte als reine
+   Daten, damit eine spätere App-Fassung neue Lektionen nachladen kann,
+   ohne dass ein neues Programm ausgeliefert werden muss.
+
+   Zwei Dinge stehen bewusst NICHT hier, weil sie Inhalt nur ableiten:
+   hangulPackLessons() macht aus den Buchstaben-Paketen Lektionen, und
+   findLetterByChar() schlägt Buchstaben nach. Beides ist Logik.
+   ========================================================= */
+
 /* Jeder Buchstabe trägt ein "kind"-Feld (vowel/consonant). Das steuert u.a.
    die Silbenbau-Übung (siehe weiter unten): dort müssen Vokal- und
    Konsonanten-Kacheln unterschieden werden können. Beispielwörter hängen
@@ -1234,6 +1259,7 @@ const VOWELS = [
   {ch:'ㅡ', roman:'eu', kind:'vowel'},
   {ch:'ㅣ', roman:'i', kind:'vowel'}
 ];
+
 const CONSONANTS = [
   {ch:'ㄱ', roman:'g/k', kind:'consonant'},
   {ch:'ㄴ', roman:'n', kind:'consonant'},
@@ -1250,6 +1276,7 @@ const CONSONANTS = [
   {ch:'ㅍ', roman:'p', kind:'consonant'},
   {ch:'ㅎ', roman:'h', kind:'consonant'}
 ];
+
 /* Die 5 "gespannten" Doppelkonsonanten (쌍자음). */
 const DOUBLE_CONSONANTS = [
   {ch:'ㄲ', roman:'kk', kind:'consonant'},
@@ -1258,6 +1285,7 @@ const DOUBLE_CONSONANTS = [
   {ch:'ㅆ', roman:'ss', kind:'consonant'},
   {ch:'ㅉ', roman:'jj', kind:'consonant'}
 ];
+
 /* Die 11 Doppelvokale (이중모음). */
 const DOUBLE_VOWELS = [
   {ch:'ㅐ', roman:'ae', kind:'vowel'},
@@ -1272,89 +1300,7 @@ const DOUBLE_VOWELS = [
   {ch:'ㅟ', roman:'wi', kind:'vowel'},
   {ch:'ㅢ', roman:'ui', kind:'vowel'}
 ];
-function findLetterByChar(ch){
-  return VOWELS.concat(CONSONANTS, DOUBLE_CONSONANTS, DOUBLE_VOWELS).find(l => l.ch === ch);
-}
-/* =========================================================
-   UNICODE-HANGUL-ZERLEGUNG/-ZUSAMMENSETZUNG
-   Jeder vorkomponierte Hangul-Silbenblock (z. B. '가') lässt sich über
-   eine feste Formel in Anfangskonsonant + Vokal (+ optionalen
-   Schlusskonsonant) zerlegen bzw. aus diesen wieder zusammensetzen.
-   Das ist die Grundlage der interaktiven "Silbenbau"-Übung weiter unten.
-========================================================= */
-const HANGUL_INITIALS = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
-const HANGUL_MEDIALS = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
-const HANGUL_FINALS = [null,'ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
-function decomposeSyllable(char){
-  if(!char) return null;
-  const code = char.charCodeAt(0) - 0xAC00;
-  if(code < 0 || code > 11171) return null;
-  const finalIdx = code % 28;
-  const medialIdx = Math.floor(code / 28) % 21;
-  const initialIdx = Math.floor(code / (28 * 21));
-  return { initial: HANGUL_INITIALS[initialIdx], medial: HANGUL_MEDIALS[medialIdx], final: HANGUL_FINALS[finalIdx] };
-}
-function composeSyllable(initial, medial, final){
-  const i = HANGUL_INITIALS.indexOf(initial);
-  const m = HANGUL_MEDIALS.indexOf(medial);
-  const f = final ? HANGUL_FINALS.indexOf(final) : 0;
-  if(i < 0 || m < 0 || f < 0) return null;
-  return String.fromCharCode(0xAC00 + (i * 21 + m) * 28 + f);
-}
-/* 겹받침 ("Doppel-Batchim"): bei manchen Silben besteht der Schlusskonsonant
-   nicht aus einem, sondern aus ZWEI nebeneinanderstehenden Konsonanten
-   (z. B. ㄶ = ㄴ+ㅎ in 찮, ㄼ = ㄹ+ㅂ in 덟). decomposeSyllable() liefert dafür
-   trotzdem nur EINEN zusammengesetzten Buchstaben (den offiziellen
-   Unicode-Codepoint ㄶ) — für die Silbenbau-/Wortbau-Übungen muss dieser
-   aber in seine zwei bereits UNTERRICHTETEN Einzelbuchstaben aufgeteilt
-   werden, sonst würde ein nie eingeführtes Zeichen abgefragt (s. Prinzip
-   "Kein Lektionsschritt darf einen nicht eingeführten Begriff abfragen"). */
-const COMPOUND_FINALS = {
-  'ㄳ':['ㄱ','ㅅ'], 'ㄵ':['ㄴ','ㅈ'], 'ㄶ':['ㄴ','ㅎ'],
-  'ㄺ':['ㄹ','ㄱ'], 'ㄻ':['ㄹ','ㅁ'], 'ㄼ':['ㄹ','ㅂ'],
-  'ㄽ':['ㄹ','ㅅ'], 'ㄾ':['ㄹ','ㅌ'], 'ㄿ':['ㄹ','ㅍ'],
-  'ㅀ':['ㄹ','ㅎ'], 'ㅄ':['ㅂ','ㅅ']
-};
-function splitCompoundFinal(final){
-  return COMPOUND_FINALS[final] || null;
-}
-function joinCompoundFinal(a, b){
-  for(const combo in COMPOUND_FINALS){
-    const parts = COMPOUND_FINALS[combo];
-    if(parts[0] === a && parts[1] === b) return combo;
-  }
-  return null;
-}
-/* Liefert die für den Silbenbau relevanten "Bauteile" des Schlusskonsonanten
-   einer decomposeSyllable()-Zerlegung: [] ohne 받침, [Buchstabe] bei
-   einfachem 받침, [Buchstabe1, Buchstabe2] bei 겹받침 (Doppel-Batchim). */
-function finalPartsOf(d){
-  if(!d || !d.final) return [];
-  return splitCompoundFinal(d.final) || [d.final];
-}
-/* Partikel-/Kopula-Angleichung (Feedback vom 22.08.2026, Vorlagen-System):
-   Ob ein Wort auf Konsonant oder Vokal endet, bestimmt in vielen Fällen,
-   welche Partikel-/Endungsform korrekt ist (은 vs. 는, 이 vs. 가, 이에요 vs.
-   예요 — s. grammatik-konzept.md "Der Satz-Baukasten"). Bisher wurde diese
-   Entscheidung bei jedem handgeschriebenen clozeExamples-Eintrag von Hand
-   getroffen. Für die neue Vorlagen-Engine (s. TEMPLATES weiter unten) muss
-   sie automatisch berechenbar sein, da das eingesetzte Wort erst zur
-   Laufzeit zufällig feststeht. Nutzt die bereits vorhandene
-   decomposeSyllable()-Zerlegung der letzten Silbe des Worts — 입니다
-   (격식체) ist bewusst NICHT enthalten, da es sich nie mit der
-   Konsonant/Vokal-Endung ändert. */
-function hasFinalConsonant(word){
-  const trimmed = (word || '').trim();
-  if(!trimmed) return null;
-  const lastChar = trimmed.slice(-1);
-  const d = decomposeSyllable(lastChar);
-  if(!d) return null;
-  return !!d.final;
-}
-function topicParticle(word){ return hasFinalConsonant(word) ? '은' : '는'; }
-function subjectParticle(word){ return hasFinalConsonant(word) ? '이' : '가'; }
-function copulaCasual(word){ return hasFinalConsonant(word) ? '이에요' : '예요'; }
-function objectParticle(word){ return hasFinalConsonant(word) ? '을' : '를'; }
+
 /* =========================================================
    KURSAUFBAU DER HANGUL-BUCHSTABEN
    Vokale und Konsonanten werden NICHT mehr strikt getrennt gelehrt,
@@ -1408,14 +1354,7 @@ const HANGUL_PACKS = [
       syllables:[{ch:'하',roman:'ha'},{ch:'마',roman:'ma'}]}
   ]}
 ];
-const HANGUL_PACK_LESSONS = HANGUL_PACKS.map((pack, i) => ({
-  id: `hangulPack${i+1}`,
-  title: pack.chars.length ? `Hangul ${i+1}: ${pack.chars.join(' ')}` : `Hangul ${i+1}: ${pack.words.map(w => w.kr).join(', ')}`,
-  icon: '🔤',
-  type: 'hangul',
-  letters: pack.chars.map(findLetterByChar),
-  words: pack.words
-}));
+
 /* Eigene kleine "Konzept"-Lektion, die AUSNAHMSWEISE auch drei neue
    Buchstaben einführt (ㅏ, ㅣ, ㅇ) — und zwar bewusst als ALLERERSTE
    Lektion überhaupt, noch vor Hangul-Paket 1. So lernt man erst die drei
@@ -1432,6 +1371,7 @@ const SILENT_NG_LESSON = {
     buildHint:'denk an das stumme ㅇ!'
   }
 };
+
 /* Eigene Konzept-Lektion zum Abschluss von die Hangul-Einheit: erklärt, wann eine
    Silbe aus 2, 3 oder 4 Blöcken besteht (Schlusskonsonant/받침, inkl.
    Doppel-Batchim/겹받침), und wo diese Blöcke angeordnet werden. Kommt
@@ -1456,6 +1396,7 @@ const BATCHIM_LESSON = {
   // 기=2 Blöcke), 짜장면 (짜=2, 장=3, 면=3 Blöcke).
   buildWordExamples:['딸기','짜장면']
 };
+
 /* Eigene Konzept-Lektion (Feedback vom 25.08.2026: "vielleicht sollte
    noch irgendwo erklärt werden, dass r nie am Ende ist sondern l, oder
    das p nie vor einem Vokal steht sondern b"). Genau diese Beobachtung
@@ -1510,6 +1451,7 @@ const HANGUL_POSITION_LESSON = {
     {kr:'국', correct:'guk', wrong:'gug', rule:'ㄱ als 받침 wird zu „k" — dieselbe Regel wie bei ㅂ → p.'}
   ]
 };
+
 /* Letzte Lektion von die Hangul-Einheit: jetzt, wo 받침 (Schlusskonsonanten)
    bekannt sind, kommt die Kehrseite davon — 받침 werden je nach dem, was
    in der NÄCHSTEN Silbe folgt, anders ausgesprochen als geschrieben. Vier
@@ -1553,9 +1495,10 @@ const HANGUL_SOUND_CHANGE_LESSON = {
     {written:'닭', writtenRoman:'dalg', spoken:'닥', spokenRoman:'dak', de:'Huhn/Hahn', rule:'겹받침-Vereinfachung (2. Buchstabe bleibt)'}
   ]
 };
+
 const COURSE = [
   SILENT_NG_LESSON,
-  ...HANGUL_PACK_LESSONS,
+  ...hangulPackLessons(),
   {id:'hangul1c', title:'Hangul: Doppelvokale 1', icon:'🔤', type:'hangul', letters: DOUBLE_VOWELS.slice(0,5), words:[
     /* category:'countable' + cntOne/cntMany (Feedback vom 25.08.2026):
        markiert Alltagswörter, die sich in der Einheit „Zahlen (nativ)“ mit dem Zählwort 개
@@ -2893,6 +2836,343 @@ const COURSE = [
     templateIds:['connector-cloze', 'reason-sentence', 'place-action-cloze', 'past-sentence', 'exist-cloze']
   }
 ];
+
+/* =========================================================
+   KULTUR-SCHRIFTROLLEN (Feedback vom 24.08.2026)
+   Zu jeder Kurseinheit gehört eine kurze Einführung in den kulturellen
+   Hintergrund ihres Themas. Sie erscheint einmalig als aufgeklappte
+   Schriftrolle über einem grauen Schleier, wenn man die Einheit zum
+   ersten Mal öffnet, und ist danach jederzeit über das Laternen-Symbol
+   im Kopf der Schriftrolle wieder aufrufbar (s. buildScrollUnit).
+
+   Inhaltliche Leitlinie: Es geht um beobachtbare Gepflogenheiten und
+   ihre Herkunft, nicht um Wesenszuschreibungen an „die Koreaner".
+   Wo ein Klischee naheliegt (etwa „schüchtern"), wird stattdessen
+   beschrieben, was tatsächlich unterschiedlich ist — und dass es
+   Unterschiede zwischen Generationen und Regionen gibt.
+
+   Datenmodell pro Einheit:
+     title  – Überschrift der Rolle
+     intro  – ein einleitender Satz
+     facts  – [{h, t}] strukturierte Abschnitte (Überschrift + Text)
+     phrase – optional {kr, roman, de} als hervorgehobener Ausdruck
+========================================================= */
+const UNIT_CULTURE = {
+  0: {
+    title: 'Hangul – eine Schrift, die erfunden wurde',
+    intro: 'Fast alle Schriften der Welt sind über Jahrhunderte gewachsen. Hangul nicht: es wurde entworfen, mit einer Absicht.',
+    facts: [
+      { h: 'König Sejong, 1443', t: 'Sejong der Große ließ die Schrift entwickeln und verkündete sie 1446. Bis dahin schrieb man Koreanisch mit chinesischen Zeichen – die zu lernen dauerte Jahre und blieb dem Adel vorbehalten.' },
+      { h: 'Ausdrücklich für alle', t: 'In der Einführungsschrift steht sinngemäß: Ein kluger Mensch lerne die Buchstaben an einem Vormittag, ein einfacher in zehn Tagen. Genau das war der Zweck – Lesen sollte nicht länger vom Stand abhängen.' },
+      { h: 'Die Form verrät den Laut', t: 'Die Konsonantenzeichen bilden nach, was Zunge, Lippen und Rachen beim Sprechen tun: ㄱ ist die angehobene Zungenwurzel, ㅁ der geschlossene Mund. Daher wirken die Zeichen so systematisch – sie sind es.' },
+      { h: 'Ein Feiertag für ein Alphabet', t: 'Der 9. Oktober ist in Südkorea gesetzlicher Feiertag: 한글날, der Hangeul-Tag. Es gibt nicht viele Länder, die ihre Schrift feiern.' }
+    ],
+    phrase: { kr: '한글', roman: 'hangeul', de: 'die koreanische Schrift' }
+  },
+  1: {
+    title: 'Begrüßen in Korea',
+    intro: 'Eine Begrüßung ist hier weniger ein Wort als eine kleine Choreografie aus Verbeugung, Blick und Sprachebene.',
+    facts: [
+      { h: 'Verbeugen statt Händeschütteln', t: 'Zur Begrüßung neigt man den Oberkörper – je mehr Respekt, desto tiefer. Unter Freunden reicht ein Kopfnicken; gegenüber Älteren oder Vorgesetzten wird daraus eine Verbeugung aus der Hüfte von etwa 15 bis 30 Grad.' },
+      { h: 'Wenn doch die Hand', t: 'Beim Händedruck – im Berufsleben üblich – stützt man den eigenen rechten Unterarm mit der linken Hand oder legt die Linke an den Bauch. Zwei Hände bedeuten Respekt. Dasselbe gilt beim Überreichen von Visitenkarten, Geld oder Geschenken.' },
+      { h: 'Zurückhaltend außen, herzlich innen', t: 'Fremde spricht man selten an, Small Talk in der Schlange ist unüblich. Innerhalb der eigenen Gruppe – Familie, Kollegium, Studienjahrgang – ist der Ton dagegen sehr warm und direkt, bis hin zum Unterhaken beim Spazieren. Was von außen als schüchtern gelesen wird, ist eher eine klare Grenze zwischen innen und außen.' },
+      { h: '„Hast du gegessen?"', t: '밥 먹었어요? ist eine echte Begrüßungsfloskel, keine Einladung. Sie stammt aus einer Zeit, in der Sattsein nicht selbstverständlich war, und meint heute schlicht: Geht es dir gut?' }
+    ],
+    phrase: { kr: '안녕하세요', roman: 'annyeonghaseyo', de: 'wörtlich: „Sind Sie in Frieden?"' }
+  },
+  2: {
+    title: 'Namen, Alter und das Wort „du"',
+    intro: 'Wer auf Koreanisch „du" sagt, trifft damit eine Aussage über die Beziehung – deshalb sagt man es meistens nicht.',
+    facts: [
+      { h: '„Du" wird umgangen', t: '당신 steht zwar im Wörterbuch, klingt im Alltag aber distanziert bis unhöflich. Stattdessen nimmt man den Namen mit Anhängsel (사라 씨) oder die Rolle: 선생님 für Lehrende, 사장님 für Vorgesetzte.' },
+      { h: 'Die Altersfrage ist keine Neugier', t: 'Wie alt jemand ist, entscheidet über Sprachebene und Anrede. Deshalb wird früh danach gefragt – es geht nicht um Zudringlichkeit, sondern darum, überhaupt richtig sprechen zu können.' },
+      { h: 'Bruder und Schwester ohne Verwandtschaft', t: 'Ein jüngerer Mann sagt zu einem älteren 형, eine jüngere Frau sagt 오빠; umgekehrt heißt es 누나 beziehungsweise 언니. Diese Wörter gelten genauso für enge Freundinnen und Freunde.' },
+      { h: 'Seit 2023 wird anders gezählt', t: 'Früher war man bei der Geburt ein Jahr alt und wurde an Neujahr ein Jahr älter. Seit Juni 2023 gilt gesetzlich die internationale Zählung, und wer heute nach dem Alter fragt, meint fast immer sie. Für Schuleintritt, Militärdienst und Alkohol zählt weiterhin das Geburtsjahr.' }
+    ],
+    phrase: { kr: '몇 살이에요?', roman: 'myeot sarieyo?', de: 'Wie alt bist du?' }
+  },
+  3: {
+    title: 'Zwei Zahlensysteme – und eine gemiedene Zahl',
+    intro: 'Koreanisch zählt doppelt. Welches System man nimmt, hängt davon ab, was gezählt wird.',
+    facts: [
+      { h: 'Sinokoreanisch für Messbares', t: '일, 이, 삼 … stammen aus dem Chinesischen und gelten für Geld, Datum, Telefonnummern, Minuten, Stockwerke – und für alles ab hundert.' },
+      { h: 'Die Vier bleibt oft leer', t: '사 (vier) klingt genauso wie das sinokoreanische Wort für „Tod". In vielen Aufzügen steht deshalb F statt 4, manche Gebäude überspringen die Etage ganz – vergleichbar mit der 13 in Europa.' },
+      { h: 'Ab elf wird gestapelt', t: 'Man setzt einfach zusammen: 십일 ist zehn-eins, 이십 ist zwei-zehn. Wer bis zehn zählen kann, kann im Grunde bis 99.' },
+      { h: 'Gerechnet wird in Zehntausendern', t: 'Große Beträge gruppiert man nicht in Tausendern, sondern in 만 (zehntausend). Eine Million heißt deshalb 백만 – „hundert Zehntausend".' }
+    ]
+  },
+  4: {
+    title: 'Zählen braucht ein Zählwort',
+    intro: 'Das zweite Zahlensystem ist das ältere, rein koreanische – und es tritt fast nie allein auf.',
+    facts: [
+      { h: 'Nativ für Zählbares', t: '하나, 둘, 셋 … zählt Dinge, Menschen, Stunden und das Lebensalter. Es endet bei 99; alles darüber übernimmt wieder das sinokoreanische System.' },
+      { h: 'Ohne Zähleinheit geht es nicht', t: 'Wie im Deutschen „zwei Stück Kuchen" braucht Koreanisch ein Zählwort: 개 für Dinge, 명 für Personen, 살 für Lebensjahre, 잔 für Tassen und Gläser. Für fast jede Art von Gegenstand gibt es ein eigenes.' },
+      { h: 'Kurzformen vor dem Zählwort', t: '하나, 둘, 셋, 넷 werden zu 한, 두, 세, 네, sobald ein Zählwort folgt – es heißt 두 개, nicht 둘 개.' },
+      { h: 'Beim Fotografieren', t: 'Statt „Cheese" ruft man in Korea 김치 – Kimchi. Der Mund formt dabei genau dasselbe Lächeln.' }
+    ]
+  },
+  5: {
+    title: 'Familie – und wer alles dazugehört',
+    intro: 'Verwandtschaftswörter sind im Koreanischen genauer als im Deutschen, und sie werden weit über die Familie hinaus benutzt.',
+    facts: [
+      { h: 'Jede Position hat ihr eigenes Wort', t: 'Ein allgemeines Wort für „Onkel" gibt es nicht. Ob von der Vater- oder Mutterseite, älter oder jünger als der eigene Elternteil – jede Konstellation trägt eine eigene Bezeichnung.' },
+      { h: 'Familienwörter für Fremde', t: 'In einem kleinen Lokal ruft man die Wirtin 이모, also „Tante mütterlicherseits". Nähe wird sprachlich hergestellt, nicht vorausgesetzt.' },
+      { h: 'Zwei große Feste', t: 'An 설날 (Neujahr nach dem Mondkalender) und 추석 (Erntedank im Herbst) reist das halbe Land zu den Eltern, die Autobahnen stehen. Bei der Neujahrsverbeugung 세배 bekommen Kinder Geld von den Erwachsenen.' },
+      { h: '정 – ein Wort ohne Übersetzung', t: 'Gemeint ist die gewachsene Verbundenheit zwischen Menschen, die lange miteinander zu tun hatten – auch mit Nachbarn oder Kollegen. Vieles daran, wie eng koreanische Gruppen zusammenhalten, erklärt sich über dieses eine Wort.' }
+    ]
+  },
+  6: {
+    title: 'Am Tisch',
+    intro: 'Kaum irgendwo sind die Umgangsformen so sichtbar wie beim Essen – und kaum etwas verbindet so schnell.',
+    facts: [
+      { h: 'Die Ältesten beginnen', t: 'Man wartet, bis die älteste Person am Tisch angefangen hat, und steht möglichst nicht vorher auf. In lockerer Runde nimmt man das heute weniger streng, aber wahrgenommen wird es immer.' },
+      { h: 'Löffel und Stäbchen haben Aufgaben', t: 'Reis und Suppe isst man mit dem Löffel, Beilagen mit Stäbchen. Die Schüssel hebt man nicht an – anders als in Japan. Und Stäbchen nie senkrecht in den Reis stecken: so werden Speisen für Verstorbene aufgestellt.' },
+      { h: 'Eingeschenkt wird für andere', t: 'Das eigene Glas füllt man nicht selbst. Man schenkt dem Gegenüber ein, mit beiden Händen, und lässt sich einschenken. Vor deutlich Älteren dreht man sich beim Trinken leicht zur Seite.' },
+      { h: '반찬 gehören dem Tisch', t: 'Die kleinen Beilagenschälchen sind nicht persönlich, sondern für alle – und werden in den meisten Lokalen kostenlos nachgefüllt.' }
+    ],
+    phrase: { kr: '잘 먹겠습니다', roman: 'jal meokgetseumnida', de: '„Ich werde gut essen" – vor dem Essen gesagt' }
+  },
+  7: {
+    title: 'Was Farben bedeuten',
+    intro: 'Farben tragen in Korea Bedeutungen, die älter sind als jede Modefarbe.',
+    facts: [
+      { h: 'Die fünf Grundfarben (오방색)', t: 'Blau, Rot, Gelb, Weiß und Schwarz stehen für die fünf Himmelsrichtungen und Elemente. Man findet sie an Tempeldächern, auf festlicher Kleidung und bei Zeremonien.' },
+      { h: 'Rot ist nichts für Namen', t: 'Namen lebender Menschen schreibt man nicht in Rot – das war früher Verstorbenen vorbehalten. Ein Geschenkanhänger in roter Tinte kommt bis heute schlecht an.' },
+      { h: 'Weiß als Farbe der Trauer', t: 'Koreaner wurden lange „das weißgekleidete Volk" genannt. Bei Trauerfeiern ist Weiß die traditionelle Farbe, nicht Schwarz; inzwischen mischt sich beides.' },
+      { h: '색동 – der Streifenärmel', t: 'Die bunten Ringelärmel an Kinder-Hanbok bestehen aus genau diesen fünf Farben und sollen Unglück fernhalten.' }
+    ]
+  },
+  8: {
+    title: 'Wie Korea mit Zeit umgeht',
+    intro: 'Zwei Kalender nebeneinander, ein hohes Tempo – und ein Wort, das man überall hört.',
+    facts: [
+      { h: '빨리빨리 – schnell, schnell', t: 'Das Tempo ist sprichwörtlich: Lieferung am selben Tag, Internetanschluss in Stunden, Essen binnen Minuten am Tisch. Viele Koreaner nennen es selbstironisch ihre Nationaleigenschaft.' },
+      { h: 'Zwei Kalender', t: 'Der Alltag läuft nach dem Sonnenkalender, die großen Feste und die Geburtstage vieler älterer Menschen nach dem Mondkalender. Deshalb fallen 설날 und 추석 jedes Jahr auf ein anderes Datum.' },
+      { h: 'Wochentage aus fünf Elementen', t: '월 (Mond), 화 (Feuer), 수 (Wasser), 목 (Holz), 금 (Metall), 토 (Erde), 일 (Sonne). Dieselbe Logik steckt hinter den japanischen Wochentagen – und im Ursprung auch hinter unseren Planetennamen.' },
+      { h: 'Der Abend gehört nicht immer einem selbst', t: 'Gemeinsames Essen mit dem Kollegium nach Feierabend (회식) gehört vielerorts dazu. Bei jüngeren Generationen verliert es seine Selbstverständlichkeit.' }
+    ]
+  },
+  9: {
+    title: 'Unterwegs in Korea',
+    intro: 'Wenige Länder machen es Reisenden so leicht – wenn man ein paar Gewohnheiten kennt.',
+    facts: [
+      { h: 'Eine Karte für fast alles', t: 'Mit einer aufladbaren T-money-Karte fährt man landesweit U-Bahn, Bus und Taxi und zahlt damit auch im Kiosk. In Seoul gibt es zusätzlich eine Flatrate-Karte für unbegrenzte Fahrten im Stadtgebiet.' },
+      { h: 'Schuhe aus', t: 'In Wohnungen, vielen traditionellen Restaurants, Tempeln und Gästehäusern zieht man am Eingang die Schuhe aus. Es lohnt sich, auf die Socken zu achten.' },
+      { h: 'Plätze mit Vorrecht', t: 'Die farbig markierten Sitze an den Enden der U-Bahn-Waggons sind für Ältere, Schwangere und Menschen mit Behinderung reserviert – sie bleiben auch im vollen Zug frei.' },
+      { h: 'Karten-Apps funktionieren anders', t: 'Google Maps bietet in Korea keine vollständige Navigation; einheimische Dienste wie Naver Map oder KakaoMap sind der Standard – auch für Busanzeigen in Echtzeit.' }
+    ]
+  },
+  10: {
+    title: 'Zwischen den Zeilen',
+    intro: 'Wer koreanische Sätze bauen kann, hat die halbe Miete. Die andere Hälfte ist, wie viel man weglässt.',
+    facts: [
+      { h: 'Das Subjekt verschwindet', t: 'Ist klar, wer gemeint ist, fällt es einfach weg. 밥 먹었어요? heißt wörtlich nur „Reis gegessen?" – wer, ergibt sich aus der Situation.' },
+      { h: 'Das Verb kommt zuletzt', t: 'Koreanische Sätze enden mit dem Verb, und erst dessen Endung verrät Höflichkeit, Zeit und oft auch, ob überhaupt eine Frage gestellt wurde. Man muss bis zum Schluss zuhören.' },
+      { h: '눈치 – die Lage lesen', t: 'Gemeint ist die Fähigkeit, Stimmung und unausgesprochene Erwartungen im Raum zu erfassen. Ein direktes Nein ist selten; stattdessen hört man „das ist etwas schwierig" – 좀 어려운데요.' },
+      { h: '화이팅!', t: 'Der Anfeuerungsruf schlechthin: beim Sport, vor Prüfungen, im Büro. Er kommt vom englischen „fighting", bedeutet aber etwas, das das Englische so nicht kennt.' }
+    ],
+    phrase: { kr: '화이팅!', roman: 'hwaiting!', de: 'Du schaffst das!' }
+  }
+};
+
+/* =========================================================
+   AUSBLICK (Feedback vom 25.08.2026)
+   Der Kurs endet mit Einheit 10 — die Sprache nicht. Hinter dem letzten
+   Sektor steht deshalb eine rote Schriftrolle mit dem Fahrplan für das,
+   was danach käme: acht weitere Sektoren zu je zehn Einheiten.
+
+   Die Reihenfolge ist kein Themen-Sammelsurium, sondern folgt einer
+   Strategie in vier Stufen:
+     1. HANDLUNGSFÄHIG WERDEN (Sektor 3–4): erst die Hilfskonstruktionen,
+        die aus einem Satz eine Absicht machen (können/wollen/müssen),
+        dann das Gespräch, das länger dauert als zwei Sätze.
+     2. RICHTIG SPRECHEN (Sektor 5–6): im Koreanischen ist die Wahl der
+        Sprachebene keine Stilfrage, sondern Grammatik — und ohne sie
+        kommt man in Beruf und Studium nicht weit.
+     3. FREI DENKEN (Sektor 7–8): begründen, vergleichen, vermuten — und
+        über die sino-koreanischen Bausteine den Wortschatz vervielfachen.
+        Sektor 8 ist der größte einzelne Hebel des ganzen Fahrplans.
+     4. IN DIE WILDNIS (Sektor 9–10): Koreanisch dort verstehen, wo es
+        nicht für Lernende gemacht ist — und den Unterschied zwischen
+        "verständlich" und "gut" schließen.
+   Jeder Sektor endet bewusst mit einer "Werkstatt": keine neuen Regeln,
+   sondern alles Gelernte an einer einzigen zusammenhängenden Aufgabe.
+========================================================= */
+const COURSE_OUTLOOK = [
+  { n:3, title:'Der Alltag', level:'A2',
+    goal:'Von „ich kann Sätze bilden" zu „ich komme durch den Tag". Hier kommen die Bausteine, die aus einer Aussage eine Absicht machen — können, wollen, müssen, dürfen.',
+    units:['Einkaufen & Preise', 'Wohnen & Zimmer', 'Wo genau? (위/아래/앞/뒤)', 'Wetter & Jahreszeiten', 'Körper & beim Arzt', 'Können & Dürfen: -(으)ㄹ 수 있다', 'Wollen & Müssen: -고 싶다, -아야 하다', 'Verneinen: 안 und 못', 'Verabredungen & Termine', 'Werkstatt: ein ganzer Tag auf Koreanisch'] },
+  { n:4, title:'Sprechen & Erzählen', level:'A2–B1',
+    goal:'Ein Gespräch führen, das länger dauert als zwei Sätze — und erzählen können, was gestern passiert ist.',
+    units:['Telefonieren', 'Im Lokal: bestellen und bezahlen', 'Nach dem Weg fragen', 'Vorschlagen & Einladen: -(으)ㄹ까요?', 'Bitten: -아/어 주세요', 'Gefühle & Befinden', 'Meinungen: 좋아하다, 생각하다', 'Erzählen, was war', 'Nachfragen & Missverständnisse klären', 'Werkstatt: ein echtes Gespräch'] },
+  { n:5, title:'Respekt & Nähe', level:'Register',
+    goal:'Wissen, wie man mit wem spricht. Im Koreanischen ist das keine Stilfrage, sondern Grammatik — dieselbe Aussage hat je nach Gegenüber eine andere Form.',
+    units:['반말: unter Freunden', '존댓말 im Detail', 'Das Ehren-Infix -시-', 'Eigene Höflichkeitswörter (진지, 댁, 분)', 'Anreden: 님, 씨, 선생님', 'Mit Vorgesetzten sprechen', 'In der Familie sprechen', 'Indirekte Rede', 'Weichmacher: -는데요, 좀', 'Werkstatt: dieselbe Sache dreimal sagen'] },
+  { n:6, title:'Arbeit & Studium', level:'B1',
+    goal:'Koreanisch dort, wo es auf Genauigkeit ankommt — und wo die förmliche Schriftsprache gilt, die im Alltag kaum vorkommt.',
+    units:['Im Büro', 'E-Mails schreiben', 'Termine, Fristen, Absprachen', 'Zahlen im Beruf: Prozent & Statistik', 'An der Universität', 'Bewerbung & Vorstellungsgespräch', 'Schriftsprache: -ㅂ니다체 im Text', 'Beruflich telefonieren', 'Anweisungen geben und verstehen', 'Werkstatt: eine Woche im Büro'] },
+  { n:7, title:'Meinung & Argument', level:'B1–B2',
+    goal:'Nicht nur sagen, was ist, sondern warum — und was wäre, wenn. Ab hier wird Koreanisch zur Denksprache statt zur Verständigungssprache.',
+    units:['Gründe angeben: -니까, -기 때문에', 'Bedingungen: -(으)면', 'Vermutungen: -(으)ㄹ 것 같다', 'Bedauern & Konjunktiv: -았으면', 'Zustimmen & widersprechen', 'Vergleichen: 보다, 제일', 'Zitieren: -다고 하다', 'Diskutieren', 'Zusammenfassen & auf den Punkt bringen', 'Werkstatt: eine Position vertreten'] },
+  { n:8, title:'Hanja & Wortbildung', level:'Hebel',
+    goal:'Der größte einzelne Sprung im ganzen Fahrplan. Rund 60 % des koreanischen Wortschatzes stammt aus dem Chinesischen — wer die häufigsten Bausteine kennt, versteht Tausende Wörter beim ersten Hören, ohne sie je gelernt zu haben.',
+    units:['Warum Hanja, obwohl man sie nicht schreibt', 'Die 50 häufigsten Bausteine', 'Zahlen & Maße als Bausteine', 'Menschen und Berufe: -자, -원, -사', 'Orte: -관, -장, -실', 'Die 하다-Wörter', 'Gegensatzpaare: 大/小, 上/下', 'Unbekannte Wörter erraten lernen', 'Lehnwörter aus dem Englischen', 'Werkstatt: ein Text ohne Wörterbuch'] },
+  { n:9, title:'Medien & Kultur', level:'B2',
+    goal:'Koreanisch dort verstehen, wo es nicht für Lernende gemacht ist — im Drama, im Lied, in den Nachrichten und im Chat.',
+    units:['K-Drama: Alltagssprache im Ohr', 'Songtexte lesen', 'Nachrichten & Schlagzeilen', 'Werbung, Schilder, Speisekarten', 'Netz- und Chatsprache', 'Sageuk: die Sprache der Joseon-Zeit', 'Dialekte: 부산 und 제주', 'Redewendungen & Sprichwörter', 'Humor & Wortspiele', 'Werkstatt: eine Folge ohne Untertitel'] },
+  { n:10, title:'Feinschliff', level:'B2–C1',
+    goal:'Der Unterschied zwischen „verständlich" und „gut". Lauter kleine Dinge, die zusammen ausmachen, ob man wie ein Lernender klingt oder nicht.',
+    units:['Nuancen der Partikeln: 도, 만, 조차, 라도', 'Klangwörter: 의성어 & 의태어', 'Passiv & Kausativ', 'Zusammengesetzte Endungen', 'Schreiben: Aufsatz & Bericht', 'Aussprache-Feinschliff', 'Typische Fehler von Deutschsprachigen', 'TOPIK-Vorbereitung', 'Ein ganzes Buch lesen', 'Werkstatt: frei sprechen'] }
+];
+
+/* Waagerechte Linie mit mittig sitzender Überschrift — trennt die
+   Hangul-Einheit vom eigentlichen Sprachkurs (s. .path-section). */
+const PATH_SECTIONS = { 0: 'Hangul', 1: 'Sprache im Alltag' };
+
+/* =========================================================
+   GRAMMATIK-KONZEPT (Roadmap)
+   Zeigt, welches Grammatik-Thema zu welcher Vokabel-Einheit gehört —
+   Begründung der Reihenfolge im Projekt-Dokument "grammatik-konzept.md"
+   nachzulesen. Einträge mit "lessonId" sind bereits als echte Lektion
+   in COURSE umgesetzt (Inhalt kommt von dort, s. renderGrammar) —
+   Einträge ohne "lessonId" sind erst GEPLANT und werden Stück für Stück
+   nach demselben Muster in ihre jeweilige Einheit eingebaut. Jede
+   Einheit bekommt so genau EIN Grammatik-Thema, das inhaltlich zu ihrem
+   Wortschatz passt (z. B. Zahlen-Einheiten -> die zwei Zahlensysteme). */
+const GRAMMAR_ROADMAP = [
+  { unit:0, lessonId:'hangulBatchim' },
+  { unit:0, lessonId:'hangulPositionSounds' },
+  { unit:0, lessonId:'hangulSoundChanges' },
+  { unit:1, lessonId:'basics1Grammar1' },
+  { unit:1, lessonId:'basics1Grammar2' },
+  { unit:2, lessonId:'basics2Grammar1' },
+  { unit:2, lessonId:'basics2Grammar2' },
+  { unit:3, lessonId:'numbers1Grammar1' },
+  { unit:3, lessonId:'numbers1Grammar2' },
+  { unit:4, lessonId:'numbers2Grammar1' },
+  { unit:4, lessonId:'numbers2Grammar2' },
+  { unit:5, lessonId:'familyGrammar1' },
+  { unit:5, lessonId:'familyGrammar2' },
+  { unit:6, lessonId:'foodGrammar1' },
+  { unit:6, lessonId:'foodGrammar2' },
+  { unit:7, lessonId:'colorsGrammar1' },
+  { unit:7, lessonId:'colorsGrammar2' },
+  { unit:8, lessonId:'timeGrammar1' },
+  { unit:8, lessonId:'timeGrammar2' },
+  { unit:9, lessonId:'travelGrammar1' },
+  { unit:9, lessonId:'travelGrammar2' },
+  { unit:10, lessonId:'verbsGrammar1' },
+  { unit:10, lessonId:'verbsGrammar2' }
+];
+/* ==== KURSDATEN ENDE ==== */
+
+
+
+
+function findLetterByChar(ch){
+  return VOWELS.concat(CONSONANTS, DOUBLE_CONSONANTS, DOUBLE_VOWELS).find(l => l.ch === ch);
+}
+/* =========================================================
+   UNICODE-HANGUL-ZERLEGUNG/-ZUSAMMENSETZUNG
+   Jeder vorkomponierte Hangul-Silbenblock (z. B. '가') lässt sich über
+   eine feste Formel in Anfangskonsonant + Vokal (+ optionalen
+   Schlusskonsonant) zerlegen bzw. aus diesen wieder zusammensetzen.
+   Das ist die Grundlage der interaktiven "Silbenbau"-Übung weiter unten.
+========================================================= */
+const HANGUL_INITIALS = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const HANGUL_MEDIALS = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+const HANGUL_FINALS = [null,'ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+function decomposeSyllable(char){
+  if(!char) return null;
+  const code = char.charCodeAt(0) - 0xAC00;
+  if(code < 0 || code > 11171) return null;
+  const finalIdx = code % 28;
+  const medialIdx = Math.floor(code / 28) % 21;
+  const initialIdx = Math.floor(code / (28 * 21));
+  return { initial: HANGUL_INITIALS[initialIdx], medial: HANGUL_MEDIALS[medialIdx], final: HANGUL_FINALS[finalIdx] };
+}
+function composeSyllable(initial, medial, final){
+  const i = HANGUL_INITIALS.indexOf(initial);
+  const m = HANGUL_MEDIALS.indexOf(medial);
+  const f = final ? HANGUL_FINALS.indexOf(final) : 0;
+  if(i < 0 || m < 0 || f < 0) return null;
+  return String.fromCharCode(0xAC00 + (i * 21 + m) * 28 + f);
+}
+/* 겹받침 ("Doppel-Batchim"): bei manchen Silben besteht der Schlusskonsonant
+   nicht aus einem, sondern aus ZWEI nebeneinanderstehenden Konsonanten
+   (z. B. ㄶ = ㄴ+ㅎ in 찮, ㄼ = ㄹ+ㅂ in 덟). decomposeSyllable() liefert dafür
+   trotzdem nur EINEN zusammengesetzten Buchstaben (den offiziellen
+   Unicode-Codepoint ㄶ) — für die Silbenbau-/Wortbau-Übungen muss dieser
+   aber in seine zwei bereits UNTERRICHTETEN Einzelbuchstaben aufgeteilt
+   werden, sonst würde ein nie eingeführtes Zeichen abgefragt (s. Prinzip
+   "Kein Lektionsschritt darf einen nicht eingeführten Begriff abfragen"). */
+const COMPOUND_FINALS = {
+  'ㄳ':['ㄱ','ㅅ'], 'ㄵ':['ㄴ','ㅈ'], 'ㄶ':['ㄴ','ㅎ'],
+  'ㄺ':['ㄹ','ㄱ'], 'ㄻ':['ㄹ','ㅁ'], 'ㄼ':['ㄹ','ㅂ'],
+  'ㄽ':['ㄹ','ㅅ'], 'ㄾ':['ㄹ','ㅌ'], 'ㄿ':['ㄹ','ㅍ'],
+  'ㅀ':['ㄹ','ㅎ'], 'ㅄ':['ㅂ','ㅅ']
+};
+function splitCompoundFinal(final){
+  return COMPOUND_FINALS[final] || null;
+}
+function joinCompoundFinal(a, b){
+  for(const combo in COMPOUND_FINALS){
+    const parts = COMPOUND_FINALS[combo];
+    if(parts[0] === a && parts[1] === b) return combo;
+  }
+  return null;
+}
+/* Liefert die für den Silbenbau relevanten "Bauteile" des Schlusskonsonanten
+   einer decomposeSyllable()-Zerlegung: [] ohne 받침, [Buchstabe] bei
+   einfachem 받침, [Buchstabe1, Buchstabe2] bei 겹받침 (Doppel-Batchim). */
+function finalPartsOf(d){
+  if(!d || !d.final) return [];
+  return splitCompoundFinal(d.final) || [d.final];
+}
+/* Partikel-/Kopula-Angleichung (Feedback vom 22.08.2026, Vorlagen-System):
+   Ob ein Wort auf Konsonant oder Vokal endet, bestimmt in vielen Fällen,
+   welche Partikel-/Endungsform korrekt ist (은 vs. 는, 이 vs. 가, 이에요 vs.
+   예요 — s. grammatik-konzept.md "Der Satz-Baukasten"). Bisher wurde diese
+   Entscheidung bei jedem handgeschriebenen clozeExamples-Eintrag von Hand
+   getroffen. Für die neue Vorlagen-Engine (s. TEMPLATES weiter unten) muss
+   sie automatisch berechenbar sein, da das eingesetzte Wort erst zur
+   Laufzeit zufällig feststeht. Nutzt die bereits vorhandene
+   decomposeSyllable()-Zerlegung der letzten Silbe des Worts — 입니다
+   (격식체) ist bewusst NICHT enthalten, da es sich nie mit der
+   Konsonant/Vokal-Endung ändert. */
+function hasFinalConsonant(word){
+  const trimmed = (word || '').trim();
+  if(!trimmed) return null;
+  const lastChar = trimmed.slice(-1);
+  const d = decomposeSyllable(lastChar);
+  if(!d) return null;
+  return !!d.final;
+}
+function topicParticle(word){ return hasFinalConsonant(word) ? '은' : '는'; }
+function subjectParticle(word){ return hasFinalConsonant(word) ? '이' : '가'; }
+function copulaCasual(word){ return hasFinalConsonant(word) ? '이에요' : '예요'; }
+function objectParticle(word){ return hasFinalConsonant(word) ? '을' : '를'; }
+
+/* Bewusst eine Funktion und keine Konstante: Die Paket-Lektionen werden
+   aus den Buchstaben-Paketen ABGELEITET, sind also Logik und kein
+   Inhalt. Als Funktion (die beim Aufruf ausgewertet wird, nicht beim
+   Einlesen) darf sie im Quelltext hinter den Kursdaten stehen — sonst
+   müsste sich Inhalt und Code abwechseln. */
+function hangulPackLessons(){
+  return HANGUL_PACKS.map((pack, i) => ({
+    id: `hangulPack${i+1}`,
+    title: pack.chars.length ? `Hangul ${i+1}: ${pack.chars.join(' ')}` : `Hangul ${i+1}: ${pack.words.map(w => w.kr).join(', ')}`,
+    icon: '🔤',
+    type: 'hangul',
+    letters: pack.chars.map(findLetterByChar),
+    words: pack.words
+  }));
+}
+
+
+
+
+
 /* =========================================================
    INHALTS-KONSISTENZ-CHECK (nur Entwicklungshinweis, kein UI-Blocker)
    Zwei verschiedene koreanische Begriffe dürfen NIE dieselbe deutsche
@@ -6443,143 +6723,7 @@ function buildReviewLesson(afterLesson, pool){
   COURSE.length = 0;
   COURSE.push(...withReviews);
 })();
-/* =========================================================
-   KULTUR-SCHRIFTROLLEN (Feedback vom 24.08.2026)
-   Zu jeder Kurseinheit gehört eine kurze Einführung in den kulturellen
-   Hintergrund ihres Themas. Sie erscheint einmalig als aufgeklappte
-   Schriftrolle über einem grauen Schleier, wenn man die Einheit zum
-   ersten Mal öffnet, und ist danach jederzeit über das Laternen-Symbol
-   im Kopf der Schriftrolle wieder aufrufbar (s. buildScrollUnit).
 
-   Inhaltliche Leitlinie: Es geht um beobachtbare Gepflogenheiten und
-   ihre Herkunft, nicht um Wesenszuschreibungen an „die Koreaner".
-   Wo ein Klischee naheliegt (etwa „schüchtern"), wird stattdessen
-   beschrieben, was tatsächlich unterschiedlich ist — und dass es
-   Unterschiede zwischen Generationen und Regionen gibt.
-
-   Datenmodell pro Einheit:
-     title  – Überschrift der Rolle
-     intro  – ein einleitender Satz
-     facts  – [{h, t}] strukturierte Abschnitte (Überschrift + Text)
-     phrase – optional {kr, roman, de} als hervorgehobener Ausdruck
-========================================================= */
-const UNIT_CULTURE = {
-  0: {
-    title: 'Hangul – eine Schrift, die erfunden wurde',
-    intro: 'Fast alle Schriften der Welt sind über Jahrhunderte gewachsen. Hangul nicht: es wurde entworfen, mit einer Absicht.',
-    facts: [
-      { h: 'König Sejong, 1443', t: 'Sejong der Große ließ die Schrift entwickeln und verkündete sie 1446. Bis dahin schrieb man Koreanisch mit chinesischen Zeichen – die zu lernen dauerte Jahre und blieb dem Adel vorbehalten.' },
-      { h: 'Ausdrücklich für alle', t: 'In der Einführungsschrift steht sinngemäß: Ein kluger Mensch lerne die Buchstaben an einem Vormittag, ein einfacher in zehn Tagen. Genau das war der Zweck – Lesen sollte nicht länger vom Stand abhängen.' },
-      { h: 'Die Form verrät den Laut', t: 'Die Konsonantenzeichen bilden nach, was Zunge, Lippen und Rachen beim Sprechen tun: ㄱ ist die angehobene Zungenwurzel, ㅁ der geschlossene Mund. Daher wirken die Zeichen so systematisch – sie sind es.' },
-      { h: 'Ein Feiertag für ein Alphabet', t: 'Der 9. Oktober ist in Südkorea gesetzlicher Feiertag: 한글날, der Hangeul-Tag. Es gibt nicht viele Länder, die ihre Schrift feiern.' }
-    ],
-    phrase: { kr: '한글', roman: 'hangeul', de: 'die koreanische Schrift' }
-  },
-  1: {
-    title: 'Begrüßen in Korea',
-    intro: 'Eine Begrüßung ist hier weniger ein Wort als eine kleine Choreografie aus Verbeugung, Blick und Sprachebene.',
-    facts: [
-      { h: 'Verbeugen statt Händeschütteln', t: 'Zur Begrüßung neigt man den Oberkörper – je mehr Respekt, desto tiefer. Unter Freunden reicht ein Kopfnicken; gegenüber Älteren oder Vorgesetzten wird daraus eine Verbeugung aus der Hüfte von etwa 15 bis 30 Grad.' },
-      { h: 'Wenn doch die Hand', t: 'Beim Händedruck – im Berufsleben üblich – stützt man den eigenen rechten Unterarm mit der linken Hand oder legt die Linke an den Bauch. Zwei Hände bedeuten Respekt. Dasselbe gilt beim Überreichen von Visitenkarten, Geld oder Geschenken.' },
-      { h: 'Zurückhaltend außen, herzlich innen', t: 'Fremde spricht man selten an, Small Talk in der Schlange ist unüblich. Innerhalb der eigenen Gruppe – Familie, Kollegium, Studienjahrgang – ist der Ton dagegen sehr warm und direkt, bis hin zum Unterhaken beim Spazieren. Was von außen als schüchtern gelesen wird, ist eher eine klare Grenze zwischen innen und außen.' },
-      { h: '„Hast du gegessen?"', t: '밥 먹었어요? ist eine echte Begrüßungsfloskel, keine Einladung. Sie stammt aus einer Zeit, in der Sattsein nicht selbstverständlich war, und meint heute schlicht: Geht es dir gut?' }
-    ],
-    phrase: { kr: '안녕하세요', roman: 'annyeonghaseyo', de: 'wörtlich: „Sind Sie in Frieden?"' }
-  },
-  2: {
-    title: 'Namen, Alter und das Wort „du"',
-    intro: 'Wer auf Koreanisch „du" sagt, trifft damit eine Aussage über die Beziehung – deshalb sagt man es meistens nicht.',
-    facts: [
-      { h: '„Du" wird umgangen', t: '당신 steht zwar im Wörterbuch, klingt im Alltag aber distanziert bis unhöflich. Stattdessen nimmt man den Namen mit Anhängsel (사라 씨) oder die Rolle: 선생님 für Lehrende, 사장님 für Vorgesetzte.' },
-      { h: 'Die Altersfrage ist keine Neugier', t: 'Wie alt jemand ist, entscheidet über Sprachebene und Anrede. Deshalb wird früh danach gefragt – es geht nicht um Zudringlichkeit, sondern darum, überhaupt richtig sprechen zu können.' },
-      { h: 'Bruder und Schwester ohne Verwandtschaft', t: 'Ein jüngerer Mann sagt zu einem älteren 형, eine jüngere Frau sagt 오빠; umgekehrt heißt es 누나 beziehungsweise 언니. Diese Wörter gelten genauso für enge Freundinnen und Freunde.' },
-      { h: 'Seit 2023 wird anders gezählt', t: 'Früher war man bei der Geburt ein Jahr alt und wurde an Neujahr ein Jahr älter. Seit Juni 2023 gilt gesetzlich die internationale Zählung, und wer heute nach dem Alter fragt, meint fast immer sie. Für Schuleintritt, Militärdienst und Alkohol zählt weiterhin das Geburtsjahr.' }
-    ],
-    phrase: { kr: '몇 살이에요?', roman: 'myeot sarieyo?', de: 'Wie alt bist du?' }
-  },
-  3: {
-    title: 'Zwei Zahlensysteme – und eine gemiedene Zahl',
-    intro: 'Koreanisch zählt doppelt. Welches System man nimmt, hängt davon ab, was gezählt wird.',
-    facts: [
-      { h: 'Sinokoreanisch für Messbares', t: '일, 이, 삼 … stammen aus dem Chinesischen und gelten für Geld, Datum, Telefonnummern, Minuten, Stockwerke – und für alles ab hundert.' },
-      { h: 'Die Vier bleibt oft leer', t: '사 (vier) klingt genauso wie das sinokoreanische Wort für „Tod". In vielen Aufzügen steht deshalb F statt 4, manche Gebäude überspringen die Etage ganz – vergleichbar mit der 13 in Europa.' },
-      { h: 'Ab elf wird gestapelt', t: 'Man setzt einfach zusammen: 십일 ist zehn-eins, 이십 ist zwei-zehn. Wer bis zehn zählen kann, kann im Grunde bis 99.' },
-      { h: 'Gerechnet wird in Zehntausendern', t: 'Große Beträge gruppiert man nicht in Tausendern, sondern in 만 (zehntausend). Eine Million heißt deshalb 백만 – „hundert Zehntausend".' }
-    ]
-  },
-  4: {
-    title: 'Zählen braucht ein Zählwort',
-    intro: 'Das zweite Zahlensystem ist das ältere, rein koreanische – und es tritt fast nie allein auf.',
-    facts: [
-      { h: 'Nativ für Zählbares', t: '하나, 둘, 셋 … zählt Dinge, Menschen, Stunden und das Lebensalter. Es endet bei 99; alles darüber übernimmt wieder das sinokoreanische System.' },
-      { h: 'Ohne Zähleinheit geht es nicht', t: 'Wie im Deutschen „zwei Stück Kuchen" braucht Koreanisch ein Zählwort: 개 für Dinge, 명 für Personen, 살 für Lebensjahre, 잔 für Tassen und Gläser. Für fast jede Art von Gegenstand gibt es ein eigenes.' },
-      { h: 'Kurzformen vor dem Zählwort', t: '하나, 둘, 셋, 넷 werden zu 한, 두, 세, 네, sobald ein Zählwort folgt – es heißt 두 개, nicht 둘 개.' },
-      { h: 'Beim Fotografieren', t: 'Statt „Cheese" ruft man in Korea 김치 – Kimchi. Der Mund formt dabei genau dasselbe Lächeln.' }
-    ]
-  },
-  5: {
-    title: 'Familie – und wer alles dazugehört',
-    intro: 'Verwandtschaftswörter sind im Koreanischen genauer als im Deutschen, und sie werden weit über die Familie hinaus benutzt.',
-    facts: [
-      { h: 'Jede Position hat ihr eigenes Wort', t: 'Ein allgemeines Wort für „Onkel" gibt es nicht. Ob von der Vater- oder Mutterseite, älter oder jünger als der eigene Elternteil – jede Konstellation trägt eine eigene Bezeichnung.' },
-      { h: 'Familienwörter für Fremde', t: 'In einem kleinen Lokal ruft man die Wirtin 이모, also „Tante mütterlicherseits". Nähe wird sprachlich hergestellt, nicht vorausgesetzt.' },
-      { h: 'Zwei große Feste', t: 'An 설날 (Neujahr nach dem Mondkalender) und 추석 (Erntedank im Herbst) reist das halbe Land zu den Eltern, die Autobahnen stehen. Bei der Neujahrsverbeugung 세배 bekommen Kinder Geld von den Erwachsenen.' },
-      { h: '정 – ein Wort ohne Übersetzung', t: 'Gemeint ist die gewachsene Verbundenheit zwischen Menschen, die lange miteinander zu tun hatten – auch mit Nachbarn oder Kollegen. Vieles daran, wie eng koreanische Gruppen zusammenhalten, erklärt sich über dieses eine Wort.' }
-    ]
-  },
-  6: {
-    title: 'Am Tisch',
-    intro: 'Kaum irgendwo sind die Umgangsformen so sichtbar wie beim Essen – und kaum etwas verbindet so schnell.',
-    facts: [
-      { h: 'Die Ältesten beginnen', t: 'Man wartet, bis die älteste Person am Tisch angefangen hat, und steht möglichst nicht vorher auf. In lockerer Runde nimmt man das heute weniger streng, aber wahrgenommen wird es immer.' },
-      { h: 'Löffel und Stäbchen haben Aufgaben', t: 'Reis und Suppe isst man mit dem Löffel, Beilagen mit Stäbchen. Die Schüssel hebt man nicht an – anders als in Japan. Und Stäbchen nie senkrecht in den Reis stecken: so werden Speisen für Verstorbene aufgestellt.' },
-      { h: 'Eingeschenkt wird für andere', t: 'Das eigene Glas füllt man nicht selbst. Man schenkt dem Gegenüber ein, mit beiden Händen, und lässt sich einschenken. Vor deutlich Älteren dreht man sich beim Trinken leicht zur Seite.' },
-      { h: '반찬 gehören dem Tisch', t: 'Die kleinen Beilagenschälchen sind nicht persönlich, sondern für alle – und werden in den meisten Lokalen kostenlos nachgefüllt.' }
-    ],
-    phrase: { kr: '잘 먹겠습니다', roman: 'jal meokgetseumnida', de: '„Ich werde gut essen" – vor dem Essen gesagt' }
-  },
-  7: {
-    title: 'Was Farben bedeuten',
-    intro: 'Farben tragen in Korea Bedeutungen, die älter sind als jede Modefarbe.',
-    facts: [
-      { h: 'Die fünf Grundfarben (오방색)', t: 'Blau, Rot, Gelb, Weiß und Schwarz stehen für die fünf Himmelsrichtungen und Elemente. Man findet sie an Tempeldächern, auf festlicher Kleidung und bei Zeremonien.' },
-      { h: 'Rot ist nichts für Namen', t: 'Namen lebender Menschen schreibt man nicht in Rot – das war früher Verstorbenen vorbehalten. Ein Geschenkanhänger in roter Tinte kommt bis heute schlecht an.' },
-      { h: 'Weiß als Farbe der Trauer', t: 'Koreaner wurden lange „das weißgekleidete Volk" genannt. Bei Trauerfeiern ist Weiß die traditionelle Farbe, nicht Schwarz; inzwischen mischt sich beides.' },
-      { h: '색동 – der Streifenärmel', t: 'Die bunten Ringelärmel an Kinder-Hanbok bestehen aus genau diesen fünf Farben und sollen Unglück fernhalten.' }
-    ]
-  },
-  8: {
-    title: 'Wie Korea mit Zeit umgeht',
-    intro: 'Zwei Kalender nebeneinander, ein hohes Tempo – und ein Wort, das man überall hört.',
-    facts: [
-      { h: '빨리빨리 – schnell, schnell', t: 'Das Tempo ist sprichwörtlich: Lieferung am selben Tag, Internetanschluss in Stunden, Essen binnen Minuten am Tisch. Viele Koreaner nennen es selbstironisch ihre Nationaleigenschaft.' },
-      { h: 'Zwei Kalender', t: 'Der Alltag läuft nach dem Sonnenkalender, die großen Feste und die Geburtstage vieler älterer Menschen nach dem Mondkalender. Deshalb fallen 설날 und 추석 jedes Jahr auf ein anderes Datum.' },
-      { h: 'Wochentage aus fünf Elementen', t: '월 (Mond), 화 (Feuer), 수 (Wasser), 목 (Holz), 금 (Metall), 토 (Erde), 일 (Sonne). Dieselbe Logik steckt hinter den japanischen Wochentagen – und im Ursprung auch hinter unseren Planetennamen.' },
-      { h: 'Der Abend gehört nicht immer einem selbst', t: 'Gemeinsames Essen mit dem Kollegium nach Feierabend (회식) gehört vielerorts dazu. Bei jüngeren Generationen verliert es seine Selbstverständlichkeit.' }
-    ]
-  },
-  9: {
-    title: 'Unterwegs in Korea',
-    intro: 'Wenige Länder machen es Reisenden so leicht – wenn man ein paar Gewohnheiten kennt.',
-    facts: [
-      { h: 'Eine Karte für fast alles', t: 'Mit einer aufladbaren T-money-Karte fährt man landesweit U-Bahn, Bus und Taxi und zahlt damit auch im Kiosk. In Seoul gibt es zusätzlich eine Flatrate-Karte für unbegrenzte Fahrten im Stadtgebiet.' },
-      { h: 'Schuhe aus', t: 'In Wohnungen, vielen traditionellen Restaurants, Tempeln und Gästehäusern zieht man am Eingang die Schuhe aus. Es lohnt sich, auf die Socken zu achten.' },
-      { h: 'Plätze mit Vorrecht', t: 'Die farbig markierten Sitze an den Enden der U-Bahn-Waggons sind für Ältere, Schwangere und Menschen mit Behinderung reserviert – sie bleiben auch im vollen Zug frei.' },
-      { h: 'Karten-Apps funktionieren anders', t: 'Google Maps bietet in Korea keine vollständige Navigation; einheimische Dienste wie Naver Map oder KakaoMap sind der Standard – auch für Busanzeigen in Echtzeit.' }
-    ]
-  },
-  10: {
-    title: 'Zwischen den Zeilen',
-    intro: 'Wer koreanische Sätze bauen kann, hat die halbe Miete. Die andere Hälfte ist, wie viel man weglässt.',
-    facts: [
-      { h: 'Das Subjekt verschwindet', t: 'Ist klar, wer gemeint ist, fällt es einfach weg. 밥 먹었어요? heißt wörtlich nur „Reis gegessen?" – wer, ergibt sich aus der Situation.' },
-      { h: 'Das Verb kommt zuletzt', t: 'Koreanische Sätze enden mit dem Verb, und erst dessen Endung verrät Höflichkeit, Zeit und oft auch, ob überhaupt eine Frage gestellt wurde. Man muss bis zum Schluss zuhören.' },
-      { h: '눈치 – die Lage lesen', t: 'Gemeint ist die Fähigkeit, Stimmung und unausgesprochene Erwartungen im Raum zu erfassen. Ein direktes Nein ist selten; stattdessen hört man „das ist etwas schwierig" – 좀 어려운데요.' },
-      { h: '화이팅!', t: 'Der Anfeuerungsruf schlechthin: beim Sport, vor Prüfungen, im Büro. Er kommt vom englischen „fighting", bedeutet aber etwas, das das Englische so nicht kennt.' }
-    ],
-    phrase: { kr: '화이팅!', roman: 'hwaiting!', de: 'Du schaffst das!' }
-  }
-};
 
 /* Zustand: welche Kultur-Schriftrollen schon einmal gezeigt wurden.
    Wird gespeichert, damit die Rolle wirklich nur EINMAL von allein
@@ -6755,55 +6899,7 @@ function showUnitJumpDialog(){
     }
   });
 }
-/* =========================================================
-   AUSBLICK (Feedback vom 25.08.2026)
-   Der Kurs endet mit Einheit 10 — die Sprache nicht. Hinter dem letzten
-   Sektor steht deshalb eine rote Schriftrolle mit dem Fahrplan für das,
-   was danach käme: acht weitere Sektoren zu je zehn Einheiten.
 
-   Die Reihenfolge ist kein Themen-Sammelsurium, sondern folgt einer
-   Strategie in vier Stufen:
-     1. HANDLUNGSFÄHIG WERDEN (Sektor 3–4): erst die Hilfskonstruktionen,
-        die aus einem Satz eine Absicht machen (können/wollen/müssen),
-        dann das Gespräch, das länger dauert als zwei Sätze.
-     2. RICHTIG SPRECHEN (Sektor 5–6): im Koreanischen ist die Wahl der
-        Sprachebene keine Stilfrage, sondern Grammatik — und ohne sie
-        kommt man in Beruf und Studium nicht weit.
-     3. FREI DENKEN (Sektor 7–8): begründen, vergleichen, vermuten — und
-        über die sino-koreanischen Bausteine den Wortschatz vervielfachen.
-        Sektor 8 ist der größte einzelne Hebel des ganzen Fahrplans.
-     4. IN DIE WILDNIS (Sektor 9–10): Koreanisch dort verstehen, wo es
-        nicht für Lernende gemacht ist — und den Unterschied zwischen
-        "verständlich" und "gut" schließen.
-   Jeder Sektor endet bewusst mit einer "Werkstatt": keine neuen Regeln,
-   sondern alles Gelernte an einer einzigen zusammenhängenden Aufgabe.
-========================================================= */
-const COURSE_OUTLOOK = [
-  { n:3, title:'Der Alltag', level:'A2',
-    goal:'Von „ich kann Sätze bilden" zu „ich komme durch den Tag". Hier kommen die Bausteine, die aus einer Aussage eine Absicht machen — können, wollen, müssen, dürfen.',
-    units:['Einkaufen & Preise', 'Wohnen & Zimmer', 'Wo genau? (위/아래/앞/뒤)', 'Wetter & Jahreszeiten', 'Körper & beim Arzt', 'Können & Dürfen: -(으)ㄹ 수 있다', 'Wollen & Müssen: -고 싶다, -아야 하다', 'Verneinen: 안 und 못', 'Verabredungen & Termine', 'Werkstatt: ein ganzer Tag auf Koreanisch'] },
-  { n:4, title:'Sprechen & Erzählen', level:'A2–B1',
-    goal:'Ein Gespräch führen, das länger dauert als zwei Sätze — und erzählen können, was gestern passiert ist.',
-    units:['Telefonieren', 'Im Lokal: bestellen und bezahlen', 'Nach dem Weg fragen', 'Vorschlagen & Einladen: -(으)ㄹ까요?', 'Bitten: -아/어 주세요', 'Gefühle & Befinden', 'Meinungen: 좋아하다, 생각하다', 'Erzählen, was war', 'Nachfragen & Missverständnisse klären', 'Werkstatt: ein echtes Gespräch'] },
-  { n:5, title:'Respekt & Nähe', level:'Register',
-    goal:'Wissen, wie man mit wem spricht. Im Koreanischen ist das keine Stilfrage, sondern Grammatik — dieselbe Aussage hat je nach Gegenüber eine andere Form.',
-    units:['반말: unter Freunden', '존댓말 im Detail', 'Das Ehren-Infix -시-', 'Eigene Höflichkeitswörter (진지, 댁, 분)', 'Anreden: 님, 씨, 선생님', 'Mit Vorgesetzten sprechen', 'In der Familie sprechen', 'Indirekte Rede', 'Weichmacher: -는데요, 좀', 'Werkstatt: dieselbe Sache dreimal sagen'] },
-  { n:6, title:'Arbeit & Studium', level:'B1',
-    goal:'Koreanisch dort, wo es auf Genauigkeit ankommt — und wo die förmliche Schriftsprache gilt, die im Alltag kaum vorkommt.',
-    units:['Im Büro', 'E-Mails schreiben', 'Termine, Fristen, Absprachen', 'Zahlen im Beruf: Prozent & Statistik', 'An der Universität', 'Bewerbung & Vorstellungsgespräch', 'Schriftsprache: -ㅂ니다체 im Text', 'Beruflich telefonieren', 'Anweisungen geben und verstehen', 'Werkstatt: eine Woche im Büro'] },
-  { n:7, title:'Meinung & Argument', level:'B1–B2',
-    goal:'Nicht nur sagen, was ist, sondern warum — und was wäre, wenn. Ab hier wird Koreanisch zur Denksprache statt zur Verständigungssprache.',
-    units:['Gründe angeben: -니까, -기 때문에', 'Bedingungen: -(으)면', 'Vermutungen: -(으)ㄹ 것 같다', 'Bedauern & Konjunktiv: -았으면', 'Zustimmen & widersprechen', 'Vergleichen: 보다, 제일', 'Zitieren: -다고 하다', 'Diskutieren', 'Zusammenfassen & auf den Punkt bringen', 'Werkstatt: eine Position vertreten'] },
-  { n:8, title:'Hanja & Wortbildung', level:'Hebel',
-    goal:'Der größte einzelne Sprung im ganzen Fahrplan. Rund 60 % des koreanischen Wortschatzes stammt aus dem Chinesischen — wer die häufigsten Bausteine kennt, versteht Tausende Wörter beim ersten Hören, ohne sie je gelernt zu haben.',
-    units:['Warum Hanja, obwohl man sie nicht schreibt', 'Die 50 häufigsten Bausteine', 'Zahlen & Maße als Bausteine', 'Menschen und Berufe: -자, -원, -사', 'Orte: -관, -장, -실', 'Die 하다-Wörter', 'Gegensatzpaare: 大/小, 上/下', 'Unbekannte Wörter erraten lernen', 'Lehnwörter aus dem Englischen', 'Werkstatt: ein Text ohne Wörterbuch'] },
-  { n:9, title:'Medien & Kultur', level:'B2',
-    goal:'Koreanisch dort verstehen, wo es nicht für Lernende gemacht ist — im Drama, im Lied, in den Nachrichten und im Chat.',
-    units:['K-Drama: Alltagssprache im Ohr', 'Songtexte lesen', 'Nachrichten & Schlagzeilen', 'Werbung, Schilder, Speisekarten', 'Netz- und Chatsprache', 'Sageuk: die Sprache der Joseon-Zeit', 'Dialekte: 부산 und 제주', 'Redewendungen & Sprichwörter', 'Humor & Wortspiele', 'Werkstatt: eine Folge ohne Untertitel'] },
-  { n:10, title:'Feinschliff', level:'B2–C1',
-    goal:'Der Unterschied zwischen „verständlich" und „gut". Lauter kleine Dinge, die zusammen ausmachen, ob man wie ein Lernender klingt oder nicht.',
-    units:['Nuancen der Partikeln: 도, 만, 조차, 라도', 'Klangwörter: 의성어 & 의태어', 'Passiv & Kausativ', 'Zusammengesetzte Endungen', 'Schreiben: Aufsatz & Bericht', 'Aussprache-Feinschliff', 'Typische Fehler von Deutschsprachigen', 'TOPIK-Vorbereitung', 'Ein ganzes Buch lesen', 'Werkstatt: frei sprechen'] }
-];
 function buildOutlookHtml(){
   const items = COURSE_OUTLOOK.map(sec => `
     <div class="outlook-item">
@@ -6820,9 +6916,7 @@ function buildOutlookHtml(){
     + items
     + `<div class="outlook-foot">Wenn du dir aus dieser Liste eine Sache herauspicken willst: <strong>Sektor 8</strong>. Hanja sind der größte Hebel, den Koreanisch zu bieten hat — dort verzehnfacht sich der Wortschatz, ohne dass man Wörter lernt. 화이팅!</div>`;
 }
-/* Waagerechte Linie mit mittig sitzender Überschrift — trennt die
-   Hangul-Einheit vom eigentlichen Sprachkurs (s. .path-section). */
-const PATH_SECTIONS = { 0: 'Hangul', 1: 'Sprache im Alltag' };
+
 function buildPathSection(label){
   const el = document.createElement('div');
   el.className = 'path-section';
@@ -7414,41 +7508,7 @@ function renderMistakesSection(el){
 /* =========================================================
    RENDERING: GRAMMATIK (noch ungefüllt)
 ========================================================= */
-/* =========================================================
-   GRAMMATIK-KONZEPT (Roadmap)
-   Zeigt, welches Grammatik-Thema zu welcher Vokabel-Einheit gehört —
-   Begründung der Reihenfolge im Projekt-Dokument "grammatik-konzept.md"
-   nachzulesen. Einträge mit "lessonId" sind bereits als echte Lektion
-   in COURSE umgesetzt (Inhalt kommt von dort, s. renderGrammar) —
-   Einträge ohne "lessonId" sind erst GEPLANT und werden Stück für Stück
-   nach demselben Muster in ihre jeweilige Einheit eingebaut. Jede
-   Einheit bekommt so genau EIN Grammatik-Thema, das inhaltlich zu ihrem
-   Wortschatz passt (z. B. Zahlen-Einheiten -> die zwei Zahlensysteme). */
-const GRAMMAR_ROADMAP = [
-  { unit:0, lessonId:'hangulBatchim' },
-  { unit:0, lessonId:'hangulPositionSounds' },
-  { unit:0, lessonId:'hangulSoundChanges' },
-  { unit:1, lessonId:'basics1Grammar1' },
-  { unit:1, lessonId:'basics1Grammar2' },
-  { unit:2, lessonId:'basics2Grammar1' },
-  { unit:2, lessonId:'basics2Grammar2' },
-  { unit:3, lessonId:'numbers1Grammar1' },
-  { unit:3, lessonId:'numbers1Grammar2' },
-  { unit:4, lessonId:'numbers2Grammar1' },
-  { unit:4, lessonId:'numbers2Grammar2' },
-  { unit:5, lessonId:'familyGrammar1' },
-  { unit:5, lessonId:'familyGrammar2' },
-  { unit:6, lessonId:'foodGrammar1' },
-  { unit:6, lessonId:'foodGrammar2' },
-  { unit:7, lessonId:'colorsGrammar1' },
-  { unit:7, lessonId:'colorsGrammar2' },
-  { unit:8, lessonId:'timeGrammar1' },
-  { unit:8, lessonId:'timeGrammar2' },
-  { unit:9, lessonId:'travelGrammar1' },
-  { unit:9, lessonId:'travelGrammar2' },
-  { unit:10, lessonId:'verbsGrammar1' },
-  { unit:10, lessonId:'verbsGrammar2' }
-];
+
 function renderGrammar(){
   const el = $('grammar');
   el.innerHTML = '';
@@ -8160,11 +8220,13 @@ function renderSettings(){
         ${fakten.woerter} Wörter</p>
     </div>
     <div class="backup-actions">
+      <button class="btn btn-primary" id="updateCheckBtn">Nach neuer Fassung suchen</button>
       <button class="btn btn-gray" id="legalBtn">Datenschutz &amp; Rechtliches</button>
       <button class="btn btn-gray" id="reportBtn">Problem melden</button>
     </div>
   `;
   el.appendChild(aboutCard);
+  $('updateCheckBtn').onclick = () => checkForUpdate(false);
   $('legalBtn').onclick = showLegalDialog;
   $('reportBtn').onclick = showReportDialog;
 
@@ -9846,6 +9908,133 @@ window.addEventListener('appinstalled', () => { installPrompt = null; });
    laden würde mitten in einer Lektion die Sitzung zerreißen; deshalb
    wird gefragt. Wer "Später" wählt, bekommt die neue Fassung ohnehin
    beim nächsten Start. */
+/* =========================================================
+   NACH EINER NEUEN FASSUNG SEHEN
+   =========================================================
+   Rückmeldung vom 26.08.2026: "Einmal auf dem Home-Bildschirm bekomme
+   ich kein Update." Das stimmte, und es lag an zwei Dingen:
+
+   1. Eine vom Startbildschirm gestartete App wird meist nicht neu
+      geladen, sondern aus dem Hintergrund geholt. Die Prüfung auf eine
+      neue Fassung hing aber allein an der Registrierung — und die läuft
+      nur beim echten Laden der Seite. Wer die App nie ganz schließt,
+      prüfte also nie.
+   2. Der Browser durfte sich sw.js selbst aus seinem Zwischenspeicher
+      holen. Dann liest er dieselbe alte Datei und stellt fest, dass sich
+      nichts geändert hat — obwohl auf dem Server längst etwas Neues
+      liegt. Dagegen hilft updateViaCache:'none' bei der Registrierung.
+
+   Die Prüfung selbst holt sw.js frisch vom Server und vergleicht die
+   Prüfsumme darin mit der eigenen. Das ist eine klare Ja/Nein-Antwort,
+   unabhängig davon, ob die Service-Worker-Mechanik gerade mitspielt —
+   und sie erlaubt es, "du hast die neueste Fassung" ehrlich zu sagen,
+   statt es nur zu vermuten.
+   ========================================================= */
+let lastUpdateCheck = 0;
+const UPDATE_CHECK_INTERVAL = 15 * 60 * 1000;   // höchstens alle 15 Minuten
+function updatesMoeglich(){
+  return 'serviceWorker' in navigator && location.protocol.startsWith('http');
+}
+/* Liefert die Prüfsumme, die gerade auf dem Server liegt — oder null,
+   wenn sich das nicht feststellen lässt (kein Netz, keine Adresse). */
+async function serverBuild(){
+  try{
+    const res = await fetch('sw.js?stand=' + Date.now(), { cache:'no-store' });
+    if(!res.ok) return null;
+    const text = await res.text();
+    const m = text.match(/const VERSION = '([^']+)'/);
+    return m ? m[1] : null;
+  }catch(e){ return null; }
+}
+/* still = automatische Prüfung im Hintergrund (meldet sich nur, wenn es
+   etwas Neues gibt). Ohne still ist es der Knopf in den Einstellungen,
+   der in jedem Fall Auskunft gibt. */
+async function checkForUpdate(stillePruefung){
+  if(!updatesMoeglich()){
+    if(!stillePruefung) showChoiceDialog({
+      title:'Keine Aktualisierung möglich',
+      message:'Diese App läuft gerade als einzelne Datei und nicht über eine Adresse. '
+        + 'Eine neue Fassung bekommst du hier nur, indem du die Datei ersetzt.',
+      buttons:[{ label:'Verstanden', className:'btn-primary' }]
+    });
+    return;
+  }
+  lastUpdateCheck = Date.now();
+  const draussen = await serverBuild();
+  const reg = await navigator.serviceWorker.getRegistration().catch(() => null);
+  if(reg) reg.update();
+
+  if(draussen && draussen !== APP_BUILD){
+    if(stillePruefung){ showUpdateBar(); return; }
+    /* Wer selbst nachgesehen hat, bekommt die Antwort im Dialog — dann
+       braucht es nicht zusätzlich die Leiste, die dasselbe sagt. */
+    updateOffered = true;
+    showChoiceDialog({
+      title:'Neue Fassung gefunden',
+      message:`Auf dem Server liegt <code>${draussen}</code>, du hast <code>${appBuildLabel()}</code>. `
+        + 'Beim Neustart wird sie geladen — dein Fortschritt und eine offene Lektion bleiben erhalten.',
+      buttons:[
+        { label:'Jetzt neu starten', className:'btn-primary', onClick:() => applyUpdateAndReload(reg, draussen) },
+        { label:'Später', className:'btn-gray' }
+      ]
+    });
+    return;
+  }
+  if(stillePruefung) return;
+  showChoiceDialog({
+    title: draussen ? 'Alles aktuell' : 'Nicht erreichbar',
+    message: draussen
+      ? `Du hast die neueste Fassung: Version ${APP_VERSION} (<code>${appBuildLabel()}</code>).`
+      : 'Der Server war gerade nicht erreichbar. Versuch es später noch einmal — '
+        + 'die App läuft in der Zwischenzeit ganz normal weiter.',
+    buttons:[{ label:'Gut', className:'btn-primary' }]
+  });
+}
+/* Liegt im Speicher schon die erwartete Fassung? Genau das ist die
+   Bedingung für einen sinnvollen Neustart — und sie lässt sich
+   nachsehen, statt sie zu schätzen. */
+async function cacheHatFassung(erwartet){
+  if(!erwartet || !('caches' in window)) return false;
+  try{
+    for(const name of await caches.keys()){
+      const c = await caches.open(name);
+      const res = await c.match('./index.html');
+      if(!res) continue;
+      const text = await res.text();
+      if(text.indexOf("APP_BUILD = '" + erwartet + "'") !== -1) return true;
+    }
+  }catch(e){ /* Speicher nicht lesbar — dann eben ohne Nachweis */ }
+  return false;
+}
+/* Neu starten, aber erst, wenn die neue Fassung wirklich bereitliegt.
+   Beim ersten Bauen wurde hier direkt im Moment des Wechsels neu
+   geladen — das ist zu früh: Die Navigation wird dann noch aus dem
+   alten Stand beantwortet, die App startet unverändert, und es sieht
+   aus, als käme das Update nicht an. */
+async function applyUpdateAndReload(reg, erwartet){
+  try{
+    if(reg) await reg.update();
+    const frist = Date.now() + 10000;
+    while(Date.now() < frist){
+      if(await cacheHatFassung(erwartet)) break;
+      await new Promise(r => setTimeout(r, 250));
+    }
+    /* Ohne bekannte Zielfassung (Server war nicht erreichbar) bleibt nur
+       eine kurze Atempause. */
+    if(!erwartet) await new Promise(r => setTimeout(r, 800));
+  }catch(e){ /* trotzdem neu starten — schlimmstenfalls ändert sich nichts */ }
+  if(exercises.length) saveOpenSession();
+  location.reload();
+}
+/* Die App vom Startbildschirm wird aus dem Hintergrund geholt, nicht neu
+   geladen — deshalb hier prüfen, wenn sie wieder nach vorn kommt. */
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState !== 'visible') return;
+  if(!updatesMoeglich()) return;
+  if(Date.now() - lastUpdateCheck < UPDATE_CHECK_INTERVAL) return;
+  checkForUpdate(true);
+});
+
 let updateOffered = false;
 function showUpdateBar(){
   if(updateOffered) return;
@@ -9853,10 +10042,13 @@ function showUpdateBar(){
   const bar = $('updateBar');
   if(!bar) return;
   bar.classList.add('show');
-  $('updateReloadBtn').onclick = () => {
-    /* Erst sichern, dann neu laden — sonst wäre die laufende Lektion weg. */
-    if(exercises.length) saveOpenSession();
-    location.reload();
+  $('updateReloadBtn').onclick = async () => {
+    $('updateReloadBtn').disabled = true;
+    $('updateReloadBtn').textContent = 'Moment …';
+    /* Denselben Weg wie der Knopf in den Einstellungen: erst prüfen, ob
+       die neue Fassung bereitliegt, dann neu starten. */
+    const reg = await navigator.serviceWorker.getRegistration().catch(() => null);
+    applyUpdateAndReload(reg, await serverBuild());
   };
   $('updateLaterBtn').onclick = () => bar.classList.remove('show');
 }
@@ -9867,7 +10059,12 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
        er dann übernimmt, ist das KEINE neue Fassung, sondern die erste.
        Ohne diese Merkung würde die Leiste jedem Neuling entgegenspringen. */
     const hatteSchonEinen = !!navigator.serviceWorker.controller;
-    navigator.serviceWorker.register('sw.js').then(reg => {
+    /* updateViaCache:'none' ist hier entscheidend: Ohne diese Angabe darf
+       der Browser sw.js aus seinem eigenen Zwischenspeicher lesen und
+       "keine Änderung" feststellen, obwohl auf dem Server längst eine
+       neue Fassung liegt. */
+    navigator.serviceWorker.register('sw.js', { updateViaCache:'none' }).then(reg => {
+      lastUpdateCheck = Date.now();
       /* Zwei Wege führen zur neuen Fassung: Entweder wir sehen sie
          installieren (updatefound), oder ein anderer Tab hat sie schon
          aktiviert und wir bekommen nur den Wechsel mit. */
