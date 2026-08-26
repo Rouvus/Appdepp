@@ -801,6 +801,35 @@
   .backup-actions{ display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;}
   .backup-actions .btn{ flex:1 1 150px; margin:0;}
   .backup-note{ margin-top:12px; font-size:0.8125rem; line-height:1.5; min-height:1px;}
+  /* Zustandszeile unter einer Einstellung — sagt, was gerade tatsächlich
+     passiert (z. B. ob die Aussprache aus Aufnahmen oder aus der
+     Gerätestimme kommt). */
+  .setting-status{ margin:6px 0 0 !important; font-size:0.75rem !important; line-height:1.45;
+    color:var(--gray-dark); font-weight:600;}
+  /* ---- Leiste "neue Fassung geladen" ----
+     Sitzt über der unteren Navigation und drängt sich bewusst nicht auf:
+     Ein Neustart mitten in der Lektion wäre ärgerlich, deshalb wird
+     gefragt statt gehandelt. */
+  #updateBar{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(64px + env(safe-area-inset-bottom));
+    width:calc(100% - 24px); max-width:calc(var(--app-w) - 24px); z-index:40;
+    display:none; align-items:center; gap:10px; padding:10px 12px; border-radius:14px;
+    background:var(--green-dark); color:#fff; box-shadow:0 6px 18px rgba(0,0,0,.28);
+    font-size:0.75rem; font-weight:700;}
+  #updateBar.show{ display:flex;}
+  #updateBar span{ flex:1; line-height:1.35;}
+  #updateBar button{ border:none; border-radius:999px; padding:7px 13px; font-family:inherit;
+    font-size:0.75rem; font-weight:800; cursor:pointer; background:#fff; color:var(--green-dark);
+    white-space:nowrap; flex-shrink:0;}
+  #updateBar button.later{ background:transparent; color:#fff; padding:7px 2px; opacity:.85;}
+  .about-line{ margin:0 0 6px; font-size:0.8125rem; color:var(--gray-dark); font-weight:600;}
+  .about-line strong{ color:var(--text);}
+  .legal-box{ text-align:left; font-size:0.8125rem; line-height:1.55; max-height:52vh; overflow-y:auto;
+    margin:0 0 18px; padding-right:4px; color:var(--text);}
+  .modal-box p:empty{ display:none;}
+  .legal-box h4{ margin:16px 0 4px; font-size:0.875rem;}
+  .legal-box h4:first-child{ margin-top:0;}
+  .legal-box p{ margin:0 0 8px;}
+  .legal-box code{ font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:0.75rem;}
   .backup-note.ok{ color:var(--green-dark); font-weight:700;}
   .backup-note.err{ color:var(--red-dark); font-weight:700;}
   .backup-box{ width:100%; min-height:110px; margin-top:12px; padding:10px; border-radius:10px;
@@ -1034,6 +1063,13 @@
     <p>Kein Problem – probier es einfach noch einmal.</p>
     <button class="btn btn-red" id="retryBtn" style="max-width:280px; margin-top:20px;">Nochmal versuchen</button>
   </div>
+  <!-- Meldet sich nur, wenn im Hintergrund eine neuere Fassung
+       angekommen ist (s. Service-Worker-Abschnitt ganz unten). -->
+  <div id="updateBar" role="status">
+    <span>Neue Fassung verfügbar</span>
+    <button type="button" id="updateReloadBtn">Neu starten</button>
+    <button type="button" class="later" id="updateLaterBtn">Später</button>
+  </div>
   <!-- UNTERE NAVIGATION -->
   <nav id="bottomNav">
     <button class="nav-btn" data-screen="home">🏠<span>Lernpfad</span></button>
@@ -1044,6 +1080,35 @@
   </nav>
 </div>
 <script>
+/* =========================================================
+   WER BIN ICH — Version, Fassung, Kontakt
+   =========================================================
+   Seit die App im Netz steht und andere Leute sie benutzen, ist die
+   erste Frage bei jeder Rückmeldung: "Welche Fassung hast du denn?"
+   Ohne eine Antwort darauf ist jede Fehlersuche Raten — zumal der
+   Service Worker eine ältere Fassung noch eine Weile ausliefern kann.
+
+   APP_VERSION wird von Hand gepflegt und beschreibt den INHALT.
+   APP_BUILD setzt build-pwa.sh beim Bauen ein (Prüfsumme der Datei)
+   und beschreibt die AUSLIEFERUNG. Wird die HTML-Datei einfach so
+   geöffnet, bleibt der Platzhalter stehen — dann steht dort "lokale
+   Datei", und das ist die richtige Auskunft.
+
+   APP_CONTACT ist das Einzige, was DU ausfüllen musst, wenn die App
+   öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
+   statt eine leere Zeile zu zeigen.
+   ========================================================= */
+const APP_VERSION = '1.4.0';
+const APP_BUILD = 'ccf4d14118df';
+const APP_CONTACT = {
+  name: '',                 // z. B. 'Vorname Nachname'
+  ort: '',                  // z. B. 'Musterstadt' (nur wenn du ein Impressum führst)
+  mail: '',                 // z. B. 'ich@example.org' — auch für "Problem melden"
+};
+function appBuildLabel(){
+  return APP_BUILD.indexOf('__') === 0 ? 'lokale Datei' : APP_BUILD;
+}
+
 /* =========================================================
    LEKTIONS-DESIGN-PRINZIP (siehe Projekt-Dokument):
    Jede neue Vokabel/jedes neue Zeichen durchläuft in dieser
@@ -3149,15 +3214,263 @@ function pickDistractorsWithFallback(pool, fallbackPool, correctVal, key, n){
    der mit SPEAK_RATE_SLOW vorliest — bei ungewohnten Lauten ist normales
    Sprechtempo zum Heraushören oft zu schnell. */
 const SPEAK_RATE_SLOW = 0.55;
+/* Aufnahmen werden langsamer ABGESPIELT statt langsamer gesprochen. 0.55
+   klingt bei einer echten Stimme schleppend und verwaschen; 0.72 ist
+   deutlich langsamer und trotzdem noch Sprache. Browser halten die
+   Tonhöhe dabei von sich aus konstant. */
+const AUDIO_RATE_SLOW = 0.72;
+
+/* =========================================================
+   AUFNAHMEN (Phase 4)
+   =========================================================
+   Die Sprachsynthese des Geräts ist ein Notnagel: Auf iPhones ist ab
+   Werk KEINE koreanische Stimme installiert, und dann passierte beim
+   Tippen auf 🔊 lautlos nichts. Deshalb kann die App jetzt echte
+   Aufnahmen abspielen, die neben ihr im Ordner `audio/` liegen.
+
+   Wichtig für den Alltag: Der Ordner ist OPTIONAL. Fehlt er — etwa
+   wenn die HTML-Datei per Doppelklick geöffnet wird —, verhält sich
+   die App exakt wie vorher und nimmt die Gerätestimme. Es gibt also
+   keine zwei Fassungen der App, nur eine, die mehr kann, wenn mehr
+   da ist.
+
+   Welche Datei zu welchem Text gehört, sagt `audio/index.json`. Die
+   Dateinamen sind ein kurzer Streuwert (FNV-1a, 32 Bit) über den Text
+   selbst — dieselbe Formel steckt im Erzeugungs-Skript
+   (tools/audio-erzeugen.py), damit beide Seiten ohne Absprache auf
+   denselben Namen kommen.
+   ========================================================= */
+const AUDIO_BASE = 'audio/';
+let audioIndex = null;        // Set der vorhandenen Streuwerte, null = noch nichts geladen
+let audioIndexInfo = null;    // { voice, format, count } — nur für die Einstellungen
+let currentAudioEl = null;
+
+function audioHash(text){
+  /* FNV-1a über die UTF-8-Bytes. Bewusst keine Krypto-Funktion:
+     crypto.subtle gibt es bei file:// gar nicht und es ist asynchron. */
+  const bytes = new TextEncoder().encode(String(text).trim());
+  let h = 0x811c9dc5;
+  for(let i = 0; i < bytes.length; i++){
+    h ^= bytes[i];
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return ('0000000' + h.toString(16)).slice(-8);
+}
+function hasRecording(text){
+  return !!(audioIndex && text && audioIndex.has(audioHash(text)));
+}
+function recordingsAvailable(){
+  return !!(audioIndex && audioIndex.size);
+}
+/* Ob überhaupt irgendetwas zu hören ist — Aufnahmen ODER Gerätestimme. */
+function pronunciationAvailable(){
+  return recordingsAvailable() || koreanVoiceAvailable;
+}
+/* Einmal beim Start: Gibt es den Ordner? Bei file:// schlägt das fetch
+   an der Sicherheitsregel des Browsers fehl, bei einer normalen Adresse
+   ohne Ordner mit 404 — beides landet still im selben Zweig. */
+function loadAudioIndex(){
+  let url;
+  try{ url = new URL(AUDIO_BASE + 'index.json', location.href).href; }
+  catch(e){ return Promise.resolve(); }
+  return fetch(url, { cache:'no-cache' })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if(!data || !Array.isArray(data.items)) return;
+      audioIndex = new Set(data.items.map(it => String(it.file).replace(/\.[a-z0-9]+$/i, '')));
+      audioIndexInfo = { voice:data.voice || null, format:data.format || 'mp3', count:audioIndex.size };
+      /* Mit Aufnahmen sind Hörübungen auch dann möglich, wenn das Gerät
+         keine koreanische Stimme hat — das war bisher die Bedingung. */
+      updateHeaderStats();
+    })
+    .catch(() => { /* keine Aufnahmen vorhanden — Gerätestimme genügt */ });
+}
+function stopSpeaking(){
+  if(currentAudioEl){
+    try{ currentAudioEl.pause(); }catch(e){ /* egal */ }
+    currentAudioEl = null;
+  }
+  if('speechSynthesis' in window){
+    try{ window.speechSynthesis.cancel(); }catch(e){ /* egal */ }
+  }
+}
+/* rate: Sprechgeschwindigkeit, 1 = normal. Für die Hörverstehen-Übung gibt
+   es zusätzlich einen "Langsam & deutlich"-Knopf (Feedback vom 24.08.2026),
+   der langsamer vorliest — bei ungewohnten Lauten ist normales
+   Sprechtempo zum Heraushören oft zu schnell. */
 function speak(text, rate){
-  if(!text || !('speechSynthesis' in window)) return;
+  if(!text) return;
+  stopSpeaking();
+  if(hasRecording(text)){
+    try{
+      const el = new Audio(AUDIO_BASE + audioHash(text) + '.' + (audioIndexInfo && audioIndexInfo.format || 'mp3'));
+      el.playbackRate = rate && rate < 1 ? AUDIO_RATE_SLOW : 1;
+      /* Sollte die Datei doch fehlen oder das Format nicht spielbar sein,
+         übernimmt still die Gerätestimme. */
+      el.onerror = () => { if(currentAudioEl === el){ currentAudioEl = null; speakWithVoice(text, rate); } };
+      currentAudioEl = el;
+      const started = el.play();
+      if(started && started.catch) started.catch(() => {
+        /* Manche Browser verlangen eine vorherige Nutzergeste. Die haben
+           wir hier immer (der Knopf wurde ja getippt) — falls doch nicht,
+           bleibt die Gerätestimme. */
+        if(currentAudioEl === el){ currentAudioEl = null; speakWithVoice(text, rate); }
+      });
+      return;
+    }catch(e){ /* weiter mit der Gerätestimme */ }
+  }
+  speakWithVoice(text, rate);
+}
+function speakWithVoice(text, rate){
+  if(!('speechSynthesis' in window)) return;
   try{
-    window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'ko-KR';
     if(rate) u.rate = rate;
     window.speechSynthesis.speak(u);
   }catch(e){ /* Sprachausgabe auf diesem Gerät nicht verfügbar */ }
+}
+/* Wenn weder Aufnahmen noch eine koreanische Stimme da sind, darf der
+   Knopf nicht einfach stumm bleiben — genau das wirkte bisher wie ein
+   kaputter Knopf. Einmal pro App-Start wird stattdessen erklärt, woran
+   es liegt und was man dagegen tun kann. */
+/* =========================================================
+   ÜBER DIE APP · RECHTLICHES · PROBLEM MELDEN
+   =========================================================
+   Alles drei hängt an derselben Frage: Wer benutzt gerade was, und
+   wie erfahre ich davon? Solange nur eine Person mit einer Datei
+   lernte, brauchte es das nicht. Seit die App im Netz steht, ist es
+   das Erste, was fehlt.
+   ========================================================= */
+function courseFacts(){
+  /* COURSE_UNITS enthält Einheit 0 (Hangul) plus alle Sprach-Einheiten —
+     nicht die topic-Felder abzählen: die Hangul-Einheit hat keins. */
+  const einheiten = Object.keys(COURSE_UNITS).length;
+  const lektionen = COURSE.filter(l => l.type !== 'review').length;
+  const woerter = getAllVocabEver().length + getAllHangulWordsEver().length;
+  return { einheiten, lektionen, woerter, schritte: COURSE.length };
+}
+/* Der Datenschutz-Text ist kurz, weil die App wirklich nichts sendet —
+   genau das soll dort auch stehen, nachprüfbar formuliert. */
+function legalHtml(){
+  const k = APP_CONTACT;
+  const kontakt = (k.name || k.mail)
+    ? `<p>${k.name ? k.name + '<br>' : ''}${k.ort ? k.ort + '<br>' : ''}`
+      + `${k.mail ? '<a href="mailto:' + k.mail + '">' + k.mail + '</a>' : ''}</p>`
+    : '<p><em>Noch nicht ausgefüllt. Wer die App öffentlich bereitstellt, trägt Name und '
+      + 'Kontakt in <code>APP_CONTACT</code> am Anfang der Datei ein.</em></p>';
+  return `<div class="legal-box">
+    <h4>Deine Daten</h4>
+    <p>Diese App hat keine Konten, keine Anmeldung und keine Auswertung. Dein gesamter
+    Lernfortschritt — beantwortete Fragen, Streak, Merkliste, Einstellungen — liegt
+    ausschließlich im Speicher deines Browsers auf diesem Gerät (<code>localStorage</code>)
+    und wird an niemanden übertragen. Es gibt keine Werbung, keine Zählpixel und keine
+    fremden Skripte; auch die Schriftart liegt in der App selbst statt bei Google.</p>
+    <p>Übertragen wird nur, was jede Webseite überträgt: Beim Aufruf holt dein Browser die
+    Dateien der App vom Webspeicher, auf dem sie liegt. Dessen Betreiber sieht dabei — wie
+    bei jedem Seitenaufruf im Internet — deine IP-Adresse. Danach läuft die App offline
+    weiter.</p>
+    <p>Die Aussprache erzeugt dein Gerät selbst oder sie kommt aus mitgelieferten
+    Aufnahmen. Es wird dafür nichts an einen Sprachdienst geschickt.</p>
+    <p><strong>Löschen:</strong> Browserdaten für diese Seite löschen entfernt alles
+    restlos. Vorher lohnt sich „Fortschritt sichern“ weiter oben.</p>
+    <h4>Verantwortlich</h4>
+    ${kontakt}
+    <h4>Verwendete Arbeiten</h4>
+    <p><strong>Noto Serif KR</strong> — Google, SIL Open Font License 1.1. Die App liefert
+    einen auf die vorkommenden Zeichen reduzierten Ausschnitt der Schrift mit.</p>
+    <p>Inhalt, Aufbau und Programmierung des Kurses stammen von den Betreibern dieser App.</p>
+    <h4>Fassung</h4>
+    <p>Version ${APP_VERSION} · Auslieferung <code>${appBuildLabel()}</code></p>
+  </div>`;
+}
+function showLegalDialog(){
+  showChoiceDialog({
+    title:'Datenschutz &amp; Rechtliches',
+    message:'',
+    extraHtml:legalHtml(),
+    buttons:[{ label:'Schließen', className:'btn-primary' }]
+  });
+}
+/* Eine Fehlermeldung ohne Angaben zum Gerät ist meist unbrauchbar.
+   Deshalb sammelt die App sie selbst ein und legt sie zum Kopieren
+   bereit — und öffnet zusätzlich die Mail, falls eine Adresse
+   hinterlegt ist. Bewusst NUR technische Angaben, nichts Persönliches. */
+function diagnosticsText(){
+  const l = currentLessonIdx !== null && COURSE[currentLessonIdx] ? COURSE[currentLessonIdx].id : '—';
+  const zeilen = [
+    'Version:      ' + APP_VERSION + ' (' + appBuildLabel() + ')',
+    'Adresse:      ' + location.origin + location.pathname,
+    'Browser:      ' + navigator.userAgent,
+    'Bildschirm:   ' + window.innerWidth + '×' + window.innerHeight,
+    'Farbwelt:     ' + settings.theme + ' → ' + effectiveTheme(),
+    'Aussprache:   ' + (recordingsAvailable() ? 'Aufnahmen' : koreanVoiceAvailable ? 'Gerätestimme' : 'keine'),
+    'Fortschritt:  ' + completed.size + ' Lektionen, ' + masteredQuestions.size + ' Fragen',
+    'Zuletzt:      ' + l,
+    '',
+    'Was ist passiert?',
+    '',
+  ];
+  return zeilen.join('\n');
+}
+function showReportDialog(){
+  const text = diagnosticsText();
+  const knoepfe = [{ label:'Schließen', className:'btn-gray' }];
+  if(APP_CONTACT.mail){
+    knoepfe.unshift({ label:'Als Mail öffnen', className:'btn-primary', onClick:() => {
+      const url = 'mailto:' + APP_CONTACT.mail
+        + '?subject=' + encodeURIComponent('Koreanisch-App ' + APP_VERSION)
+        + '&body=' + encodeURIComponent(text);
+      location.href = url;
+    }});
+  }
+  showChoiceDialog({
+    title:'Problem melden',
+    message:'Beschreibe unten kurz, was passiert ist, und schick den ganzen Text weiter. '
+      + 'Die technischen Angaben stehen schon drin — ohne sie ist ein Fehler meist nicht zu finden.',
+    extraHtml:'<textarea class="backup-box" id="reportBox" rows="10"></textarea>',
+    buttons:knoepfe,
+    onReady:(box) => {
+      const ta = box.querySelector('#reportBox');
+      ta.value = text;
+      ta.focus();
+      /* Cursor ans Ende, damit sofort losgeschrieben werden kann. */
+      try{ ta.setSelectionRange(ta.value.length, ta.value.length); }catch(e){ /* egal */ }
+    }
+  });
+}
+/* Eine Zeile in den Einstellungen, die verrät, was gerade tatsächlich
+   klingt — Aufnahmen, Gerätestimme oder nichts. Ohne sie wäre für
+   niemanden nachvollziehbar, warum es bei ihm still ist. */
+function pronunciationStatusText(){
+  if(recordingsAvailable()){
+    const n = audioIndexInfo ? audioIndexInfo.count : 0;
+    return `🎧 Aufnahmen aktiv (${n} Texte)` + (koreanVoiceAvailable
+      ? ' — für alles Übrige springt die Gerätestimme ein.'
+      : '.');
+  }
+  if(koreanVoiceAvailable) return '🗣️ Es spricht die koreanische Stimme deines Geräts.';
+  return '🔇 Dieses Gerät hat keine koreanische Stimme installiert — der Lautsprecher '
+       + 'erklärt beim Antippen, wie du sie nachlädst. Hörverstehen-Übungen entfallen so lange.';
+}
+let noVoiceExplained = false;
+function explainMissingVoice(){
+  if(noVoiceExplained) return;
+  noVoiceExplained = true;
+  const ua = navigator.userAgent || '';
+  const ios = /iPad|iPhone|iPod/.test(ua)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const weg = ios
+    ? 'Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Koreanisch'
+    : 'Einstellungen → Sprachen &amp; Eingabe → Sprachausgabe → koreanische Stimme laden';
+  showChoiceDialog({
+    title:'Auf diesem Gerät fehlt die Stimme',
+    message:'Dein Gerät hat noch keine koreanische Sprachausgabe installiert — deshalb bleibt der '
+      + 'Lautsprecher stumm. Du lädst sie einmalig hier nach:<br><br><strong>' + weg + '</strong>'
+      + '<br><br>Bis dahin funktioniert alles andere ganz normal; nur die Hörverstehen-Übungen '
+      + 'lässt die App aus.',
+    buttons:[{ label:'Verstanden', className:'btn-primary' }]
+  });
 }
 function escapeAttr(str){
   return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
@@ -3362,7 +3675,13 @@ function romanHtml(roman, className){
 // Lautsprecher INNERHALB einer Antwort-Option diese nicht zusätzlich auswählt.
 document.addEventListener('click', (e) => {
   const btn = e.target.closest('.speak-btn');
-  if(btn){ e.stopPropagation(); e.preventDefault(); speak(btn.dataset.speak || ''); }
+  if(btn){
+    e.stopPropagation(); e.preventDefault();
+    /* Stumm bleiben ist keine Antwort: Wer weder Aufnahmen noch eine
+       Gerätestimme hat, bekommt einmalig gesagt, woran es liegt. */
+    if(!pronunciationAvailable()){ explainMissingVoice(); return; }
+    speak(btn.dataset.speak || '');
+  }
 }, true);
 /* Wort-für-Wort-Übersetzung im "Richtig: ..."-Feedback einer falsch
    beantworteten Satzbau-Übung (Feedback vom 24.08.2026, s. .gloss-word/
@@ -3511,7 +3830,16 @@ function refreshKoreanVoice(){
 let listenAsked = false;
 let listenAllowedThisRun = true;
 function listenExercisesAvailable(){
-  return !!settings.listenExercises && koreanVoiceAvailable && listenAllowedThisRun;
+  /* Seit Phase 4 genügen Aufnahmen — die koreanische Gerätestimme ist
+     nur noch einer von zwei Wegen (s. pronunciationAvailable). */
+  return !!settings.listenExercises && pronunciationAvailable() && listenAllowedThisRun;
+}
+/* Für EINEN bestimmten Text: Können wir ihn hörbar machen? Bei
+   unvollständigem Audio-Ordner (z. B. während des Erzeugens) hat nicht
+   jedes Wort eine Aufnahme — dann rettet nur die Gerätestimme, und wenn
+   auch die fehlt, darf daraus keine stumme Hörübung werden. */
+function canSpeak(text){
+  return koreanVoiceAvailable || hasRecording(text);
 }
 function makeListenExercise(item, pool, entryKind, phase, lessonId, idOverride){
   const id = idOverride || `${entryKind}:${lessonId || 'mixed'}:${item.kr}:listen`;
@@ -5222,7 +5550,7 @@ function buildReviewApplyExercises(lesson){
     if(romanizeEx) exs.push(romanizeEx);
     // Hörverstehen (Feedback vom 24.08.2026): nur, wenn das Gerät
     // überhaupt eine koreanische Stimme hat — s. listenExercisesAvailable.
-    if(listenExercisesAvailable()) exs.push(makeListenExercise(v, vocabPool, 'vocab', 'apply', lessonId));
+    if(listenExercisesAvailable() && canSpeak(v.kr)) exs.push(makeListenExercise(v, vocabPool, 'vocab', 'apply', lessonId));
   });
   wordItems.forEach(({ w, lessonId }) => {
     exs.push(makeHangulWordMcExercise(w, wordPool, 'term-to-meaning', 'apply', lessonId));
@@ -5238,7 +5566,7 @@ function buildReviewApplyExercises(lesson){
     }
     const romanizeEx = makeRomanizeWordExercise(w, 'apply', lessonId);
     if(romanizeEx) exs.push(romanizeEx);
-    if(listenExercisesAvailable()) exs.push(makeListenExercise(w, wordPool, 'hangulword', 'apply', lessonId));
+    if(listenExercisesAvailable() && canSpeak(w.kr)) exs.push(makeListenExercise(w, wordPool, 'hangulword', 'apply', lessonId));
   });
   // Neu (Feedback vom 22.08.2026): Lückentext-/Satzbau-Beispiele aus
   // bereits abgeschlossenen Grammatik-/Vokabel-Lektionen fließen ebenfalls
@@ -5525,12 +5853,12 @@ function buildPracticeExercisePool(){
   vocabPool.forEach(v => {
     exs.push(makeVocabMcExercise(v, vocabPool, 'term-to-meaning', 'practice', null));
     exs.push(makeVocabMcExercise(v, vocabPool, 'meaning-to-term', 'practice', null));
-    if(withListen) exs.push(makeListenExercise(v, vocabPool, 'vocab', 'practice', null));
+    if(withListen && canSpeak(v.kr)) exs.push(makeListenExercise(v, vocabPool, 'vocab', 'practice', null));
   });
   wordPool.forEach(w => {
     exs.push(makeHangulWordMcExercise(w, wordPool, 'term-to-meaning', 'practice', null));
     exs.push(makeHangulWordMcExercise(w, wordPool, 'meaning-to-term', 'practice', null));
-    if(withListen) exs.push(makeListenExercise(w, wordPool, 'hangulword', 'practice', null));
+    if(withListen && canSpeak(w.kr)) exs.push(makeListenExercise(w, wordPool, 'hangulword', 'practice', null));
   });
   return exs;
 }
@@ -5657,7 +5985,7 @@ function rebuildExerciseFromMistake(m){
     const item = { kr:m.term, roman:m.roman, de:m.de };
     let pool = m.entryKind === 'hangulword' ? getLearnedHangulWords() : getLearnedVocabPool();
     if(!pool.some(p => p.kr === m.term)) pool = [...pool, item];
-    if(listenExercisesAvailable()) return makeListenExercise(item, pool, m.entryKind, 'mistakes', m.lessonId, m.id);
+    if(listenExercisesAvailable() && canSpeak(item.kr)) return makeListenExercise(item, pool, m.entryKind, 'mistakes', m.lessonId, m.id);
     return m.entryKind === 'hangulword'
       ? makeHangulWordMcExercise(item, pool, 'term-to-meaning', 'mistakes', m.lessonId, m.id)
       : makeVocabMcExercise(item, pool, 'term-to-meaning', 'mistakes', m.lessonId, m.id);
@@ -7242,6 +7570,7 @@ function renderSettings(){
       <div class="setting-text">
         <h3>Aussprache</h3>
         <p>Zeigt ein Lautsprecher-Symbol, mit dem du dir die Aussprache eines Wortes anhören kannst.</p>
+        <p class="setting-status">${pronunciationStatusText()}</p>
       </div>
       <label class="switch">
         <input type="checkbox" id="togglePronunciation" ${settings.showPronunciation ? 'checked' : ''}>
@@ -7330,6 +7659,31 @@ function renderSettings(){
       renderSettings();
     };
   }
+
+  /* ---- Über die App ----
+     Ganz unten, weil es niemand täglich braucht — aber auffindbar,
+     weil es die erste Anlaufstelle ist, wenn etwas nicht stimmt. */
+  const fakten = courseFacts();
+  const aboutCard = document.createElement('div');
+  aboutCard.className = 'trainer-card';
+  aboutCard.style.textAlign = 'left';
+  aboutCard.style.marginTop = '20px';
+  aboutCard.innerHTML = `
+    <div class="setting-text">
+      <h3>Über die App</h3>
+      <p class="about-line">Version <strong>${APP_VERSION}</strong> · Auslieferung
+        <strong>${appBuildLabel()}</strong></p>
+      <p class="about-line">${fakten.einheiten} Einheiten · ${fakten.lektionen} Lektionen ·
+        ${fakten.woerter} Wörter</p>
+    </div>
+    <div class="backup-actions">
+      <button class="btn btn-gray" id="legalBtn">Datenschutz &amp; Rechtliches</button>
+      <button class="btn btn-gray" id="reportBtn">Problem melden</button>
+    </div>
+  `;
+  el.appendChild(aboutCard);
+  $('legalBtn').onclick = showLegalDialog;
+  $('reportBtn').onclick = showReportDialog;
 
   // ---- Gefahrenzone: alle Lerninhalt-Fortschritte zurücksetzen ----
   const dangerCard = document.createElement('div');
@@ -8928,6 +9282,10 @@ if('speechSynthesis' in window){
   try{ window.speechSynthesis.addEventListener('voiceschanged', refreshKoreanVoice); }
   catch(e){ /* älterer Browser ohne addEventListener auf speechSynthesis */ }
 }
+/* Liegt neben der App ein Ordner mit Aufnahmen? Das darf den Start nicht
+   aufhalten — die Antwort kommt, wenn sie kommt, und bis dahin gilt
+   einfach der bisherige Zustand. */
+loadAudioIndex();
 applyTheme();
 updateHeaderStats();
 // Erst den Lernpfad aufbauen (damit im Hintergrund etwas steht), dann ggf.
@@ -8976,11 +9334,50 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 window.addEventListener('appinstalled', () => { installPrompt = null; });
 
+/* Die Leiste "neue Fassung" — bewusst ein Angebot, kein Neustart.
+   Der Service Worker übernimmt zwar sofort (skipWaiting), aber die
+   geöffnete Seite läuft weiter mit dem alten Code. Von selbst neu zu
+   laden würde mitten in einer Lektion die Sitzung zerreißen; deshalb
+   wird gefragt. Wer "Später" wählt, bekommt die neue Fassung ohnehin
+   beim nächsten Start. */
+let updateOffered = false;
+function showUpdateBar(){
+  if(updateOffered) return;
+  updateOffered = true;
+  const bar = $('updateBar');
+  if(!bar) return;
+  bar.classList.add('show');
+  $('updateReloadBtn').onclick = () => {
+    /* Erst sichern, dann neu laden — sonst wäre die laufende Lektion weg. */
+    if(exercises.length) saveOpenSession();
+    location.reload();
+  };
+  $('updateLaterBtn').onclick = () => bar.classList.remove('show');
+}
+
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {
+    /* Beim allerersten Besuch gibt es noch keinen Service Worker; wenn
+       er dann übernimmt, ist das KEINE neue Fassung, sondern die erste.
+       Ohne diese Merkung würde die Leiste jedem Neuling entgegenspringen. */
+    const hatteSchonEinen = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      /* Zwei Wege führen zur neuen Fassung: Entweder wir sehen sie
+         installieren (updatefound), oder ein anderer Tab hat sie schon
+         aktiviert und wir bekommen nur den Wechsel mit. */
+      reg.addEventListener('updatefound', () => {
+        const sw = reg.installing;
+        if(!sw) return;
+        sw.addEventListener('statechange', () => {
+          if(sw.state === 'installed' && navigator.serviceWorker.controller) showUpdateBar();
+        });
+      });
+    }).catch(() => {
       /* Kein Service Worker (z. B. privater Modus) — die App läuft weiter. */
     });
+    if(hatteSchonEinen){
+      navigator.serviceWorker.addEventListener('controllerchange', showUpdateBar);
+    }
   });
 }
 

@@ -15,7 +15,7 @@
    VERSION wird beim Bauen (build-pwa.sh) automatisch gesetzt. Ändert
    sich die App, ändert sich die Version, und der alte Speicher wird
    verworfen. */
-const VERSION = '3d05a8dcdcd7';
+const VERSION = 'ccf4d14118df';
 const CACHE = 'koreanisch-' + VERSION;
 const ASSETS = [
   './',
@@ -41,8 +41,33 @@ self.addEventListener('activate', (event) => {
         keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))
       ))
       .then(() => self.clients.claim())
+      .then(() => precacheAudio())
   );
 });
+
+/* Die Sprachaufnahmen im Hintergrund nachladen.
+   Sie werden zwar ohnehin beim ersten Abspielen abgelegt (s. fetch weiter
+   unten) — aber genau darauf darf man sich nicht verlassen: Wer die App
+   installiert und dann im Zug ohne Netz lernt, hätte sonst Aufnahmen nur
+   für die Wörter, die er zufällig schon einmal angehört hat.
+   Bewusst in kleinen Gruppen und mit allSettled: eine einzelne fehlende
+   Datei darf den ganzen Vorgang nicht abbrechen. Fehlt der Ordner ganz
+   (noch keine Aufnahmen erzeugt), endet das hier still nach dem 404. */
+async function precacheAudio() {
+  try {
+    const res = await fetch('./audio/index.json', { cache: 'no-cache' });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data || !Array.isArray(data.items)) return;
+    const cache = await caches.open(CACHE);
+    const files = data.items.map((it) => './audio/' + it.file).concat(['./audio/index.json']);
+    for (let i = 0; i < files.length; i += 20) {
+      await Promise.allSettled(files.slice(i, i + 20).map((f) => cache.add(f)));
+    }
+  } catch (err) {
+    /* keine Aufnahmen vorhanden oder kein Netz — beides unkritisch */
+  }
+}
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
