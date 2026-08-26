@@ -821,6 +821,42 @@
     font-size:0.75rem; font-weight:800; cursor:pointer; background:#fff; color:var(--green-dark);
     white-space:nowrap; flex-shrink:0;}
   #updateBar button.later{ background:transparent; color:#fff; padding:7px 2px; opacity:.85;}
+  /* ---- Sprung-Knopf und Einheiten-Liste ---- */
+  #jumpBtn{ position:fixed; right:14px; bottom:calc(66px + env(safe-area-inset-bottom));
+    z-index:30; display:none; align-items:center; gap:6px;
+    padding:8px 13px; border-radius:999px; border:2px solid var(--gray);
+    background:var(--bg); color:var(--text); font-family:inherit;
+    font-size:0.75rem; font-weight:800; cursor:pointer;
+    box-shadow:0 4px 14px rgba(0,0,0,.18);}
+  #jumpBtn.show{ display:flex;}
+  #jumpBtn:active{ transform:translateY(1px);}
+  .jump-list{ text-align:left; max-height:56vh; overflow-y:auto; margin:0 0 16px;
+    display:flex; flex-direction:column; gap:4px;}
+  .jump-row{ display:flex; align-items:center; gap:10px; width:100%; text-align:left;
+    padding:9px 10px; border:none; border-radius:10px; background:var(--card-bg);
+    font-family:inherit; color:var(--text); cursor:pointer;}
+  .jump-row:disabled{ opacity:.45; cursor:default;}
+  .jump-row.now{ background:var(--option-selected-bg); box-shadow:inset 0 0 0 2px var(--green);}
+  .jump-mark{ width:18px; text-align:center; font-size:0.8125rem; flex-shrink:0;}
+  .jump-name{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px;}
+  .jump-name strong{ font-size:0.8125rem;}
+  .jump-name small{ font-size:0.6875rem; color:var(--gray-dark); overflow:hidden;
+    text-overflow:ellipsis; white-space:nowrap;}
+  .jump-count{ font-size:0.6875rem; font-weight:700; color:var(--gray-dark);
+    font-variant-numeric:tabular-nums; flex-shrink:0;}
+  /* ---- Wochenrückblick ---- */
+  .week-chart{ display:flex; gap:6px; align-items:flex-end; margin:14px 0 4px; height:74px;}
+  .week-col{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%;}
+  .week-bar-slot{ flex:1; width:100%; display:flex; align-items:flex-end;}
+  .week-bar{ width:100%; border-radius:5px 5px 2px 2px; background:var(--green);
+    transition:height .3s ease;}
+  .week-bar.today{ background:var(--yellow);}
+  .week-bar.empty{ background:var(--gray);}
+  .week-col span{ font-size:0.625rem; font-weight:700; color:var(--gray-dark);}
+  .week-figures{ display:flex; gap:6px; margin-top:12px; border-top:1px solid var(--gray); padding-top:12px;}
+  .week-figures div{ flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;}
+  .week-figures strong{ font-size:1.0625rem; font-variant-numeric:tabular-nums;}
+  .week-figures span{ font-size:0.625rem; font-weight:700; color:var(--gray-dark);}
   .about-line{ margin:0 0 6px; font-size:0.8125rem; color:var(--gray-dark); font-weight:600;}
   .about-line strong{ color:var(--text);}
   .legal-box{ text-align:left; font-size:0.8125rem; line-height:1.55; max-height:52vh; overflow-y:auto;
@@ -939,7 +975,14 @@
   }
   /* Die Landschaft im Hintergrund ist bereits in dunklen Jadetönen
      gemalt — sie muss nur zurücktreten, nicht umgefärbt werden. */
-  body.theme-night #joseonBg{ filter:brightness(.5) saturate(.75);}
+  /* Bewusst KEIN filter: Ein Filter auf dem Elternteil müsste bei jeder
+     Verschiebung des Hintergrunds neu angewandt werden — genau die Art
+     Arbeit pro Bild, die das Zittern verursacht hat. Ein ruhender
+     Schleier darüber kostet nichts und wirkt genauso. */
+  body.theme-night #joseonBg::after{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:rgba(10,15,12,.55);
+  }
   /* Die feinen Trennlinien der Joseon-Bausteine sind dunkle Tinte auf
      hellem Papier — bei Nacht wäre das unsichtbar. */
   body.theme-night #app{
@@ -973,7 +1016,14 @@
   body.theme-night .feedback.correct{ color:#9cd0b0;}
   body.theme-night .option.wrong,
   body.theme-night .feedback.wrong{ color:#f0a49c;}
-  #joseonBg svg{ width:100%; height:100%; display:block;}
+  /* Eine volle Kachelhöhe höher als das Fenster: Das Bild wird beim
+     Scrollen um bis zu 900 px nach oben geschoben (s. applyJoseonParallax),
+     und unten darf dabei keine Kante auftauchen.
+     will-change kündigt dem Browser an, dass hier verschoben wird — er
+     legt die Fläche dann von vornherein auf eine eigene Ebene, statt
+     sie beim ersten Scrollen umzubauen. */
+  #joseonBg svg{ width:100%; height:calc(100% + 900px); display:block;
+    will-change:transform; backface-visibility:hidden;}
 </style>
 </head>
 <body>
@@ -1063,6 +1113,8 @@
     <p>Kein Problem – probier es einfach noch einmal.</p>
     <button class="btn btn-red" id="retryBtn" style="max-width:280px; margin-top:20px;">Nochmal versuchen</button>
   </div>
+  <!-- Sprung zu einer Einheit — nur auf dem Lernpfad sichtbar. -->
+  <button type="button" id="jumpBtn" aria-label="Zu einer Einheit springen">🗺️<span>Einheiten</span></button>
   <!-- Meldet sich nur, wenn im Hintergrund eine neuere Fassung
        angekommen ist (s. Service-Worker-Abschnitt ganz unten). -->
   <div id="updateBar" role="status">
@@ -1098,8 +1150,8 @@
    öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
    statt eine leere Zeile zu zeigen.
    ========================================================= */
-const APP_VERSION = '1.4.0';
-const APP_BUILD = 'ccf4d14118df';
+const APP_VERSION = '1.5.0';
+const APP_BUILD = 'd784ac55947a';
 const APP_CONTACT = {
   name: '',                 // z. B. 'Vorname Nachname'
   ort: '',                  // z. B. 'Musterstadt' (nur wenn du ein Impressum führst)
@@ -2860,6 +2912,7 @@ function saveState(){
       masteredQuestions: Array.from(masteredQuestions),
       questionMemory,
       dailyStats,
+      weekLog,
       cultureSeen: Array.from(cultureSeen),
       reviewLastUsed,
       openSession,
@@ -3082,6 +3135,62 @@ function addDailyXp(amount){
   const today = todayStr();
   if(dailyStats.date !== today) dailyStats = { date: today, xp: 0 };
   dailyStats.xp += amount;
+  logDay('xp', amount);
+}
+
+/* =========================================================
+   WOCHENBUCH
+   =========================================================
+   dailyStats kennt nur HEUTE — das genügt für den Tagesziel-Ring, aber
+   damit lässt sich am Sonntag nicht sagen, was die Woche gebracht hat.
+   Deshalb ein winziges Tagebuch: pro Tag vier Zahlen, und nur die
+   letzten 14 Tage. Mehr wäre Datensammlung ohne Zweck; 14 Tage reichen
+   für „diese Woche" und „letzte Woche" und halten den Speicherstand
+   klein (rund 60 Zeichen pro Tag).
+
+   Alles bleibt auf dem Gerät — es wird nichts übertragen, und die
+   Sicherungsdatei nimmt es einfach mit.
+   ========================================================= */
+const WEEKLOG_DAYS = 14;
+let weekLog = (saved && saved.weekLog && typeof saved.weekLog === 'object') ? saved.weekLog : {};
+function logDay(feld, wert){
+  const today = todayStr();
+  if(!weekLog[today]) weekLog[today] = { xp:0, fragen:0, richtig:0, lektionen:0 };
+  weekLog[today][feld] = (weekLog[today][feld] || 0) + (wert || 0);
+  pruneWeekLog();
+}
+function pruneWeekLog(){
+  const today = todayStr();
+  Object.keys(weekLog).forEach(d => {
+    if(daysBetweenStr(d, today) > WEEKLOG_DAYS || daysBetweenStr(d, today) < 0) delete weekLog[d];
+  });
+}
+/* Die letzten sieben Tage, ältester zuerst — auch die leeren, denn eine
+   Lücke in der Woche ist selbst eine Aussage. */
+function lastSevenDays(){
+  const heute = new Date(todayStr() + 'T00:00:00Z');
+  const tage = [];
+  for(let i = 6; i >= 0; i--){
+    const d = new Date(heute.getTime() - i * 86400000);
+    const key = d.toISOString().slice(0, 10);
+    const e = weekLog[key] || { xp:0, fragen:0, richtig:0, lektionen:0 };
+    tage.push({ datum:key, wochentag:['So','Mo','Di','Mi','Do','Fr','Sa'][d.getUTCDay()], ...e });
+  }
+  return tage;
+}
+function weekSummary(){
+  const tage = lastSevenDays();
+  const summe = (f) => tage.reduce((a, t) => a + (t[f] || 0), 0);
+  const aktiv = tage.filter(t => t.fragen > 0).length;
+  const fragen = summe('fragen');
+  return {
+    tage, aktiv, fragen,
+    richtig: summe('richtig'),
+    xp: summe('xp'),
+    lektionen: summe('lektionen'),
+    quote: fragen ? Math.round(summe('richtig') / fragen * 100) : 0,
+    bestesXp: Math.max(1, ...tage.map(t => t.xp || 0)),
+  };
 }
 /* Merkt sich pro Wiederholungslektion (id -> Array von masteryKeyFor-
    Schlüsseln) die beim LETZTEN Durchlauf gezeigten Inhalte/Übungsformen,
@@ -3107,7 +3216,14 @@ const DEFAULT_SETTINGS = { showRoman:true, showPronunciation:true, unlockAll:fal
   /* Hörverstehen-Übungen ("listen"): nur sinnvoll, wenn das Gerät
      überhaupt koreanische Sprachausgabe hat, deshalb zusätzlich zur
      Einstellung noch die Geräte-Prüfung in hasKoreanVoice(). */
-  listenExercises:true };
+  listenExercises:true,
+  /* Ton und Vibration bei richtig/falsch (26.08.2026). Beide sind
+     standardmäßig AN: Eine Rückmeldung, die man erst suchen und
+     einschalten muss, findet niemand — und beide sind mit einem
+     Fingertipp wieder weg. Der Ton ist leise und kürzer als eine
+     Viertelsekunde, die Vibration ein einzelner kurzer Impuls. */
+  sounds:true,
+  haptics:true };
 let settings = Object.assign({}, DEFAULT_SETTINGS, (saved && saved.settings) ? saved.settings : {});
 /* Einmalige Vorkenntnis-Abfrage ("Bist du Anfänger?"), dargestellt als
    Karte direkt im Lernpfad (siehe renderOnboardingCard) statt als Dialog.
@@ -3334,6 +3450,91 @@ function speakWithVoice(text, rate){
    Knopf nicht einfach stumm bleiben — genau das wirkte bisher wie ein
    kaputter Knopf. Einmal pro App-Start wird stattdessen erklärt, woran
    es liegt und was man dagegen tun kann. */
+/* =========================================================
+   TON UND VIBRATION
+   =========================================================
+   Bis hierher war die einzige Rückmeldung auf eine Antwort die Farbe.
+   Am Telefon ist ein kurzer Ton oder ein Impuls das billigste Stück
+   Qualitätsgefühl, das es gibt — und bei 21 Übungen je Lektion die
+   Rückmeldung, die man am häufigsten bekommt.
+
+   Bewusst KEINE Tondateien: Zwei Töne wären zwei weitere Dateien, die
+   geladen, zwischengespeichert und offline vorgehalten werden müssten.
+   Der Browser kann Klänge selbst erzeugen — das kostet nichts, klingt
+   überall gleich und funktioniert auch bei der losen HTML-Datei.
+
+   Gestaltung: aufwärts für richtig, abwärts für falsch, beide leise und
+   sehr kurz (unter einer Viertelsekunde). Der Falsch-Ton ist bewusst
+   weich und tief statt schrill — er soll etwas melden, nicht schimpfen.
+   Ein- und Ausblenden der Lautstärke verhindert das Knacken, das
+   abrupt gestartete Töne sonst erzeugen.
+   ========================================================= */
+let audioCtx = null;
+function getAudioCtx(){
+  if(audioCtx) return audioCtx;
+  try{
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(!Ctx) return null;
+    audioCtx = new Ctx();
+  }catch(e){ return null; }
+  return audioCtx;
+}
+function playTones(noten){
+  if(!settings.sounds) return;
+  const ctx = getAudioCtx();
+  if(!ctx) return;
+  try{
+    /* Nach dem Wegschalten der App liegt der Klang-Zusammenhang oft
+       schlafend — hier stehen wir immer nach einem Fingertipp, also
+       darf geweckt werden. */
+    if(ctx.state === 'suspended') ctx.resume();
+    const start = ctx.currentTime + 0.01;
+    noten.forEach((n, i) => {
+      const osz = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osz.type = n.form || 'sine';
+      osz.frequency.setValueAtTime(n.hz, start + n.ab);
+      const spitze = n.laut != null ? n.laut : 0.13;
+      gain.gain.setValueAtTime(0.0001, start + n.ab);
+      gain.gain.exponentialRampToValueAtTime(spitze, start + n.ab + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + n.ab + n.dauer);
+      osz.connect(gain).connect(ctx.destination);
+      osz.start(start + n.ab);
+      osz.stop(start + n.ab + n.dauer + 0.02);
+    });
+  }catch(e){ /* Klangausgabe hier nicht möglich — die Farbe bleibt */ }
+}
+function buzz(muster){
+  if(!settings.haptics || !navigator.vibrate) return;
+  try{ navigator.vibrate(muster); }catch(e){ /* nicht unterstützt */ }
+}
+function feedbackCorrect(){
+  playTones([
+    { hz:659.25, ab:0,    dauer:0.10 },   // e''
+    { hz:987.77, ab:0.085, dauer:0.16 }   // h''
+  ]);
+  buzz(12);
+}
+function feedbackWrong(){
+  playTones([
+    { hz:196.00, ab:0,    dauer:0.13, form:'triangle', laut:0.10 },
+    { hz:155.56, ab:0.09, dauer:0.19, form:'triangle', laut:0.10 }
+  ]);
+  buzz([18, 60, 18]);
+}
+function feedbackLessonDone(){
+  playTones([
+    { hz:523.25, ab:0,    dauer:0.12 },
+    { hz:659.25, ab:0.10, dauer:0.12 },
+    { hz:783.99, ab:0.20, dauer:0.28 }
+  ]);
+  buzz([14, 50, 14, 50, 28]);
+}
+/* Vibration gibt es nicht überall — auf dem iPhone kennt Safari die
+   Schnittstelle nicht. Ein Schalter, der nachweislich nichts bewirkt,
+   ist schlimmer als keiner, deshalb wird er dort nicht angezeigt. */
+function hapticsSupported(){ return typeof navigator.vibrate === 'function'; }
+
 /* =========================================================
    ÜBER DIE APP · RECHTLICHES · PROBLEM MELDEN
    =========================================================
@@ -6438,6 +6639,90 @@ function renderHome(){
   refreshMaxUnlockedUnit();
   if(isJoseonLook()) renderHomeJoseon(home);
   else renderHomeModern(home);
+  updateJumpBtn();
+}
+
+/* =========================================================
+   SPRUNG ZU EINER EINHEIT
+   =========================================================
+   Der Lernpfad ist 145 Einträge lang. Er öffnet zwar an der aktuellen
+   Lektion, aber gezielt zu „Zahlen" zurückzublättern hieß bisher
+   scrollen und suchen.
+
+   Bewusst KEINE Leiste am oberen Rand: Die hätte dauerhaft Platz
+   gekostet — auf jedem Bildschirm, für einen Griff, den man selten
+   braucht. Stattdessen ein kleiner Knopf über der unteren Navigation,
+   der eine Liste öffnet. Die Liste kann obendrein etwas, was eine Reihe
+   von Nummern nicht kann: Sie zeigt Namen und Fortschritt.
+   ========================================================= */
+function currentUnitNumber(){
+  const idx = getCurrentLessonIdx();
+  return COURSE[idx] ? getCourseUnit(COURSE[idx]) : 0;
+}
+function updateJumpBtn(){
+  const btn = $('jumpBtn');
+  if(!btn) return;
+  /* Nur dort, wo es etwas zu springen gibt — und erst, wenn die
+     Vorkenntnis-Frage beantwortet ist (vorher ist der Pfad zugerollt). */
+  const zeigen = currentScreenName === 'home' && onboarding.hangulAsked;
+  btn.classList.toggle('show', zeigen);
+}
+function jumpToUnit(unit){
+  if(unit !== 'ausblick' && isJoseonLook()){
+    /* Eine zugerollte Schriftrolle ist kein Ziel — beim Hinspringen
+       wird sie geöffnet. */
+    scrollExpanded[unit] = true;
+    renderHome();
+  }
+  const ziel = document.getElementById('unit-' + unit);
+  if(!ziel) return;
+  const kopf = document.querySelector('header');
+  const abstand = (kopf ? kopf.getBoundingClientRect().height : 0) + 8;
+  const y = window.scrollY + ziel.getBoundingClientRect().top - abstand;
+  try{ window.scrollTo({ top:Math.max(0, y), behavior:'smooth' }); }
+  catch(e){ window.scrollTo(0, Math.max(0, y)); }
+}
+function showUnitJumpDialog(){
+  const jetzt = currentUnitNumber();
+  const zeilen = Object.keys(COURSE_UNITS)
+    .map(Number).sort((a, b) => a - b)
+    .map(unit => {
+      const info = COURSE_UNITS[unit];
+      const m = getUnitMasteryInfo(unit);
+      const gate = unit > 0 ? getUnitMasteryInfo(unit - 1) : null;
+      const gesperrt = !settings.unlockAll && !!gate && !gate.isComplete;
+      const fertig = m.total > 0 && m.mastered >= m.total;
+      const zeichen = gesperrt ? '🔒' : fertig ? '✓' : unit === jetzt ? '▸' : '·';
+      return `<button type="button" class="jump-row${unit === jetzt ? ' now' : ''}${gesperrt ? ' locked' : ''}"
+                data-unit="${unit}"${gesperrt ? ' disabled' : ''}>
+                <span class="jump-mark">${zeichen}</span>
+                <span class="jump-name"><strong>${info.title}</strong><small>${info.subtitle || ''}</small></span>
+                <span class="jump-count">${m.mastered}/${m.total}</span>
+              </button>`;
+    }).join('');
+  const ausblick = `<button type="button" class="jump-row" data-unit="ausblick">
+      <span class="jump-mark">🔭</span>
+      <span class="jump-name"><strong>Ausblick</strong><small>Was nach Einheit 10 käme</small></span>
+      <span class="jump-count"></span>
+    </button>`;
+  showChoiceDialog({
+    title:'Zu einer Einheit springen',
+    message:'',
+    extraHtml:`<div class="jump-list">${zeilen}${ausblick}</div>`,
+    buttons:[{ label:'Abbrechen', className:'btn-gray' }],
+    onReady:(box) => {
+      box.querySelectorAll('.jump-row').forEach(row => {
+        row.onclick = () => {
+          const u = row.dataset.unit;
+          box.closest('.modal-overlay').remove();
+          jumpToUnit(u === 'ausblick' ? 'ausblick' : Number(u));
+        };
+      });
+      /* Die aktuelle Einheit soll sichtbar sein, ohne dass man sucht. */
+      const jetztZeile = box.querySelector('.jump-row.now');
+      if(jetztZeile) jetztZeile.scrollIntoView({ block:'center' });
+    }
+  });
 }
 /* =========================================================
    AUSBLICK (Feedback vom 25.08.2026)
@@ -6584,6 +6869,7 @@ function renderHomeModern(home){
       const unitBanner = document.createElement('div');
       unitBanner.className = 'unit-banner unit-section-banner' + (unit === 0 ? ' unit-basis' : '');
       unitBanner.dataset.unit = unit;
+      unitBanner.id = 'unit-' + unit;
       // Dasselbe Laternen-Symbol wie im Kopf der Schriftrolle, damit die
       // Kultur-Einführung auch im modernen Layout erreichbar bleibt. Die
       // automatische Erstanzeige hängt dagegen am Entrollen einer
@@ -6643,7 +6929,9 @@ function renderHomeJoseon(home){
    Fehlertrainer, s. appendTrainerSection). Bewusst nicht gesperrt: ein
    Ausblick, den man erst am Ende sehen darf, ist kein Ausblick. */
 function appendOutlookSection(home){
-  home.appendChild(buildPathSection('Ausblick'));
+  const marke = buildPathSection('Ausblick');
+  marke.id = 'unit-ausblick';
+  home.appendChild(marke);
   appendTrainerSection(home, {
     key:'outlook', color:'var(--red)',
     title:'Wie es weitergeht',
@@ -6664,6 +6952,9 @@ function buildScrollUnit(unit, lessonsInOrder){
   // dieselbe Kirschblüten-Farbe wie die Blüten in den Bannern.
   wrap.className = 'scroll-unit' + (isExpanded ? ' expanded' : '') + (unitLocked ? ' locked' : '')
     + (unit === 0 ? ' scroll-tinted' : '');
+  /* Sprungmarke für die Einheiten-Übersicht (s. showUnitJumpDialog). */
+  wrap.id = 'unit-' + unit;
+  wrap.dataset.unit = unit;
   if(unit === 0) wrap.style.setProperty('--scroll-tint', '#f0cdd8');
   wrap.dataset.unit = unit;
   if(unitLocked){
@@ -6933,9 +7224,65 @@ function buildTrainerScroll(opts){
   wrap.appendChild(roller);
   return wrap;
 }
+/* =========================================================
+   DEINE WOCHE
+   =========================================================
+   Der Tagesziel-Ring beantwortet „bin ich für heute durch?". Was
+   fehlte, war die Frage danach: „war das eine gute Woche?" — der
+   Moment, in dem man sich über den eigenen Fortschritt freut und
+   deshalb weitermacht.
+
+   Bewusst ohne Wertung: keine Ziele, keine roten Zahlen, kein
+   Vergleich mit anderen. Sieben Balken, vier Zahlen, fertig. Ein
+   leerer Tag wird als leerer Tag gezeigt und nicht kommentiert —
+   die Woche gehört dem Lernenden, nicht der App.
+   ========================================================= */
+function renderWeekCard(el){
+  const w = weekSummary();
+  const card = document.createElement('div');
+  card.className = 'trainer-card';
+  card.style.textAlign = 'left';
+
+  if(w.fragen === 0){
+    card.innerHTML = `<div class="setting-text">
+        <h3>Deine Woche</h3>
+        <p>Sobald du deine erste Übung dieser Woche beantwortet hast, steht hier, was du
+        geschafft hast — Tag für Tag.</p>
+      </div>`;
+    el.appendChild(card);
+    return;
+  }
+
+  const heute = todayStr();
+  const balken = w.tage.map(t => {
+    const hoehe = Math.max(3, Math.round((t.xp / w.bestesXp) * 100));
+    const klasse = 'week-bar' + (t.datum === heute ? ' today' : '') + (t.xp === 0 ? ' empty' : '');
+    return `<div class="week-col">
+        <div class="week-bar-slot"><div class="${klasse}" style="height:${hoehe}%"
+             title="${t.xp} XP"></div></div>
+        <span>${t.wochentag}</span>
+      </div>`;
+  }).join('');
+
+  card.innerHTML = `
+    <div class="setting-text">
+      <h3>Deine Woche</h3>
+      <p>Die letzten sieben Tage. Die Höhe zeigt die XP des Tages.</p>
+    </div>
+    <div class="week-chart">${balken}</div>
+    <div class="week-figures">
+      <div><strong>${w.fragen}</strong><span>Fragen</span></div>
+      <div><strong>${w.quote}&thinsp;%</strong><span>richtig</span></div>
+      <div><strong>${w.lektionen}</strong><span>Lektionen</span></div>
+      <div><strong>${w.aktiv}</strong><span>${w.aktiv === 1 ? 'Tag' : 'Tage'}</span></div>
+    </div>`;
+  el.appendChild(card);
+}
 function renderPractice(){
   const el = $('practice');
   el.innerHTML = '';
+  // ---- Deine Woche ----
+  renderWeekCard(el);
   // ---- Übersicht: Gedächtnis-Stand, heute Fälliges, Wackelkandidaten ----
   renderProgressOverview(el);
 
@@ -7484,15 +7831,56 @@ function initJoseonBackground(){
    Hochscrollen unbegrenzt weiter, ohne dass ein Übergang zu sehen ist. */
 const JOSEON_PARALLAX_FACTOR = 0.35;
 const JOSEON_TILE_HEIGHT = 900;
-function updateJoseonParallax(){
-  if(!document.body.classList.contains('theme-joseon')) return;
-  const pattern = document.getElementById('joseonPattern');
-  if(!pattern) return;
+/* Warum das hier nicht mehr am <pattern> zieht (Feedback vom 26.08.2026:
+   "der Hintergrund zittert beim Scrollen"):
+
+   Bis hierher setzte jedes Scroll-Ereignis patternTransform auf der
+   <pattern>-Definition. Das ist eine Änderung an der Malvorschrift
+   selbst — der Browser muss daraufhin die GESAMTE gekachelte Fläche neu
+   rastern, auf dem Hauptthread. Gescrollt wird aber nebenher vom
+   Compositor, und die Scroll-Ereignisse treffen nicht im Bildtakt ein.
+   Ergebnis: Der Hintergrund kommt mal ein Bild später, mal zwei, mal
+   gar nicht — genau das sieht man als Zittern.
+
+   Jetzt bewegt sich stattdessen das fertige Bild als Ganzes, per
+   transform. Eine Verschiebung ist die einzige Änderung, die der
+   Compositor ohne Neuzeichnen erledigen kann. Zusätzlich wird der
+   Schreibvorgang in requestAnimationFrame gebündelt: pro Bild höchstens
+   einmal, und zwar genau dann, wenn das Bild ohnehin gebaut wird.
+
+   Damit beim Verschieben unten keine Kante auftaucht, ist das SVG um
+   eine volle Kachelhöhe höher als das Fenster (s. CSS). */
+let parallaxPending = false;
+function applyJoseonParallax(){
+  parallaxPending = false;
+  const bg = document.getElementById('joseonBg');
+  if(!bg) return;
+  const svg = bg.firstElementChild;
+  if(!svg) return;
+  if(!document.body.classList.contains('theme-joseon')){
+    svg.style.transform = '';
+    return;
+  }
   const offset = -((window.scrollY * JOSEON_PARALLAX_FACTOR) % JOSEON_TILE_HEIGHT);
-  pattern.setAttribute('patternTransform', `translate(0, ${offset})`);
+  /* translate3d statt translateY: bittet den Browser ausdrücklich um
+     eine eigene Ebene, die er ohne Neuzeichnen verschieben kann. */
+  svg.style.transform = `translate3d(0, ${offset}px, 0)`;
 }
-window.addEventListener('scroll', updateJoseonParallax, { passive:true });
-window.addEventListener('resize', updateJoseonParallax);
+function updateJoseonParallax(){
+  if(parallaxPending) return;
+  parallaxPending = true;
+  requestAnimationFrame(applyJoseonParallax);
+}
+/* Wer Bewegung im System abbestellt hat, bekommt den Hintergrund
+   stillstehend — die Landschaft bleibt, nur die Tiefenwirkung entfällt. */
+const parallaxWanted = (() => {
+  try{ return !window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  catch(e){ return true; }
+})();
+if(parallaxWanted){
+  window.addEventListener('scroll', updateJoseonParallax, { passive:true });
+  window.addEventListener('resize', updateJoseonParallax, { passive:true });
+}
 function renderSettings(){
   const el = $('settings');
   el.innerHTML = '';
@@ -7577,6 +7965,28 @@ function renderSettings(){
         <span class="slider"></span>
       </label>
     </div>
+    <div class="setting-row">
+      <div class="setting-text">
+        <h3>Töne</h3>
+        <p>Ein kurzer Klang bei richtig und falsch — leise, aufwärts oder abwärts. Beim Abschluss
+        einer Lektion ein kleiner Dreiklang.</p>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="toggleSounds" ${settings.sounds ? 'checked' : ''}>
+        <span class="slider"></span>
+      </label>
+    </div>
+    ${hapticsSupported() ? `
+    <div class="setting-row">
+      <div class="setting-text">
+        <h3>Vibration</h3>
+        <p>Ein kurzer Impuls bei richtig, ein doppelter bei falsch — spürbar, auch wenn der Ton aus ist.</p>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="toggleHaptics" ${settings.haptics ? 'checked' : ''}>
+        <span class="slider"></span>
+      </label>
+    </div>` : ''}
     <div class="setting-row">
       <div class="setting-text">
         <h3>Sageuk-Stil (Joseon-Flair)</h3>
@@ -7732,6 +8142,18 @@ function renderSettings(){
   });
   $('toggleListen').onchange = (e) => { settings.listenExercises = e.target.checked; saveState(); };
   $('togglePronunciation').onchange = (e) => { settings.showPronunciation = e.target.checked; saveState(); };
+  $('toggleSounds').onchange = (e) => {
+    settings.sounds = e.target.checked; saveState();
+    /* Beim Einschalten einmal vorspielen — sonst müsste man erst eine
+       Lektion starten, um zu hören, wofür man sich entschieden hat. */
+    if(settings.sounds) feedbackCorrect();
+  };
+  if($('toggleHaptics')){
+    $('toggleHaptics').onchange = (e) => {
+      settings.haptics = e.target.checked; saveState();
+      if(settings.haptics) buzz(12);
+    };
+  }
   $('toggleSageuk').onchange = (e) => { settings.sageukMode = e.target.checked; saveState(); };
   $('toggleUnlockAll').onchange = (e) => { settings.unlockAll = e.target.checked; saveState(); };
   $('backupExportBtn').onclick = exportProgress;
@@ -7919,6 +8341,7 @@ function showScreen(name){
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.screen === name));
   }
   currentScreenName = name;
+  updateJumpBtn();
   /* Für den Android-Zurück-Knopf (s. unten, Abschnitt "Zurück-Knopf"):
      sobald wir den Lernpfad
      verlassen, kommt ein Eintrag in die Verlaufsliste, damit "Zurück"
@@ -9035,10 +9458,14 @@ function handleCheck(){
       $('feedbackText').textContent = 'Stark!';
       $('feedbackSub').textContent = '';
       xp += XP_PER_CORRECT; addDailyXp(XP_PER_CORRECT); correctInLesson++;
+      logDay('fragen', 1); logDay('richtig', 1);
+      feedbackCorrect();
     } else {
       fb.className = 'feedback show wrong';
       $('feedbackIcon').textContent = '✖️';
       $('feedbackText').textContent = 'Nicht ganz.';
+      logDay('fragen', 1);
+      feedbackWrong();
       // "explain" (optional): kurze Begründung, WARUM diese Antwort richtig
       // ist — v. a. bei Grammatik-Übungen (cloze/sentence) hilfreich, damit
       // nicht nur die Lösung, sondern auch die Regel dahinter sichtbar wird.
@@ -9145,7 +9572,11 @@ function finishSession(){
     completed.add(lesson.id);
     xp += firstTimeBonus;
     addDailyXp(firstTimeBonus);
+    /* Fürs Wochenbuch zählt jede abgeschlossene Lektion, auch eine
+       wiederholte — es beschreibt, was du getan hast, nicht was neu war. */
+    logDay('lektionen', 1);
   }
+  feedbackLessonDone();
   const today = todayStr();
   let restDayUsed = false;
   if(lastActiveDate !== today){
@@ -9293,6 +9724,8 @@ updateHeaderStats();
 showHomeAtCurrentLesson();
 maybeOfferResume();
 updatePracticeIndicator();
+$('jumpBtn').onclick = showUnitJumpDialog;
+updateJumpBtn();
 
 /* =========================================================
    ZUR APP AUF DEM TELEFON
