@@ -59,6 +59,12 @@
     --app-w:480px;
   }
   *{box-sizing:border-box;}
+  /* touch-action vererbt sich nicht. Der Browser rechnet zwar die
+     Vorfahren mit ein, aber auf den Elementen, die tatsächlich getippt
+     werden, steht die Absicht am richtigen Ort — und gilt auch dann,
+     wenn eines davon später einmal in einem eigenen Bildlauf-Bereich
+     landet. */
+  button, label, summary, a, [role="button"]{ touch-action:manipulation;}
   :root{ color-scheme:light;}
   /* Zweite Absicherung zur color-scheme-Angabe im <head>: Formularelemente
      erben ihre Textfarbe NICHT vom Elternelement, sondern bekommen sie aus
@@ -80,6 +86,22 @@
     background:var(--bg);
   }
   body{
+    /* Doppeltipp-Zoom abschalten, Aufziehen mit zwei Fingern behalten
+       (Rückmeldung vom 26.08.2026: "beim schnellen Tippen auf Prüfen
+       kann es passieren, dass man reinzoomt").
+
+       Der Browser kann bei einem Fingertipp nicht sofort wissen, ob ein
+       zweiter folgt. Er wartet deshalb rund 300 ms ab — und wertet zwei
+       schnelle Tipps als "hineinzoomen". Beim zügigen Durchklicken von
+       21 Übungen passiert das zwangsläufig.
+
+       touch-action:manipulation sagt: Wischen und Aufziehen ja,
+       Doppeltipp-Zoom nein. Das ist ausdrücklich NICHT die Rückkehr zu
+       user-scalable=no — wer die Ansicht vergrößern will, kann das
+       weiterhin mit zwei Fingern, und die Systemschriftgröße gilt
+       ohnehin. Es verschwindet nur die Vergrößerung, die niemand
+       wollte. */
+    touch-action:manipulation;
     margin:0; font-family:var(--font-main);
     background:var(--page-bg); color:var(--text); display:flex; justify-content:center;
   }
@@ -136,22 +158,6 @@
   .onboarding-card{ margin-bottom:20px;}
   .onboarding-summary{ background:var(--gray) !important; color:var(--gray-dark) !important;
     text-align:center; margin-top:4px; margin-bottom:20px;}
-  .node{
-    width:72px; height:72px; border-radius:20px; border:none; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; font-size:1.75rem;
-    box-shadow:0 6px 0 var(--green-dark); background:var(--green); color:#fff;
-    transition:transform .05s; flex-shrink:0;
-  }
-  .node:active{transform:translateY(4px); box-shadow:0 2px 0 var(--green-dark);}
-  .node.locked{ background:var(--gray); box-shadow:0 6px 0 var(--gray-dark); cursor:not-allowed; color:#fff;}
-  .node.done{ background:var(--yellow); box-shadow:0 6px 0 var(--yellow-dark);}
-  /* Lektionsname steht NEBEN dem Knoten (nicht mehr darunter) */
-  .node-row{ display:flex; align-items:center; gap:14px; margin-bottom:22px; width:100%;}
-  .node-label{ flex:1; display:flex; align-items:baseline; justify-content:space-between; gap:10px;
-    text-align:left; font-size:0.875rem; font-weight:700; color:var(--text); line-height:1.3; min-width:0;}
-  .node-label-title{ overflow-wrap:break-word;}
-  .lesson-counter{ font-size:0.6875rem; font-weight:800; color:var(--gray-dark); background:var(--gray);
-    padding:2px 8px; border-radius:8px; white-space:nowrap; flex-shrink:0;}
   /* ---- Trainer-Karten (Übungsbildschirm / Fehlertrainer) ---- */
   .trainer-card{ width:100%; background:var(--card-bg); border-radius:16px; padding:32px 22px; text-align:center;}
   .trainer-emoji{ font-size:3rem; margin-bottom:12px;}
@@ -543,7 +549,7 @@
   /* ---- "Joseon-Stil": stimmungsvolle Ergänzung im Look eines alten Schriftstücks.
      Überschreibt nur die Variablen aus :root — der Rest der App bleibt unverändert
      und übernimmt die neue Palette automatisch, weil alle Farben oben über var()
-     laufen. Aktivierbar in den Einstellungen ("Erscheinungsbild"). ---- */
+     laufen. Die Lichtstimmung sitzt in body.theme-night (s. weiter unten). ---- */
   body.theme-joseon{
     --green:#4b7a63; --green-dark:#375a49; --blue:#3d5a80; --blue-dark:#2c4159;
     --red:#a3312a; --red-dark:#7c231d; --yellow:#c9a227; --yellow-dark:#a2801c;
@@ -588,9 +594,6 @@
   body.theme-joseon .trainer-card,
   body.theme-joseon .modal-box{
     border:1px solid rgba(43,38,32,.14);
-  }
-  body.theme-joseon .node{
-    border:2px solid rgba(43,38,32,.18);
   }
   /* Grüner Titel-Kasten ("한국어 배우기") bekommt im Joseon-Stil ebenfalls
      ein paar vereinzelte Pfirsichblüten in unterschiedlichen Größen. */
@@ -668,7 +671,6 @@
     background:rgba(247,241,227,.86); box-shadow:0 1px 3px rgba(0,0,0,.18);
   }
   body.theme-joseon .ring-track{ stroke:rgba(43,38,32,.18);}
-  body.theme-joseon .brand-modern{ display:none;}
   body.theme-joseon .brand-joseon-plaque{
     display:inline-block; position:relative; padding:6px 24px;
     background:linear-gradient(180deg, #201d1a, #0c0b0a);
@@ -1057,7 +1059,10 @@
     will-change:transform; backface-visibility:hidden;}
 </style>
 </head>
-<body>
+<!-- theme-joseon steht fest im Markup: Es gibt nur noch dieses eine
+     Erscheinungsbild, und so ist es schon vor dem ersten JavaScript da —
+     sonst blitzte beim Start kurz die unformatierte Grundfarbe auf. -->
+<body class="theme-joseon">
 <div id="joseonBg" aria-hidden="true">
   <svg preserveAspectRatio="xMidYMin slice">
     <defs>
@@ -1083,7 +1088,6 @@
     </div>
     <div class="header-row">
       <div class="brand">
-        <span class="brand-modern">🦉 <span>한국어</span></span>
         <span class="brand-joseon-plaque">道德</span>
       </div>
       <div class="header-stats">
@@ -1181,8 +1185,8 @@
    öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
    statt eine leere Zeile zu zeigen.
    ========================================================= */
-const APP_VERSION = '1.8.1';
-const APP_BUILD = '96af0f1b5d3c';
+const APP_VERSION = '1.9.0';
+const APP_BUILD = '05b28866bbbc';
 const APP_CONTACT = {
   name: '',                 // z. B. 'Vorname Nachname'
   ort: '',                  // z. B. 'Musterstadt' (nur wenn du ein Impressum führst)
@@ -1196,6 +1200,8 @@ function appBuildLabel(){
    will, was ihm entgeht. Bewusst nur die letzten Einträge — eine
    vollständige Chronik gehört ins Projekt-Dokument, nicht in die App. */
 const CHANGELOG = [
+  { v:'1.9.0', text:'Nur noch ein Erscheinungsbild — gewählt wird das Licht: Tageslicht, Abendlicht, Automatisch.' },
+  { v:'1.8.2', text:'Kein versehentlicher Zoom beim schnellen Tippen; ruhiger Hintergrund auf Telefonen.' },
   { v:'1.8.1', text:'Der Einheiten-Knopf sitzt höher, ohne Symbol, und richtet sich nach der Leistenhöhe.' },
   { v:'1.8.0', text:'Kursinhalte von der Programmlogik getrennt — Grundlage für neue Lektionen ohne neues Programm.' },
   { v:'1.7.0', text:'Sucht selbst nach neuen Fassungen — auch vom Startbildschirm aus.' },
@@ -3522,15 +3528,14 @@ function weekSummary(){
 let reviewLastUsed = saved ? (saved.reviewLastUsed || {}) : {};
 /* Einstellungen: steuern, ob zusätzlich zu den Schriftzeichen die
    lateinische Umschrift bzw. eine Aussprache-Option angezeigt wird. */
-/* theme:'joseon' ist seit dem 24.08.2026 die Voreinstellung — das
-   Schriftrollen-Erscheinungsbild ist der Standard-Look der App, das
-   moderne Layout die Alternative. Bereits gespeicherte Spielstände
-   behalten ihre eigene Wahl, da settings aus dem Speicher über die
-   Vorgaben gelegt wird (s. Object.assign unten). sageukMode bleibt
-   bewusst aus: das Umschalten in den Einstellungen aktiviert ihn zwar
-   mit, als Voreinstellung wäre der altertümliche Sprachschmuck für den
-   ersten Kontakt aber zu viel — er lässt sich jederzeit einschalten. */
-const DEFAULT_SETTINGS = { showRoman:true, showPronunciation:true, unlockAll:false, sageukMode:false, theme:'joseon',
+/* theme:'tag' — seit dem 26.08.2026 gibt es nur noch EIN Erscheinungsbild
+   (den Joseon-Stil); gewählt wird das Licht: 'tag' | 'night' | 'auto'.
+   sageukMode ist ab jetzt voreingestellt AN: Das Joseon-Flair ist nicht
+   mehr eine Zutat neben einem nüchternen Layout, sondern gehört zum
+   Charakter der App. Bereits gespeicherte Spielstände behalten ihre
+   eigene Wahl — wer den Sprachschmuck abgeschaltet hat, behält ihn aus
+   (settings aus dem Speicher wird über die Vorgaben gelegt). */
+const DEFAULT_SETTINGS = { showRoman:true, showPronunciation:true, unlockAll:false, sageukMode:true, theme:'tag',
   /* Tagesziel: Anzahl richtiger Antworten pro Tag, gegen die der Ring in
      der Kopfzeile zählt (Feedback vom 24.08.2026). 20 als Standard —
      entspricht etwa zwei Wiederholungslektionen. */
@@ -3547,6 +3552,13 @@ const DEFAULT_SETTINGS = { showRoman:true, showPronunciation:true, unlockAll:fal
   sounds:true,
   haptics:true };
 let settings = Object.assign({}, DEFAULT_SETTINGS, (saved && saved.settings) ? saved.settings : {});
+/* Umzug vom 26.08.2026: Das "moderne" Layout ist entfernt, gewählt wird
+   nur noch das Licht. Wer 'modern' oder 'joseon' gespeichert hatte,
+   bekommt Tageslicht; 'night' und 'auto' bleiben, wie sie waren. Ein
+   unbekannter Wert (aus welcher Fassung auch immer) landet ebenfalls
+   bei Tageslicht, statt die App in einen leeren Zustand zu schicken. */
+if(settings.theme === 'modern' || settings.theme === 'joseon') settings.theme = 'tag';
+if(['tag','night','auto'].indexOf(settings.theme) === -1) settings.theme = 'tag';
 /* Einmalige Vorkenntnis-Abfrage ("Bist du Anfänger?"), dargestellt als
    Karte direkt im Lernpfad (siehe renderOnboardingCard) statt als Dialog.
    Legt sowohl fest, ob die Hangul-Einheit übersprungen wird, als auch den
@@ -6653,7 +6665,7 @@ function getCourseUnit(lesson){
 
    Pflicht-Charakter: Eine Wiederholungslektion ist ein ganz normaler
    Eintrag im COURSE-Array, deshalb greift die ohnehin bestehende
-   sequentielle Sperre (s. renderHomeModern/renderHomeJoseon:
+   sequentielle Sperre (s. renderHomeJoseon:
    "sequentialLocked = i > 0 && !completed.has(COURSE[i-1].id)") von
    selbst: die nächste ECHTE Lektion bleibt gesperrt, bis die davor
    liegende Wiederholung mindestens einmal abgeschlossen wurde — dafür
@@ -6824,8 +6836,7 @@ function renderHome(){
   home.innerHTML = '';
   // Freischaltungs-Stand nachziehen, bevor gezeichnet wird (s. dort).
   refreshMaxUnlockedUnit();
-  if(isJoseonLook()) renderHomeJoseon(home);
-  else renderHomeModern(home);
+  renderHomeJoseon(home);
   updateJumpBtn();
 }
 
@@ -6863,7 +6874,7 @@ function updateJumpBtn(){
   btn.classList.toggle('show', zeigen);
 }
 function jumpToUnit(unit){
-  if(unit !== 'ausblick' && isJoseonLook()){
+  if(unit !== 'ausblick'){
     /* Eine zugerollte Schriftrolle ist kein Ziel — beim Hinspringen
        wird sie geöffnet. */
     scrollExpanded[unit] = true;
@@ -6952,90 +6963,6 @@ function buildHomeTitleBanner(){
   banner.className = 'unit-banner';
   banner.innerHTML = `<span class="banner-text">한국어 배우기<small>Von Hangul bis zu deinen ersten Sätzen – ${COURSE.length} Lektionen</small></span><div class="banner-blossoms" aria-hidden="true"><span>🌸</span><span>🌸</span><span>🌸</span></div>`;
   return banner;
-}
-function renderHomeModern(home){
-  // Leserichtung von oben nach unten (Feedback vom 24.08.2026): zuerst der
-  // grüne Titel-Kasten, dann die Vorkenntnis-Frage, dann die Hangul-Einheit und von
-  // da an der Kurs der Reihe nach. Bis dahin lief der Pfad umgekehrt (erste
-  // Lektion ganz unten, spätere weiter oben, wie im Vorbild Duolingo) —
-  // beim Öffnen landete man dadurch am Kursende statt am Anfang.
-  home.appendChild(buildHomeTitleBanner());
-  renderOnboardingCard(home);
-  for(let i = 0; i < COURSE.length; i++){
-    const lesson = COURSE[i];
-    const unit = getCourseUnit(lesson);
-    const isDone = completed.has(lesson.id);
-    // Sequentielle Sperre wie bisher (vorherige Lektion muss abgeschlossen
-    // sein) PLUS neue Einheiten-Sperre: eine Einheit > 1 bleibt komplett
-    // gesperrt, bis JEDE Frage der direkt vorherigen Einheit mindestens
-    // einmal richtig beantwortet wurde — auch wenn alle ihre Lektionen
-    // bereits (ggf. mit Herzen/Fehlern) "abgeschlossen" sind.
-    const gatingUnit = unit - 1;
-    const gatingInfo = gatingUnit >= 0 ? getUnitMasteryInfo(gatingUnit) : null;
-    const unitGateLocked = !!gatingInfo && !gatingInfo.isComplete;
-    const sequentialLocked = i > 0 && !completed.has(COURSE[i-1].id);
-    const isLocked = !settings.unlockAll && (sequentialLocked || unitGateLocked);
-    const row = document.createElement('div');
-    row.className = 'node-row';
-    row.dataset.lessonIdx = i;
-    const btn = document.createElement('button');
-    btn.className = 'node' + (isLocked ? ' locked' : isDone ? ' done' : '');
-    btn.textContent = isLocked ? '🔒' : (isDone ? '⭐' : lesson.icon);
-    btn.disabled = isLocked;
-    btn.onclick = () => startLesson(i);
-    if(unitGateLocked){
-      const missing = gatingInfo.total - gatingInfo.mastered;
-      const gatingTitle = (COURSE_UNITS[gatingUnit] || {}).title || `Einheit ${gatingUnit}`;
-      btn.title = `Noch insgesamt ${missing} richtige ${missing === 1 ? 'Antwort' : 'Antworten'} in „${gatingTitle}" nötig, um hier weiterzumachen.`;
-    }
-    row.appendChild(btn);
-    const label = document.createElement('div');
-    label.className = 'node-label';
-    // Wiederholungslektionen zeigen bewusst KEINEN "X/Y"-Zähler (Feedback
-    // vom 22.08.2026): der Zähler zählt gegen den vollen, ungekürzten
-    // Wiederholungs-Pool (der mit fortschreitendem Kurs beliebig groß wird,
-    // z. B. "81/114"), während eine einzelne Sitzung immer nur
-    // REVIEW_EXERCISE_COUNT (10) Fragen zeigt — die Zahl wirkt dadurch
-    // irreführend groß/willkürlich statt wie ein sinnvoller Fortschritt.
-    const counterHtml = lesson.type === 'review' ? '' : (() => {
-      const lessonMastery = getLessonMasteryInfo(lesson);
-      return `<span class="lesson-counter">${lessonMastery.mastered}/${lessonMastery.total}</span>`;
-    })();
-    label.innerHTML = `<span class="node-label-title">${lesson.title}</span>${counterHtml}`;
-    row.appendChild(label);
-
-    // Einheiten-Banner steht jetzt VOR der ersten Lektion seiner Einheit
-    // (vorher dahinter, weil der Pfad rückwärts aufgebaut wurde).
-    const isFirstLessonOfUnit = (i === 0) || (getCourseUnit(COURSE[i-1]) !== unit);
-    if(isFirstLessonOfUnit){
-      const info = COURSE_UNITS[unit] || { title:`Einheit ${unit}`, subtitle:'' };
-      const mastery = getUnitMasteryInfo(unit);
-      if(PATH_SECTIONS[unit]) home.appendChild(buildPathSection(PATH_SECTIONS[unit]));
-      const unitBanner = document.createElement('div');
-      unitBanner.className = 'unit-banner unit-section-banner' + (unit === 0 ? ' unit-basis' : '');
-      unitBanner.dataset.unit = unit;
-      unitBanner.id = 'unit-' + unit;
-      // Dasselbe Laternen-Symbol wie im Kopf der Schriftrolle, damit die
-      // Kultur-Einführung auch im modernen Layout erreichbar bleibt. Die
-      // automatische Erstanzeige hängt dagegen am Entrollen einer
-      // Schriftrolle und gibt es daher nur im Joseon-Stil.
-      const unitGateOpen = !gatingInfo || gatingInfo.isComplete;
-      const showCultureBtn = !!cultureFor(unit) && (unitGateOpen || settings.unlockAll);
-      unitBanner.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:baseline; gap:10px;">
-        <span>${info.title}</span>
-        <span class="scroll-header-right">
-          ${showCultureBtn ? `<button type="button" class="culture-btn" aria-label="Wissenswertes über Korea" title="Wissenswertes über Korea">🏮</button>` : ''}
-          <span class="unit-counter">${mastery.mastered}/${mastery.total}</span>
-        </span>
-      </div><small>${info.subtitle}</small>`;
-      const cultureBtn = unitBanner.querySelector('.culture-btn');
-      if(cultureBtn) cultureBtn.onclick = (e) => { e.stopPropagation(); showCultureScroll(unit); };
-      home.appendChild(unitBanner);
-    }
-    home.appendChild(row);
-  }
-  appendOutlookSection(home);
-  appendPathFooter(home);
 }
 /* Merkt sich pro Einheit, ob ihre Schriftrolle gerade aufgerollt (offen)
    ist. Bewusst nur zur Laufzeit (nicht in localStorage) — jede Sitzung
@@ -7187,8 +7114,10 @@ function buildScrollUnit(unit, lessonsInOrder){
     btn.className = 'scroll-lesson-row' + (isLessonLocked ? ' locked' : isDone ? ' done' : '');
     btn.dataset.lessonIdx = idx;
     btn.disabled = isLessonLocked;
-    // s. Kommentar bei renderHomeModern: Wiederholungslektionen zeigen
-    // bewusst keinen "X/Y"-Zähler.
+    // Wiederholungslektionen zeigen bewusst KEINEN "X/Y"-Zähler (Feedback
+    // vom 22.08.2026): Er zählte gegen den vollen Wiederholungs-Pool, der
+    // mit dem Kurs beliebig groß wird, während eine Sitzung immer nur
+    // zehn Fragen zeigt — die Zahl wirkte irreführend groß.
     const counterHtml = lesson.type === 'review' ? '' : (() => {
       const lessonMastery = getLessonMasteryInfo(lesson);
       return `<span class="scroll-lesson-counter">${lessonMastery.mastered}/${lessonMastery.total}</span>`;
@@ -7321,23 +7250,9 @@ let practiceScrollExpanded = {};
    Joseon: eine aufrollbare Schriftrolle in derselben Farbe (Feedback vom
    24.08.2026). Beide Wege bekommen exakt denselben Inhalt (opts.html plus
    optionale opts.extras), sodass sich die Trainer-Inhalte an EINER Stelle
-   pflegen lassen und nicht pro Erscheinungsbild doppelt. */
+   pflegen lassen. */
 function appendTrainerSection(el, opts){
-  if(isJoseonLook()){
-    el.appendChild(buildTrainerScroll(opts));
-  } else {
-    const banner = document.createElement('div');
-    banner.className = 'unit-banner';
-    banner.style.background = opts.color;
-    banner.style.marginTop = '28px';
-    banner.innerHTML = `${opts.title}<small>${opts.subtitle}</small>`;
-    el.appendChild(banner);
-    const card = document.createElement('div');
-    card.className = 'trainer-card';
-    card.innerHTML = opts.html;
-    el.appendChild(card);
-    (opts.extras || []).forEach(n => el.appendChild(n));
-  }
+  el.appendChild(buildTrainerScroll(opts));
 }
 function buildTrainerScroll(opts){
   const isExpanded = !!practiceScrollExpanded[opts.key];
@@ -7832,38 +7747,41 @@ function resetAllProgress(){
   updatePracticeIndicator();
   renderSettings();
 }
-/* Schaltet das "Joseon-Stil"-Erscheinungsbild um (siehe body.theme-joseon in
-   den CSS-Variablen weiter oben). Wird beim Start und bei jeder Änderung der
-   Einstellung aufgerufen. */
+/* Setzt die Lichtstimmung (siehe body.theme-night in den CSS-Variablen
+   weiter oben). Wird beim Start und bei jeder Änderung der Einstellung
+   aufgerufen. */
 /* Was der Gerätezustand gerade will — nur für settings.theme === 'auto'
    relevant. Ohne Unterstützung im Browser bleibt es beim Tageslicht. */
 function systemPrefersDark(){
   try{ return window.matchMedia('(prefers-color-scheme: dark)').matches; }
   catch(e){ return false; }
 }
-/* Überall dort, wo die App bisher "ist der Joseon-Stil an?" gefragt hat,
-   muss jetzt auch das Abendlicht mitzählen — es ist derselbe Stil. */
-function isJoseonLook(){ const t = effectiveTheme(); return t === 'joseon' || t === 'night'; }
-/* Aus der Einstellung wird die tatsächlich anzuzeigende Farbwelt:
-   'modern' | 'joseon' | 'night'. 'auto' folgt dem Gerät und wechselt
-   zwischen Joseon (tags) und Abendlicht (nachts). */
+/* Aus der Einstellung wird die tatsächlich anzuzeigende Lichtstimmung:
+   'tag' oder 'night'. 'auto' folgt dem Gerät.
+
+   Seit dem 26.08.2026 gibt es nur noch EIN Erscheinungsbild — den
+   Joseon-Stil. Das frühere "moderne" Layout ist samt seinem eigenen
+   Lernpfad entfernt: Es war die Duolingo-nahe Ausweichvariante aus der
+   Anfangszeit, hat den ganzen Pfad ein zweites Mal gezeichnet und
+   musste bei jeder Änderung mitgepflegt werden. Gewählt wird jetzt
+   nur noch das Licht, nicht die Gestalt. */
 function effectiveTheme(){
-  if(settings.theme === 'auto') return systemPrefersDark() ? 'night' : 'joseon';
-  return settings.theme === 'night' ? 'night'
-       : settings.theme === 'joseon' ? 'joseon' : 'modern';
+  if(settings.theme === 'auto') return systemPrefersDark() ? 'night' : 'tag';
+  return settings.theme === 'night' ? 'night' : 'tag';
 }
 function applyTheme(){
   const t = effectiveTheme();
-  /* Das Abendlicht ist KEINE eigene Gestaltung, sondern der Joseon-Stil
-     mit umgedrehten Helligkeiten — deshalb bleibt theme-joseon an. */
-  document.body.classList.toggle('theme-joseon', t === 'joseon' || t === 'night');
+  /* theme-joseon trägt die gesamte Gestaltung und ist immer gesetzt (auch
+     direkt am <body> im HTML, damit beim Start nichts aufblitzt).
+     Das Abendlicht ist keine eigene Gestaltung, sondern dieselbe mit
+     umgedrehten Helligkeiten. */
+  document.body.classList.add('theme-joseon');
   document.body.classList.toggle('theme-night', t === 'night');
   /* Damit Browser-Bausteine (Auswahlfelder, Bildlaufleisten) mitziehen. */
   try{ document.documentElement.style.colorScheme = (t === 'night' ? 'dark' : 'light'); }
   catch(e){ /* nicht kritisch */ }
   const meta = document.querySelector('meta[name="theme-color"]');
-  if(meta) meta.setAttribute('content',
-    t === 'night' ? '#15120e' : t === 'joseon' ? '#4b7a63' : '#58cc02');
+  if(meta) meta.setAttribute('content', t === 'night' ? '#15120e' : '#4b7a63');
   updateJoseonParallax();
 }
 /* Steht die Farbwelt auf "Automatisch", schaltet die App mit dem Gerät um
@@ -7993,6 +7911,12 @@ function applyJoseonParallax(){
     svg.style.transform = '';
     return;
   }
+  if(!parallaxWanted){
+    /* Auch bei direkten Aufrufen (Farbwechsel, Neuzeichnen) darf die
+       Landschaft dann nicht plötzlich springen. */
+    svg.style.transform = 'translate3d(0, 0, 0)';
+    return;
+  }
   const offset = -((window.scrollY * JOSEON_PARALLAX_FACTOR) % JOSEON_TILE_HEIGHT);
   /* translate3d statt translateY: bittet den Browser ausdrücklich um
      eine eigene Ebene, die er ohne Neuzeichnen verschieben kann. */
@@ -8003,11 +7927,33 @@ function updateJoseonParallax(){
   parallaxPending = true;
   requestAnimationFrame(applyJoseonParallax);
 }
-/* Wer Bewegung im System abbestellt hat, bekommt den Hintergrund
-   stillstehend — die Landschaft bleibt, nur die Tiefenwirkung entfällt. */
+/* Wann die Landschaft mitwandert — und wann sie stillsteht.
+
+   1. Wer Bewegung im System abbestellt hat, bekommt sie ruhig.
+
+   2. Auf Geräten, die mit dem Finger bedient werden, ebenfalls — und
+      das ist kein Geschmacksurteil, sondern eine technische Grenze
+      (Rückmeldung vom 26.08.2026: "beim Scrollen mit dem Finger zittert
+      der Hintergrund noch immer").
+      Fingerscrollen samt Nachlauf erledigt das Betriebssystem am
+      Programm vorbei, damit es auch dann flüssig bleibt, wenn die Seite
+      beschäftigt ist. Die Scroll-Meldungen an das Programm kommen
+      dabei unregelmäßig — mal mehrere pro Bild, mal minutenlang keine.
+      Was auch immer man daran hängt, hinkt also mal mehr, mal weniger
+      hinterher, und genau diese Unregelmäßigkeit sieht man als Zittern.
+      Auf iOS ist das seit jeher so und lässt sich nicht wegprogrammieren;
+      die frühere Behebung (Verschieben statt Neuzeichnen) hat die eine
+      Ursache beseitigt, diese zweite bleibt.
+      Ein ruhiger Hintergrund ist einem zitternden vorzuziehen — die
+      Landschaft bleibt ja, nur die Tiefenwirkung entfällt. Am Rechner
+      mit Mauszeiger, wo das Scrollen durch das Programm läuft, bleibt
+      sie erhalten. */
 const parallaxWanted = (() => {
-  try{ return !window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
-  catch(e){ return true; }
+  try{
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+    if(window.matchMedia('(hover: none)').matches) return false;
+    return true;
+  }catch(e){ return true; }
 })();
 if(parallaxWanted){
   window.addEventListener('scroll', updateJoseonParallax, { passive:true });
@@ -8045,22 +7991,20 @@ function renderSettings(){
   settingsGroup('Darstellung', `
     <div class="setting-row">
       <div class="setting-text">
-        <h3>Erscheinungsbild</h3>
-        <p>Modern ist das reguläre Layout der App. Joseon-Stil verwandelt die gesamte App in eine
-        stimmungsvolle Ergänzung im Look eines alten Schriftstücks und aktiviert dabei automatisch
-        den Sageuk-Stil (Joseon-Flair) bei den Wörtern. Abendlicht ist derselbe Stil bei Lampenlicht
-        — dunkles Papier, warme Tinte. Automatisch folgt dem Gerät und wechselt abends von selbst.</p>
+        <h3>Licht</h3>
+        <p>Tageslicht ist helles Papier mit dunkler Tinte, Abendlicht dasselbe bei Lampenlicht —
+        dunkles Papier, warme Tinte, damit es abends nicht blendet. Automatisch folgt deinem Gerät
+        und wechselt von selbst.</p>
       </div>
       <div class="segmented" id="themeSegmented">
-        <button type="button" class="segmented-btn${settings.theme === 'modern' ? ' active' : ''}" data-value="modern">Modern</button>
-        <button type="button" class="segmented-btn${settings.theme === 'joseon' ? ' active' : ''}" data-value="joseon">Joseon</button>
+        <button type="button" class="segmented-btn${settings.theme === 'tag' ? ' active' : ''}" data-value="tag">Tageslicht</button>
         <button type="button" class="segmented-btn${settings.theme === 'night' ? ' active' : ''}" data-value="night">Abendlicht</button>
         <button type="button" class="segmented-btn${settings.theme === 'auto' ? ' active' : ''}" data-value="auto">Automatisch</button>
       </div>
     </div>
     <div class="setting-row">
       <div class="setting-text">
-        <h3>Sageuk-Stil (Joseon-Flair)</h3>
+        <h3>Joseon-Flair (Sageuk-Stil)</h3>
         <p>Zeigt bei Wörtern zusätzlich einen altertümlich klingenden koreanischen Ausdruck im Stil historischer
         K-Dramen (Sageuk) wie „Alchemy of Souls“ – als stimmungsvolle Ergänzung im Look eines alten Schriftstücks.
         Das ist keine wissenschaftlich exakte Rekonstruktion des tatsächlichen Joseon-Koreanisch, sondern
@@ -8273,7 +8217,6 @@ function renderSettings(){
   document.querySelectorAll('#themeSegmented .segmented-btn').forEach(b => {
     b.onclick = () => {
       settings.theme = b.dataset.value;
-      if(settings.theme !== 'modern') settings.sageukMode = true;
       applyTheme();
       saveState();
       renderSettings();
@@ -8523,7 +8466,7 @@ function getCurrentLessonIdx(){
 }
 /* Scrollt den Lernpfad zu einer bestimmten Lektion (Feedback vom
    24.08.2026). Der Pfad ist absichtlich umgekehrt aufgebaut — die
-   späteste Lektion steht oben, die erste ganz unten (s. renderHomeModern)
+   späteste Lektion steht oben, die erste ganz unten
    — dadurch landete man beim Öffnen der App bzw. beim Wechsel auf den
    Lernpfad-Reiter immer bei den zuletzt im Kurs liegenden, gesperrten
    Lektionen und musste an allem vorbeiscrollen, um die eigene Position zu
@@ -8550,7 +8493,6 @@ function scrollHomeToLesson(lessonIdx){
    zusammengerollten Schriftrolle, die schon beim Erzeugen offen sein muss
    (s. ausführlichen Kommentar in goToOrigin). */
 function expandUnitForLesson(lessonIdx){
-  if(!isJoseonLook()) return;
   scrollExpanded[getCourseUnit(COURSE[lessonIdx])] = true;
 }
 function showHomeAtCurrentLesson(){
@@ -8587,7 +8529,7 @@ function goToOrigin(){
   // Home-DOMs in renderHome()) ganz nach oben zu springen. Dafür merken wir
   // uns VOR dem Neu-Rendern, welche Lektion/Einheit gerade verlassen wird.
   const revealLessonIdx = (sessionOrigin === 'home' && currentLessonIdx !== null) ? currentLessonIdx : null;
-  if(revealLessonIdx !== null && isJoseonLook()){
+  if(revealLessonIdx !== null){
     // Die zugehörige Schriftrolle muss schon beim Erzeugen als "offen"
     // gerendert werden (nicht erst nachträglich per Klasse umgeschaltet),
     // sonst würde die Aufroll-Animation die Positionsberechnung unten
