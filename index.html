@@ -822,13 +822,24 @@
     white-space:nowrap; flex-shrink:0;}
   #updateBar button.later{ background:transparent; color:#fff; padding:7px 2px; opacity:.85;}
   /* ---- Sprung-Knopf und Einheiten-Liste ---- */
-  #jumpBtn{ position:fixed; right:14px; bottom:calc(66px + env(safe-area-inset-bottom));
-    z-index:30; display:none; align-items:center; gap:6px;
-    padding:8px 13px; border-radius:999px; border:2px solid var(--gray);
+  /* Der Abstand nach unten hängt an der GEMESSENEN Höhe der Leiste
+     (--nav-h, gesetzt in updateJumpBtn). Vorher stand dort ein fester
+     Wert plus env(safe-area-inset-bottom) — und weil die Leiste diesen
+     Geräterand bereits in ihrer eigenen Höhe trägt, wurde er auf
+     Telefonen mit Home-Indikator doppelt gezählt und der Knopf saß zu
+     hoch. Gemessen stimmt es auf jedem Gerät und in jeder Lage.
+
+     Das Verhältnis ist bewusst festgelegt: Der Abstand zur Menüleiste
+     ist die Hälfte des Abstands zum Bildrand. */
+  #jumpBtn{ --jump-rand:20px;
+    position:fixed; right:var(--jump-rand);
+    bottom:calc(var(--nav-h, 60px) + var(--jump-rand) / 2);
+    z-index:30; display:none;
+    padding:8px 14px; border-radius:999px; border:2px solid var(--gray);
     background:var(--bg); color:var(--text); font-family:inherit;
-    font-size:0.75rem; font-weight:800; cursor:pointer;
+    font-size:0.75rem; font-weight:800; cursor:pointer; white-space:nowrap;
     box-shadow:0 4px 14px rgba(0,0,0,.18);}
-  #jumpBtn.show{ display:flex;}
+  #jumpBtn.show{ display:block;}
   #jumpBtn:active{ transform:translateY(1px);}
   .jump-list{ text-align:left; max-height:56vh; overflow-y:auto; margin:0 0 16px;
     display:flex; flex-direction:column; gap:4px;}
@@ -1134,7 +1145,7 @@
     <button class="btn btn-red" id="retryBtn" style="max-width:280px; margin-top:20px;">Nochmal versuchen</button>
   </div>
   <!-- Sprung zu einer Einheit — nur auf dem Lernpfad sichtbar. -->
-  <button type="button" id="jumpBtn" aria-label="Zu einer Einheit springen">🗺️<span>Einheiten</span></button>
+  <button type="button" id="jumpBtn" aria-label="Zu einer Einheit springen">Einheiten</button>
   <!-- Meldet sich nur, wenn im Hintergrund eine neuere Fassung
        angekommen ist (s. Service-Worker-Abschnitt ganz unten). -->
   <div id="updateBar" role="status">
@@ -1170,8 +1181,8 @@
    öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
    statt eine leere Zeile zu zeigen.
    ========================================================= */
-const APP_VERSION = '1.8.0';
-const APP_BUILD = '30428a64e580';
+const APP_VERSION = '1.8.1';
+const APP_BUILD = '96af0f1b5d3c';
 const APP_CONTACT = {
   name: '',                 // z. B. 'Vorname Nachname'
   ort: '',                  // z. B. 'Musterstadt' (nur wenn du ein Impressum führst)
@@ -1185,6 +1196,7 @@ function appBuildLabel(){
    will, was ihm entgeht. Bewusst nur die letzten Einträge — eine
    vollständige Chronik gehört ins Projekt-Dokument, nicht in die App. */
 const CHANGELOG = [
+  { v:'1.8.1', text:'Der Einheiten-Knopf sitzt höher, ohne Symbol, und richtet sich nach der Leistenhöhe.' },
   { v:'1.8.0', text:'Kursinhalte von der Programmlogik getrennt — Grundlage für neue Lektionen ohne neues Programm.' },
   { v:'1.7.0', text:'Sucht selbst nach neuen Fassungen — auch vom Startbildschirm aus.' },
   { v:'1.6.0', text:'Einstellungen gegliedert, Fassung am Fuß des Lernpfads.' },
@@ -6837,6 +6849,14 @@ function currentUnitNumber(){
 function updateJumpBtn(){
   const btn = $('jumpBtn');
   if(!btn) return;
+  /* Die tatsächliche Höhe der unteren Leiste an das Stylesheet
+     durchreichen — sie ändert sich mit der Schriftgröße, im Querformat
+     und je nach Geräterand. */
+  const nav = $('bottomNav');
+  if(nav){
+    const h = Math.round(nav.getBoundingClientRect().height);
+    if(h > 0) document.documentElement.style.setProperty('--nav-h', h + 'px');
+  }
   /* Nur dort, wo es etwas zu springen gibt — und erst, wenn die
      Vorkenntnis-Frage beantwortet ist (vorher ist der Pfad zugerollt). */
   const zeigen = currentScreenName === 'home' && onboarding.hangulAsked;
@@ -7992,6 +8012,10 @@ const parallaxWanted = (() => {
 if(parallaxWanted){
   window.addEventListener('scroll', updateJoseonParallax, { passive:true });
   window.addEventListener('resize', updateJoseonParallax, { passive:true });
+/* Dreht sich das Gerät oder ändert sich die Schriftgröße, ändert sich
+   auch die Höhe der unteren Leiste — dann muss der Sprung-Knopf neu
+   ausgerichtet werden. */
+window.addEventListener('resize', () => updateJumpBtn(), { passive:true });
 }
 function renderSettings(){
   const el = $('settings');
