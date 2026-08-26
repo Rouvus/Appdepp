@@ -142,6 +142,17 @@
      Viewport, und darunter würde im Joseon-Stil der eigentlich nur für
      #home gedachte Lernpfad-Hintergrund durchscheinen. */
   #home, #practice, #grammar, #settings, #dictionary{ padding:24px 16px 110px; display:flex; flex-direction:column; align-items:center; gap:0; flex:1;}
+  /* Der Übungsbildschirm ist eine Folge gleichrangiger Blöcke — Wochen-
+     rückblick, Stand, Trainer. Die sollen alle gleich weit auseinander-
+     stehen. Solange jeder Block seinen eigenen Rand mitbrachte, taten
+     sie das nicht: Die Wochenkarte hatte gar keinen und klebte am
+     Banner „Dein Stand", während weiter unten 46px Luft standen
+     (Rückmeldung vom 26.08.2026). Jetzt bestimmt der Bildschirm den
+     Abstand, einmal für alle — die Ränder der einzelnen Blöcke werden
+     dafür hier ausgeschaltet. Nur hier: Im Lernpfad haben dieselben
+     Schriftrollen weiterhin ihren eigenen Rhythmus. */
+  #practice{ gap:28px;}
+  #practice > *{ margin-top:0; margin-bottom:0;}
   .unit-banner{ width:100%; background:var(--green); color:#fff; padding:14px 18px; border-radius:14px;
     margin-bottom:28px; font-weight:800; position:relative;}
   .unit-banner small{display:block; font-weight:500; opacity:.9; margin-top:2px;}
@@ -858,9 +869,13 @@
   .jump-count{ font-size:0.6875rem; font-weight:700; color:var(--gray-dark);
     font-variant-numeric:tabular-nums; flex-shrink:0;}
   /* ---- Wochenrückblick ---- */
-  .week-chart{ display:flex; gap:6px; align-items:flex-end; margin:14px 0 4px; height:74px;}
-  .week-col{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%;}
-  .week-bar-slot{ flex:1; width:100%; display:flex; align-items:flex-end;}
+  /* Die Balken standen direkt auf den Wochentagen — ohne Luft dazwischen
+     klebte alles aneinander (Rückmeldung vom 26.08.2026). Jetzt haben sie
+     Abstand und eine zarte Grundlinie, auf der sie stehen. */
+  .week-chart{ display:flex; gap:6px; align-items:flex-end; margin:20px 0 4px; height:86px;}
+  .week-col{ flex:1; display:flex; flex-direction:column; align-items:center; gap:9px; height:100%;}
+  .week-bar-slot{ flex:1; width:100%; display:flex; align-items:flex-end;
+    border-bottom:1px solid var(--gray); padding-bottom:5px;}
   .week-bar{ width:100%; border-radius:5px 5px 2px 2px; background:var(--green);
     transition:height .3s ease;}
   .week-bar.today{ background:var(--yellow);}
@@ -890,6 +905,13 @@
      schmales dunkles Feld, das genau so breit ist wie der Text. */
   body.theme-joseon .path-footer-inner{ color:#e7dcb8; background:rgba(20,30,25,.5);
     border-radius:12px; padding:8px 14px;}
+  /* ---- Mal-Übung ---- */
+  .draw-field{ display:flex; justify-content:center; margin:6px 0 4px;}
+  .draw-canvas{ border-radius:16px; background:var(--card-bg);
+    box-shadow:inset 0 0 0 2px var(--gray); cursor:crosshair;
+    /* Ohne das scrollt jeder Malstrich die Seite statt zu zeichnen. */
+    touch-action:none;}
+  .draw-actions{ display:flex; justify-content:center; margin-bottom:6px;}
   .about-line{ margin:0 0 6px; font-size:0.8125rem; color:var(--gray-dark); font-weight:600;}
   .about-line strong{ color:var(--text);}
   .legal-box{ text-align:left; font-size:0.8125rem; line-height:1.55; max-height:52vh; overflow-y:auto;
@@ -1185,8 +1207,8 @@
    öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
    statt eine leere Zeile zu zeigen.
    ========================================================= */
-const APP_VERSION = '1.9.0';
-const APP_BUILD = '05b28866bbbc';
+const APP_VERSION = '1.11.1';
+const APP_BUILD = '0641afb9beaf';
 const APP_CONTACT = {
   name: '',                 // z. B. 'Vorname Nachname'
   ort: '',                  // z. B. 'Musterstadt' (nur wenn du ein Impressum führst)
@@ -1200,6 +1222,10 @@ function appBuildLabel(){
    will, was ihm entgeht. Bewusst nur die letzten Einträge — eine
    vollständige Chronik gehört ins Projekt-Dokument, nicht in die App. */
 const CHANGELOG = [
+  { v:'1.11.1', text:'ㅖ und Verwandte werden auch dann erkannt, wenn die Senkrechte am Ästchen beginnt. Mehr Luft unter dem Wochenrückblick.' },
+  { v:'1.11.0', text:'Beim Malen wird nur noch der Laut gezeigt — das Zeichen kommt aus dem Kopf. Erkennung verträgt eigene Strichlängen.' },
+  { v:'1.10.1', text:'Zeichen-Erkennung unterscheidet jetzt Ecken von Rundungen — ㅁ wird nicht mehr für ㅇ gehalten.' },
+  { v:'1.10.0', text:'Neu: „Zeichen malen“ — Hangul mit dem Finger schreiben, mit Formprüfung.' },
   { v:'1.9.0', text:'Nur noch ein Erscheinungsbild — gewählt wird das Licht: Tageslicht, Abendlicht, Automatisch.' },
   { v:'1.8.2', text:'Kein versehentlicher Zoom beim schnellen Tippen; ruhiger Hintergrund auf Telefonen.' },
   { v:'1.8.1', text:'Der Einheiten-Knopf sitzt höher, ohne Symbol, und richtet sich nach der Leistenhöhe.' },
@@ -3568,7 +3594,7 @@ const DEFAULT_ONBOARDING = { hangulAsked:false };
 let onboarding = Object.assign({}, DEFAULT_ONBOARDING, (saved && saved.onboarding) ? saved.onboarding : {});
 let hearts = 5;
 let currentLessonIdx = null;
-let sessionMode = 'lesson';   // 'lesson' | 'practice' | 'hangultrainer' | 'mistakes'
+let sessionMode = 'lesson';   // 'lesson' | 'practice' | 'hangultrainer' | 'draw' | 'mistakes'
 let sessionOrigin = 'home';   // Bildschirm, zu dem "Schließen"/"Weiter" zurückführt
 let exercises = [];
 let exIdx = 0;
@@ -3593,14 +3619,14 @@ let dictSearchQuery = '';
 /* Filterzustand der Merkliste — bewusst nur zur Laufzeit. */
 let dictFavOnly = false;
 const $ = id => document.getElementById(id);
-const PHASE_LABEL = { intro:'Einführung', reinforce:'Wiederholung', apply:'Übung', practice:'Vokabeltraining', hangultrainer:'Hangul-Training', mistakes:'Fehlertraining', due:'Fällige Wiederholung' };
+const PHASE_LABEL = { intro:'Einführung', reinforce:'Wiederholung', apply:'Übung', practice:'Vokabeltraining', hangultrainer:'Hangul-Training', draw:'Zeichen malen', mistakes:'Fehlertraining', due:'Fällige Wiederholung' };
 /* Herzen pro Sitzung: nicht mehr fix 5, sondern abhängig von der Anzahl
    der tatsächlich abgefragten Fragen (Info-/Recap-/Concept-Karten zählen
    nicht mit, da sie nie falsch beantwortet werden können). Regel: je 4
    Fragen ein Herz, immer aufgerundet; bei Schwierigkeitsgrad "Einfach"
    (settings.showRoman) werden die Herzen verdoppelt. Mindestens 1 Herz,
    damit die Anzeige auch bei sehr kurzen Sitzungen sinnvoll bleibt. */
-const QUIZ_KINDS = new Set(['mc', 'type', 'build', 'buildword', 'cloze', 'sentence', 'listen']);
+const QUIZ_KINDS = new Set(['mc', 'type', 'build', 'buildword', 'cloze', 'sentence', 'listen', 'draw']);
 function heartsForExercises(exs){
   const questionCount = exs.filter(e => QUIZ_KINDS.has(e.kind)).length;
   const perFour = Math.max(1, Math.ceil(questionCount / 4));
@@ -3654,6 +3680,418 @@ function pickDistractorsWithFallback(pool, fallbackPool, correctVal, key, n){
   }
   return distractors;
 }
+/* =========================================================
+   HANGUL MIT DEM FINGER SCHREIBEN
+   =========================================================
+   Warum das ohne fremde Bibliothek geht: Hangul besteht aus 24 Grund-
+   buchstaben, und die sind aus geraden Strichen, rechten Winkeln und
+   einem Kreis gebaut. Kein Vergleich zu chinesischen Zeichen.
+
+   Und der eigentliche Trick: In einer Übung wissen wir, WELCHER
+   Buchstabe gefragt war. Es ist also keine offene Erkennung ("was hat
+   er gemalt?"), sondern eine Prüfung ("passt das zu ㄱ — und passt es
+   besser zu ㄱ als zu allem anderen?"). Das ist um Größenordnungen
+   einfacher und lässt sich sauber begründen.
+
+   Verfahren, in drei Schritten:
+     1. Das Gemalte wird auf ein Einheitsquadrat normiert — UNIFORM,
+        also unter Beibehaltung des Seitenverhältnisses. Das ist keine
+        Kleinigkeit: ㅡ (breit und flach) und ㅣ (hoch und schmal)
+        unterscheiden sich fast NUR im Seitenverhältnis. Wer auf die
+        volle Fläche zerrt, macht aus beiden dasselbe.
+     2. Beide — Zeichnung und Vorlage — werden in ein grobes Raster
+        gemalt und weichgezeichnet. Die Weichzeichnung ist die
+        Toleranz: Ein Strich, der ein paar Pixel danebenliegt, zählt
+        trotzdem.
+     3. Verglichen wird über den Kosinus zwischen den beiden Rastern —
+        ein Wert zwischen 0 und 1.
+
+   Bewusst wird NICHT auf Strichreihenfolge oder Strichzahl geprüft.
+   Die ist im Koreanischen zwar festgelegt, aber wer sie noch nicht
+   kennt, malt trotzdem ein richtiges ㄱ — und würde hier zu Unrecht
+   abgewiesen.
+   ========================================================= */
+
+/* Die Buchstabenformen als Linienzüge im Einheitsquadrat (y zeigt nach
+   unten). Jeder Buchstabe ist eine Liste von Strichen, jeder Strich
+   eine Liste von Punkten. Bewusst hier im Programmteil und nicht in
+   kurs/kurs.js: Das sind keine Lerninhalte, sondern die Referenzformen
+   des Erkenners. */
+const JAMO_FORMEN = {
+  /* --- Konsonanten --- */
+  'ㄱ': [[[0.15,0.22],[0.85,0.22],[0.70,0.86]]],
+  'ㄴ': [[[0.28,0.14],[0.28,0.80],[0.86,0.80]]],
+  'ㄷ': [[[0.20,0.20],[0.82,0.20]], [[0.20,0.20],[0.20,0.80],[0.82,0.80]]],
+  'ㄹ': [[[0.20,0.16],[0.80,0.16],[0.80,0.45],[0.20,0.45],[0.20,0.78],[0.82,0.78]]],
+  'ㅁ': [[[0.22,0.20],[0.80,0.20],[0.80,0.82],[0.22,0.82],[0.22,0.20]]],
+  'ㅂ': [[[0.24,0.16],[0.24,0.84]], [[0.76,0.16],[0.76,0.84]],
+         [[0.24,0.52],[0.76,0.52]], [[0.24,0.84],[0.76,0.84]]],
+  'ㅅ': [[[0.50,0.16],[0.18,0.86]], [[0.50,0.16],[0.82,0.86]]],
+  'ㅇ': ['KREIS:0.50,0.50,0.30'],
+  'ㅈ': [[[0.16,0.22],[0.84,0.22]], [[0.50,0.22],[0.20,0.86]], [[0.50,0.22],[0.80,0.86]]],
+  'ㅊ': [[[0.50,0.04],[0.50,0.18]], [[0.16,0.30],[0.84,0.30]],
+         [[0.50,0.30],[0.20,0.88]], [[0.50,0.30],[0.80,0.88]]],
+  'ㅋ': [[[0.15,0.22],[0.85,0.22],[0.72,0.86]], [[0.22,0.52],[0.80,0.52]]],
+  'ㅌ': [[[0.20,0.16],[0.84,0.16]], [[0.20,0.16],[0.20,0.84],[0.84,0.84]],
+         [[0.24,0.50],[0.80,0.50]]],
+  'ㅍ': [[[0.12,0.26],[0.88,0.26]], [[0.32,0.26],[0.32,0.76]],
+         [[0.68,0.26],[0.68,0.76]], [[0.12,0.76],[0.88,0.76]]],
+  'ㅎ': [[[0.50,0.03],[0.50,0.15]], [[0.24,0.26],[0.76,0.26]], 'KREIS:0.50,0.64,0.22'],
+
+  /* --- Vokale --- */
+  'ㅏ': [[[0.56,0.06],[0.56,0.94]], [[0.56,0.50],[0.90,0.50]]],
+  'ㅑ': [[[0.56,0.06],[0.56,0.94]], [[0.56,0.34],[0.90,0.34]], [[0.56,0.66],[0.90,0.66]]],
+  'ㅓ': [[[0.62,0.06],[0.62,0.94]], [[0.28,0.50],[0.62,0.50]]],
+  'ㅕ': [[[0.62,0.06],[0.62,0.94]], [[0.28,0.34],[0.62,0.34]], [[0.28,0.66],[0.62,0.66]]],
+  'ㅗ': [[[0.06,0.72],[0.94,0.72]], [[0.50,0.32],[0.50,0.72]]],
+  'ㅛ': [[[0.06,0.72],[0.94,0.72]], [[0.32,0.32],[0.32,0.72]], [[0.68,0.32],[0.68,0.72]]],
+  'ㅜ': [[[0.06,0.34],[0.94,0.34]], [[0.50,0.34],[0.50,0.74]]],
+  'ㅠ': [[[0.06,0.34],[0.94,0.34]], [[0.32,0.34],[0.32,0.74]], [[0.68,0.34],[0.68,0.74]]],
+  'ㅡ': [[[0.06,0.50],[0.94,0.50]]],
+  'ㅣ': [[[0.50,0.06],[0.50,0.94]]],
+
+  /* --- Zusammengesetzte Vokale --- */
+  'ㅐ': [[[0.40,0.06],[0.40,0.94]], [[0.40,0.50],[0.70,0.50]], [[0.76,0.06],[0.76,0.94]]],
+  'ㅒ': [[[0.40,0.06],[0.40,0.94]], [[0.40,0.34],[0.70,0.34]], [[0.40,0.66],[0.70,0.66]],
+         [[0.78,0.06],[0.78,0.94]]],
+  'ㅔ': [[[0.48,0.06],[0.48,0.94]], [[0.18,0.50],[0.48,0.50]], [[0.80,0.06],[0.80,0.94]]],
+  'ㅖ': [[[0.48,0.06],[0.48,0.94]], [[0.18,0.34],[0.48,0.34]], [[0.18,0.66],[0.48,0.66]],
+         [[0.80,0.06],[0.80,0.94]]],
+  'ㅘ': [[[0.04,0.66],[0.46,0.66]], [[0.25,0.34],[0.25,0.66]],
+         [[0.64,0.06],[0.64,0.94]], [[0.64,0.50],[0.92,0.50]]],
+  'ㅙ': [[[0.04,0.66],[0.40,0.66]], [[0.22,0.36],[0.22,0.66]],
+         [[0.56,0.06],[0.56,0.94]], [[0.56,0.50],[0.78,0.50]], [[0.86,0.06],[0.86,0.94]]],
+  'ㅚ': [[[0.04,0.66],[0.52,0.66]], [[0.28,0.34],[0.28,0.66]], [[0.76,0.06],[0.76,0.94]]],
+  'ㅝ': [[[0.04,0.34],[0.46,0.34]], [[0.25,0.34],[0.25,0.66]],
+         [[0.70,0.06],[0.70,0.94]], [[0.52,0.50],[0.70,0.50]]],
+  'ㅞ': [[[0.04,0.34],[0.40,0.34]], [[0.22,0.34],[0.22,0.64]],
+         [[0.62,0.06],[0.62,0.94]], [[0.50,0.50],[0.62,0.50]], [[0.86,0.06],[0.86,0.94]]],
+  'ㅟ': [[[0.04,0.34],[0.52,0.34]], [[0.28,0.34],[0.28,0.66]], [[0.76,0.06],[0.76,0.94]]],
+  'ㅢ': [[[0.04,0.50],[0.58,0.50]], [[0.76,0.06],[0.76,0.94]]],
+};
+
+/* Die Doppelkonsonanten sind zwei Ausfertigungen desselben Buchstabens
+   nebeneinander — die lassen sich aus dem Grundbuchstaben errechnen,
+   statt sie ein zweites Mal von Hand einzutragen. */
+['ㄱ','ㄷ','ㅂ','ㅅ','ㅈ'].forEach((basis, i) => {
+  const doppelt = ['ㄲ','ㄸ','ㅃ','ㅆ','ㅉ'][i];
+  const eins = JAMO_FORMEN[basis];
+  const stauchen = (versatz) => eins.map(strich => {
+    if(typeof strich === 'string'){
+      const [cx, cy, r] = strich.slice(6).split(',').map(Number);
+      return `KREIS:${(cx * 0.46 + versatz).toFixed(3)},${cy},${(r * 0.46).toFixed(3)}`;
+    }
+    return strich.map(([x, y]) => [x * 0.46 + versatz, y]);
+  });
+  JAMO_FORMEN[doppelt] = stauchen(0.02).concat(stauchen(0.52));
+});
+
+/* Kreise werden als Linienzug ausgerollt — der Erkenner kennt nur Punkte. */
+function formZuStrichen(form){
+  return form.map(strich => {
+    if(typeof strich !== 'string') return strich;
+    const [cx, cy, r] = strich.slice(6).split(',').map(Number);
+    const punkte = [];
+    for(let i = 0; i <= 24; i++){
+      const w = (i / 24) * Math.PI * 2;
+      punkte.push([cx + Math.cos(w) * r, cy + Math.sin(w) * r]);
+    }
+    return punkte;
+  });
+}
+
+const RASTER = 22;          // Auflösung des Vergleichsrasters
+const RASTER_RAND = 0.10;   // Rand, damit Striche am Bildrand nicht abgeschnitten werden
+
+/* Normiert Striche auf das Einheitsquadrat — unter Beibehaltung des
+   Seitenverhältnisses (s. Kommentar oben: ㅡ gegen ㅣ). */
+function normiereStriche(striche){
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  striche.forEach(s => s.forEach(([x, y]) => {
+    if(x < minX) minX = x; if(x > maxX) maxX = x;
+    if(y < minY) minY = y; if(y > maxY) maxY = y;
+  }));
+  if(!isFinite(minX)) return [];
+  const breite = Math.max(maxX - minX, 1e-6);
+  const hoehe = Math.max(maxY - minY, 1e-6);
+  /* Ein einzelner gerader Strich hat in einer Richtung die Ausdehnung
+     null. Damit er nicht auf volle Breite gezerrt wird, bekommt die
+     Skalierung eine Untergrenze: Wer nur eine dünne Linie malt, behält
+     eine dünne Linie. */
+  const spanne = Math.max(breite, hoehe);
+  const nutz = 1 - 2 * RASTER_RAND;
+  const f = nutz / spanne;
+  const versatzX = RASTER_RAND + (nutz - breite * f) / 2;
+  const versatzY = RASTER_RAND + (nutz - hoehe * f) / 2;
+  return striche.map(s => s.map(([x, y]) => [
+    (x - minX) * f + versatzX,
+    (y - minY) * f + versatzY
+  ]));
+}
+
+/* Malt Striche in RICHTUNGS-Raster.
+
+   Warum nicht ein einzelnes Raster (so war es bis zum 26.08.2026):
+   Rückmeldung aus dem Alltag — ein sauber gemaltes ㅁ wurde als ㅇ
+   abgelehnt. Der Grund ist strukturell: Die Weichzeichnung, die die
+   Toleranz schafft, zerstört genau die Ecken. Nach zwei Durchgängen
+   sind Quadrat und Kreis beide ein Ring, und der Unterschied liegt nur
+   noch im Rauschen.
+
+   Die Abhilfe ist, den Strich nicht nur danach zu erfassen, WO er
+   liegt, sondern auch, in WELCHE RICHTUNG er dort zeigt. Ein Quadrat
+   besteht aus waagerechten und senkrechten Stücken; ein Kreis
+   verteilt seine Richtungen gleichmäßig über alle vier Fächer. Dieser
+   Unterschied übersteht die Weichzeichnung, weil er nicht in der
+   Position steckt, sondern im Inhalt.
+
+   Es entstehen also fünf Raster: eines für "hier ist Tinte" und vier
+   für "hier ist Tinte, die waagerecht / diagonal / senkrecht / anders
+   diagonal verläuft". Die Richtung wird zwischen den beiden nächsten
+   Fächern aufgeteilt, damit ein Strich bei 30° nicht hart in ein Fach
+   kippt.
+
+   Richtungen sind ungerichtet (Winkel modulo 180°): Ein von links nach
+   rechts gemalter Strich ist derselbe wie einer von rechts nach links.
+   Wer anders herum malt, malt trotzdem denselben Buchstaben. */
+const RICHTUNGEN = 4;
+const RICHTUNGS_GEWICHT = 1.35;   // wie stark die Richtung gegenüber der reinen Lage zählt
+const FENSTER = 3;                // über wie viele Abtastpunkte die Richtung gemittelt wird
+
+/* Striche gleichmäßig neu abtasten. Ein Finger liefert je nach Tempo mal
+   dichte, mal weit auseinanderliegende Punkte — für die Richtungs-
+   messung ist gleichmäßiger Abstand die Voraussetzung. */
+function neuAbtasten(punkte, abstand){
+  if(punkte.length < 2) return punkte.slice();
+  const raus = [punkte[0]];
+  let rest = abstand;
+  for(let i = 1; i < punkte.length; i++){
+    let [x1, y1] = raus[raus.length - 1];
+    const [x2, y2] = punkte[i];
+    let d = Math.hypot(x2 - x1, y2 - y1);
+    while(d >= rest){
+      const f = rest / d;
+      const nx = x1 + (x2 - x1) * f, ny = y1 + (y2 - y1) * f;
+      raus.push([nx, ny]);
+      x1 = nx; y1 = ny;
+      d = Math.hypot(x2 - x1, y2 - y1);
+      rest = abstand;
+    }
+    rest -= d;
+  }
+  return raus;
+}
+
+function rasterAus(striche){
+  const n = RASTER;
+  const lage = new Float32Array(n * n);
+  const richtung = [];
+  for(let r = 0; r < RICHTUNGEN; r++) richtung.push(new Float32Array(n * n));
+
+  const setze = (feld, x, y, wert) => {
+    const gx = Math.round(x * (n - 1));
+    const gy = Math.round(y * (n - 1));
+    if(gx < 0 || gy < 0 || gx >= n || gy >= n) return;
+    const i = gy * n + gx;
+    if(feld[i] < wert) feld[i] = wert;
+  };
+
+  striche.forEach(roh => {
+    const s = neuAbtasten(roh, 1 / (n * 2));
+    if(s.length === 1){ setze(lage, s[0][0], s[0][1], 1); return; }
+    for(let i = 0; i < s.length; i++){
+      const [x, y] = s[i];
+      setze(lage, x, y, 1);
+      /* Die Richtung wird NICHT zwischen zwei benachbarten Punkten
+         gemessen, sondern über ein Fenster. Bei einem zittrigen Strich
+         zeigen zwei Nachbarpunkte in beliebige Richtungen — erst über
+         eine längere Strecke wird sichtbar, wohin der Strich wirklich
+         läuft. Genau daran war die erste Fassung gescheitert. */
+      const a = s[Math.max(0, i - FENSTER)];
+      const b = s[Math.min(s.length - 1, i + FENSTER)];
+      const dx = b[0] - a[0], dy = b[1] - a[1];
+      if(dx === 0 && dy === 0) continue;
+      let winkel = Math.atan2(dy, dx);
+      if(winkel < 0) winkel += Math.PI;
+      const stelle = (winkel / Math.PI) * RICHTUNGEN;
+      const unten = Math.floor(stelle) % RICHTUNGEN;
+      const oben = (unten + 1) % RICHTUNGEN;
+      const anteil = stelle - Math.floor(stelle);
+      setze(richtung[unten], x, y, 1 - anteil);
+      setze(richtung[oben], x, y, anteil);
+    }
+  });
+
+  const teile = [weichzeichnen(weichzeichnen(lage, n), n)];
+  richtung.forEach(f => teile.push(weichzeichnen(weichzeichnen(f, n), n)));
+  const gesamt = new Float32Array(n * n * (1 + RICHTUNGEN));
+  teile.forEach((feld, k) => {
+    const gewicht = k === 0 ? 1 : RICHTUNGS_GEWICHT;
+    for(let i = 0; i < feld.length; i++) gesamt[k * n * n + i] = feld[i] * gewicht;
+  });
+  return gesamt;
+}
+function weichzeichnen(feld, n){
+  const raus = new Float32Array(n * n);
+  for(let y = 0; y < n; y++){
+    for(let x = 0; x < n; x++){
+      let summe = 0, zahl = 0;
+      for(let dy = -1; dy <= 1; dy++){
+        for(let dx = -1; dx <= 1; dx++){
+          const nx = x + dx, ny = y + dy;
+          if(nx < 0 || ny < 0 || nx >= n || ny >= n) continue;
+          const gewicht = (dx === 0 && dy === 0) ? 2 : 1;
+          summe += feld[ny * n + nx] * gewicht; zahl += gewicht;
+        }
+      }
+      raus[y * n + x] = summe / zahl;
+    }
+  }
+  return raus;
+}
+function kosinus(a, b){
+  let ab = 0, aa = 0, bb = 0;
+  for(let i = 0; i < a.length; i++){ ab += a[i] * b[i]; aa += a[i] * a[i]; bb += b[i] * b[i]; }
+  if(aa === 0 || bb === 0) return 0;
+  return ab / Math.sqrt(aa * bb);
+}
+
+/* Mehrere Proportionen je Buchstabe.
+
+   Anlass (26.08.2026): Ein gut gemaltes ㅛ wurde abgelehnt. Der Grund
+   lag nicht in der Form, sondern im Seitenverhältnis — die Zeichnung
+   war fast quadratisch (1,15), die Vorlage breit und flach (2,20).
+   Weil uniform normiert wird (und das muss so sein, sonst werden ㅡ
+   und ㅣ ununterscheidbar), landeten beide als verschieden geformte
+   Gebilde im Raster.
+
+   Wie lang jemand die Striche eines ㅛ im Verhältnis zum Balken malt,
+   ist aber schlicht Handschrift und kein Fehler. Deshalb bekommt jeder
+   Buchstabe mehrere Vorlagen: dieselbe Form, in der Breite gestaucht
+   bzw. gedehnt. Verglichen wird gegen alle, es zählt die beste. Das
+   toleriert Proportionen, ohne die Form selbst aufzuweichen — ein
+   gestauchtes ㅛ bleibt ein ㅛ und wird nicht zum ㅐ. */
+const PROPORTIONEN = [1, 0.55, 0.75, 1.4, 1.9];
+
+function dehneForm(striche, faktor){
+  return striche.map(s => s.map(([x, y]) => [x * faktor, y]));
+}
+
+/* Zweitformen: dieselbe Form, aber mit bündigem Stamm.
+
+   Anlass (26.08.2026): Ein gut lesbares ㅖ wurde als ㅔ abgewiesen.
+   Der Unterschied lag nicht in der Zahl der Striche — die stimmte —,
+   sondern darin, WIE WEIT die Senkrechten über die Ästchen
+   hinausragen. In der Vorlage laufen sie oben und unten deutlich
+   darüber hinaus; in der Zeichnung fing die Senkrechte genau am
+   oberen Ästchen an. Weil auf die Gesamtausdehnung normiert wird,
+   rutscht damit jede Position im Raster: Das obere Ästchen sitzt in
+   der Vorlage bei 32 % der Höhe, in der Zeichnung bei 4 %.
+
+   Wo jemand die Ästchen ansetzt, ist Handschrift und kein Fehler.
+   Also bekommen die betroffenen Buchstaben zusätzliche Vorlagen, bei
+   denen der Stamm oben, unten oder beidseitig bündig mit dem
+   äußersten Ästchen endet.
+
+   Betroffen sind genau die Buchstaben mit ZWEI Ästchen an einem
+   durchgehenden Stamm (ㅑ ㅕ ㅒ ㅖ) — dort ist die Lage der Ästchen
+   im Stamm mehrdeutig. Bei einem einzelnen Ästchen (ㅏ ㅓ ㅐ ㅔ) sitzt
+   es ohnehin auf halber Höhe; dort wird nichts hinzugefügt, damit
+   ㅔ dem ㅖ nicht die Zeichnung wegschnappt. Die Erkennung der Fälle
+   passiert unten aus der Form selbst, nicht über eine Namensliste:
+   Ein Ästchen ist ein waagerechter Strich, der an einem Ende auf
+   einem Stamm sitzt und am anderen frei endet — daran scheitert
+   z. B. ㅂ, dessen Querstriche beidseitig angebunden sind. */
+function stammBuendig(form, obenBuendig, untenBuendig){
+  const striche = form.filter(s => typeof s !== 'string');
+  if(striche.length !== form.length) return null;   // Kreise: kein Stamm
+  let yMin = Infinity, yMax = -Infinity;
+  striche.forEach(s => s.forEach(([, y]) => { if(y < yMin) yMin = y; if(y > yMax) yMax = y; }));
+  const hoehe = yMax - yMin;
+  if(hoehe <= 0) return null;
+
+  const enden = (s) => [s[0], s[s.length - 1]];
+  const istStamm = (s) => {
+    const [a, b] = enden(s);
+    return Math.abs(b[0] - a[0]) < 0.06 && Math.abs(b[1] - a[1]) >= 0.7 * hoehe;
+  };
+  const staemme = striche.filter(istStamm);
+  if(!staemme.length) return null;
+  const aufStamm = (p) => staemme.some(st => Math.abs(st[0][0] - p[0]) < 0.06);
+
+  const aeste = striche.filter(s => {
+    if(istStamm(s)) return false;
+    const [a, b] = enden(s);
+    if(Math.abs(b[1] - a[1]) > 0.12 * hoehe) return false;      // muss waagerecht sein
+    return aufStamm(a) !== aufStamm(b);                        // genau ein Ende angebunden
+  });
+  if(aeste.length < 2) return null;
+
+  const astOben = Math.min(...aeste.map(s => s[0][1]));
+  const astUnten = Math.max(...aeste.map(s => s[0][1]));
+  const von = obenBuendig ? astOben : yMin;
+  const bis = untenBuendig ? astUnten : yMax;
+  return form.map(s => istStamm(s)
+    ? s.map(([x, y]) => [x, Math.min(bis, Math.max(von, y))])
+    : s);
+}
+
+let jamoVorlagen = null;
+function vorlagen(){
+  if(jamoVorlagen) return jamoVorlagen;
+  jamoVorlagen = {};
+  Object.keys(JAMO_FORMEN).forEach(ch => {
+    const grund = formZuStrichen(JAMO_FORMEN[ch]);
+    const formen = [grund];
+    /* Nur EINE Seite bündig. Beidseitig bündig schrumpft den Stamm auf
+       den Abstand der Ästchen zusammen — das Ergebnis ist so klein und
+       so gedrungen, dass es nach der Normierung anderen Buchstaben
+       ähnlicher wird als sich selbst (gemessen: ein ㅁ verlor dadurch
+       zwei Drittel seines Vorsprungs, ㄷ fiel ganz durch). */
+    [[true, false], [false, true]].forEach(([o, u]) => {
+      const v = stammBuendig(grund, o, u);
+      if(v) formen.push(v);
+    });
+    jamoVorlagen[ch] = [];
+    formen.forEach(f0 => PROPORTIONEN.forEach(f =>
+      jamoVorlagen[ch].push(rasterAus(normiereStriche(dehneForm(f0, f))))));
+  });
+  return jamoVorlagen;
+}
+function kannGemaltWerden(ch){ return !!JAMO_FORMEN[ch]; }
+
+/* Liefert alle Buchstaben nach Ähnlichkeit sortiert. */
+function erkenneJamo(striche){
+  const gefiltert = (striche || []).filter(s => s && s.length > 1);
+  if(!gefiltert.length) return [];
+  const meins = rasterAus(normiereStriche(gefiltert));
+  const v = vorlagen();
+  return Object.keys(v)
+    .map(ch => ({ ch, wert: v[ch].reduce((best, raster) => Math.max(best, kosinus(meins, raster)), 0) }))
+    .sort((a, b) => b.wert - a.wert);
+}
+
+/* Das Urteil. Drei Bedingungen, und jede hat einen Grund:
+   - Der gesuchte Buchstabe muss der ähnlichste sein.
+   - Er muss eine Mindestähnlichkeit erreichen, sonst würde auch ein
+     Gekritzel durchgehen, das zufällig am wenigsten unähnlich ist.
+   - Verfehlt man ihn, aber ein anderer Buchstabe passt deutlich, ist
+     das die nützlichste Rückmeldung überhaupt: "das sieht aus wie ㅓ". */
+const MAL_SCHWELLE = 0.62;
+function pruefeGemaltesJamo(striche, ziel){
+  const liste = erkenneJamo(striche);
+  if(!liste.length) return { richtig:false, leer:true };
+  const beste = liste[0];
+  const zielWert = (liste.find(e => e.ch === ziel) || { wert:0 }).wert;
+  const richtig = beste.ch === ziel && zielWert >= MAL_SCHWELLE;
+  return {
+    richtig,
+    leer: false,
+    wert: zielWert,
+    verwechseltMit: (!richtig && beste.ch !== ziel && beste.wert >= MAL_SCHWELLE) ? beste.ch : null
+  };
+}
+
 /* =========================================================
    AUSSPRACHE (Einstellung "Aussprache")
    Nutzt die Web-Speech-API des Browsers, um koreanischen Text
@@ -6512,6 +6950,9 @@ function buildHangulTrainerSteps(){
    gelernten Wortschatz) — nie aus noch nicht gelernten Inhalten.
 ========================================================= */
 function rebuildExerciseFromMistake(m){
+  if(m.entryKind === 'draw'){
+    return makeDrawExercise({ ch:m.term, roman:m.roman, kind:m.kind }, 'mistakes', m.id);
+  }
   /* Hörverstehen-Fehler (direction 'listen') tragen denselben entryKind
      wie die zugehörige Lese-Abfrage, müssen aber als Hör-Übung wieder
      aufgebaut werden. Fällt die Sprachausgabe zwischenzeitlich weg (z. B.
@@ -6586,6 +7027,39 @@ function rebuildExerciseFromMistake(m){
   let pool = targetKind ? learnedLetters.filter(l => l.kind === targetKind) : learnedLetters;
   if(!pool.some(p => p.ch === m.term)) pool = [...pool, { ch:m.term, roman:m.roman, kind:targetKind }];
   return makeHangulMcExercise({ ch:m.term, roman:m.roman }, pool, m.direction, 'mistakes', m.lessonId, m.id);
+}
+/* Eine Mal-Übung. Der gesuchte Buchstabe ist bekannt — deshalb prüft
+   der Erkenner nur, ob das Gemalte zu IHM passt und zu keinem anderen
+   besser (s. pruefeGemaltesJamo). */
+function makeDrawExercise(letter, phase, idOverride){
+  return {
+    phase: phase || 'hangultrainer',
+    kind: 'draw',
+    id: idOverride || `draw:${letter.ch}`,
+    /* Gezeigt wird NUR die Umschrift — das Zeichen muss aus dem Kopf
+       kommen (Rückmeldung vom 26.08.2026). Abmalen prüft, ob man eine
+       Form nachziehen kann; aus dem Laut das Zeichen zu erzeugen prüft,
+       ob man es kann. Wer nicht weiterweiß, hat den „Ich weiß es nicht"-
+       Knopf, und nach dem Prüfen erscheint die richtige Form ohnehin
+       über der eigenen Zeichnung. */
+    title: 'Mal das Zeichen für diesen Laut',
+    prompt: letter.roman,
+    promptIsKr: false,
+    sub: null,
+    roman: letter.roman,
+    correct: letter.ch,
+    letterKind: letter.kind || null,
+    mistakeMeta: { entryKind:'draw', lessonId:null, term:letter.ch,
+                   roman:letter.roman, de:letter.roman, kind:letter.kind || null, direction:'draw' }
+  };
+}
+const DRAW_EXERCISE_COUNT = 12;
+function buildDrawSteps(){
+  /* Nur Buchstaben, die BEIDES sind: schon gelernt und vom Erkenner
+     prüfbar. Für alles andere gäbe es keine ehrliche Rückmeldung. */
+  const malbar = getLearnedHangulLetters().filter(l => kannGemaltWerden(l.ch));
+  if(!malbar.length) return [];
+  return shuffle(malbar).slice(0, DRAW_EXERCISE_COUNT).map(l => makeDrawExercise(l));
 }
 function buildMistakeSteps(){
   return shuffle(mistakes.map(m => rebuildExerciseFromMistake(m)));
@@ -7400,6 +7874,24 @@ function renderPractice(){
   });
   const hangulBtn = $('startHangulTrainerBtn');
   if(hangulBtn) hangulBtn.onclick = (e) => { e.stopPropagation(); startSession('hangultrainer', { origin:'practice' }); };
+
+  // ---- Zeichen malen: Hangul mit dem Finger schreiben ----
+  const malbar = getLearnedHangulLetters().filter(l => kannGemaltWerden(l.ch));
+  appendTrainerSection(el, {
+    key: 'draw',
+    title: 'Zeichen malen',
+    subtitle: 'Schreib die gelernten Buchstaben mit dem Finger — die App sagt dir, ob die Form stimmt',
+    color: 'var(--amber)',
+    html: malbar.length === 0
+      ? `<div class="trainer-emoji">🔒</div><h3>Noch keine Buchstaben freigeschaltet</h3>
+         <p>Schließe zuerst eine Hangul-Lektion im Lernpfad ab – danach kannst du ihre Zeichen hier malen.</p>`
+      : `<div class="trainer-emoji">🖌️</div><h3>${malbar.length} Zeichen zum Malen</h3>
+         <p>Lesen können und schreiben können sind zweierlei. Hier malst du die Buchstaben selbst —
+         mit dem Finger, ohne Tastatur. Danach legt die App die richtige Form über deine Zeichnung.</p>
+         <button class="btn btn-primary" id="startDrawTrainerBtn" style="margin-top:16px; background:var(--amber);">Malen starten</button>`
+  });
+  const drawBtn = $('startDrawTrainerBtn');
+  if(drawBtn) drawBtn.onclick = (e) => { e.stopPropagation(); startSession('draw', { origin:'practice' }); };
 
   // ---- Fehlertrainer: gezielt zuletzt falsch beantwortete Fragen ----
   renderMistakesSection(el);
@@ -8279,6 +8771,7 @@ function buildSessionExercises(mode, opts){
   if(mode === 'quick') return buildQuickSteps();
   if(mode === 'favorites') return buildFavoriteSteps();
   if(mode === 'hangultrainer') return buildHangulTrainerSteps();
+  if(mode === 'draw') return buildDrawSteps();
   if(mode === 'mistakes') return buildMistakeSteps();
   return [];
 }
@@ -8304,6 +8797,7 @@ function openSessionTitle(sess){
   if(sess.mode === 'lesson' && COURSE[sess.lessonIdx]) return `„${COURSE[sess.lessonIdx].title}"`;
   if(sess.mode === 'practice') return 'dem Vokabeltrainer';
   if(sess.mode === 'hangultrainer') return 'dem Hangul-Trainer';
+  if(sess.mode === 'draw') return 'der Mal-Übung';
   if(sess.mode === 'due') return 'einer fälligen Wiederholung';
   if(sess.mode === 'quick') return 'einer kurzen Übung';
   return 'einer Übung';
@@ -8699,6 +9193,8 @@ function renderExercise(){
     renderBuildStep(ex, area);
   } else if(ex.kind === 'buildword'){
     renderBuildWordStep(ex, area);
+  } else if(ex.kind === 'draw'){
+    renderDrawStep(ex, area);
   }
   $('checkBtn').disabled = true;
   $('checkBtn').textContent = 'Prüfen';
@@ -8942,6 +9438,147 @@ function composeBuildWordSyllable(syl){
     finalChar = (syl.final && syl.final2) ? joinCompoundFinal(syl.final, syl.final2) : null;
   }
   return composeSyllable(syl.initial, syl.medial, finalChar);
+}
+/* =========================================================
+   MAL-ÜBUNG: die Zeichenfläche
+   =========================================================
+   Gezeichnet wird mit Zeigergeräte-Ereignissen (pointer*), die Finger,
+   Stift und Maus gleich behandeln. Zwei Dinge sind dabei wichtig:
+   - touch-action:none auf der Fläche, sonst scrollt das Malen die Seite.
+   - setPointerCapture, sonst reißt der Strich ab, sobald der Finger
+     kurz über den Rand gerät.
+   Die Punkte werden in 0..1 abgelegt, unabhängig von der Bildschirm-
+   größe — der Erkenner rechnet ohnehin normiert.
+   ========================================================= */
+let drawState = null;
+function drawFlaecheMalen(){
+  if(!drawState) return;
+  const { ctx, w, h } = drawState;
+  ctx.clearRect(0, 0, w, h);
+  /* Eine zarte Hilfslinie in der Mitte — wie das Karo im Schreibheft.
+     Sie hilft beim Augenmaß, ohne eine Vorlage vorzugeben. */
+  ctx.save();
+  ctx.strokeStyle = 'rgba(120,100,60,.18)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 6]);
+  ctx.beginPath();
+  ctx.moveTo(w/2, h*0.06); ctx.lineTo(w/2, h*0.94);
+  ctx.moveTo(w*0.06, h/2); ctx.lineTo(w*0.94, h/2);
+  ctx.stroke();
+  ctx.restore();
+
+  if(drawState.vorlage){
+    /* Nach dem Prüfen: die richtige Form zum Vergleich darüberlegen. */
+    ctx.save();
+    ctx.strokeStyle = drawState.vorlageFarbe || 'rgba(90,140,110,.55)';
+    ctx.lineWidth = Math.max(6, w * 0.045);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    formZuStrichen(JAMO_FORMEN[drawState.vorlage] || []).forEach(strich => {
+      ctx.beginPath();
+      strich.forEach(([x, y], i) => {
+        const px = w * (0.10 + x * 0.80), py = h * (0.10 + y * 0.80);
+        if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  ctx.save();
+  ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--text').trim() || '#2b2620';
+  ctx.lineWidth = Math.max(5, w * 0.038);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  drawState.striche.forEach(strich => {
+    if(strich.length < 2) return;
+    ctx.beginPath();
+    strich.forEach(([x, y], i) => {
+      if(i === 0) ctx.moveTo(x * w, y * h); else ctx.lineTo(x * w, y * h);
+    });
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+function renderDrawStep(ex, area){
+  /* KEINE eigene Aufgabenkarte: renderExercise hat den Buchstaben schon
+     angezeigt (dafür tragen Mal-Übungen promptIsKr und sub). Eine zweite
+     hätte ihn doppelt gezeigt. */
+  const feld = document.createElement('div');
+  feld.className = 'draw-field';
+  const cv = document.createElement('canvas');
+  cv.className = 'draw-canvas';
+  feld.appendChild(cv);
+  area.appendChild(feld);
+
+  const leiste = document.createElement('div');
+  leiste.className = 'draw-actions';
+  /* Anhören ist erlaubt und hilfreich: Der Klang verrät die FORM nicht,
+     er verbindet nur Laut und Zeichen — genau darum geht es hier. */
+  if(settings.showPronunciation && pronunciationAvailable()){
+    const hoeren = document.createElement('button');
+    hoeren.type = 'button';
+    hoeren.className = 'listen-slow-btn';
+    hoeren.textContent = '🔊 Anhören';
+    hoeren.onclick = () => speak(ex.correct);
+    leiste.appendChild(hoeren);
+  }
+  const leeren = document.createElement('button');
+  leeren.type = 'button';
+  leeren.className = 'listen-slow-btn';
+  leeren.textContent = '↺ Nochmal';
+  leiste.appendChild(leeren);
+  area.appendChild(leiste);
+
+  /* Die Fläche wird in Gerätepunkten gerechnet, damit der Strich auf
+     hochauflösenden Bildschirmen nicht ausfranst. */
+  /* 260 px: groß genug zum Malen mit dem Finger, klein genug, dass
+     Rückmeldung und Prüfen-Knopf ohne Scrollen sichtbar bleiben. */
+  const seite = Math.min(feld.clientWidth || 260, 260);
+  const dpr = window.devicePixelRatio || 1;
+  cv.style.width = seite + 'px';
+  cv.style.height = seite + 'px';
+  cv.width = Math.round(seite * dpr);
+  cv.height = Math.round(seite * dpr);
+  const ctx = cv.getContext('2d');
+  ctx.scale(dpr, dpr);
+  drawState = { striche: [], aktiv: null, ctx, canvas: cv, w: seite, h: seite, vorlage: null };
+  drawFlaecheMalen();
+
+  const punktAus = (e) => {
+    const r = cv.getBoundingClientRect();
+    return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height];
+  };
+  cv.addEventListener('pointerdown', (e) => {
+    if(answered) return;
+    e.preventDefault();
+    try{ cv.setPointerCapture(e.pointerId); }catch(err){ /* ältere Browser */ }
+    drawState.aktiv = [punktAus(e)];
+    drawState.striche.push(drawState.aktiv);
+  });
+  cv.addEventListener('pointermove', (e) => {
+    if(answered || !drawState.aktiv) return;
+    e.preventDefault();
+    drawState.aktiv.push(punktAus(e));
+    drawFlaecheMalen();
+  });
+  const strichEnde = () => {
+    if(!drawState || !drawState.aktiv) return;
+    /* Ein einzelner Tipp ist kein Strich — sonst zählt jedes versehentliche
+       Antippen als Zeichnung und der Prüfen-Knopf wird scharf. */
+    if(drawState.aktiv.length < 2) drawState.striche.pop();
+    drawState.aktiv = null;
+    drawFlaecheMalen();
+    if(drawState.striche.length) $('checkBtn').disabled = false;
+  };
+  cv.addEventListener('pointerup', strichEnde);
+  cv.addEventListener('pointercancel', strichEnde);
+  cv.addEventListener('pointerleave', strichEnde);
+
+  leeren.onclick = () => {
+    if(answered) return;
+    drawState.striche = []; drawState.aktiv = null; drawState.vorlage = null;
+    drawFlaecheMalen();
+    $('checkBtn').disabled = true;
+  };
 }
 function renderBuildWordStep(ex, area){
   buildWordState = {
@@ -9508,6 +10145,22 @@ function handleCheck(){
         s.disabled = true;
         s.classList.add(isCorrect ? 'correct' : 'wrong');
       });
+    } else if(ex.kind === 'draw'){
+      const urteil = pruefeGemaltesJamo(drawState ? drawState.striche : [], ex.correct);
+      isCorrect = !forcedWrong && urteil.richtig;
+      userVal = urteil.verwechseltMit || (isCorrect ? ex.correct : '');
+      /* Die richtige Form über die eigene Zeichnung legen — das ist die
+         eigentliche Lehre der Übung: sehen, wo es abwich. */
+      if(drawState){
+        drawState.vorlage = ex.correct;
+        drawState.vorlageFarbe = isCorrect ? 'rgba(90,150,110,.45)' : 'rgba(190,70,60,.45)';
+        drawFlaecheMalen();
+      }
+      /* Verwechslungen sind die nützlichste Rückmeldung überhaupt —
+         "sieht aus wie ㅓ" sagt mehr als "falsch". */
+      ex.explain = urteil.verwechseltMit
+        ? `deine Zeichnung sieht eher aus wie ${urteil.verwechseltMit}`
+        : (urteil.leer ? 'da war noch nichts gemalt' : 'die Form stimmt noch nicht ganz');
     } else if(ex.kind === 'sentence'){
       userVal = sentenceState ? sentenceState.chosen.join(' ') : '';
       isCorrect = !forcedWrong && userVal === ex.correct;
@@ -9718,6 +10371,7 @@ function finishSession(){
     sessionMode === 'due' ? 'Fällige Wiederholung geschafft!' :
     sessionMode === 'quick' ? 'Kurz geübt – auch das zählt!' :
     sessionMode === 'favorites' ? 'Merkliste geübt!' :
+    sessionMode === 'draw' ? 'Zeichen gemalt!' :
     sessionMode === 'hangultrainer' ? 'Hangul-Training abgeschlossen!' :
     'Fehlertraining abgeschlossen!';
   showScreen('complete');
