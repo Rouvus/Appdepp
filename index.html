@@ -102,9 +102,34 @@
        ohnehin. Es verschwindet nur die Vergrößerung, die niemand
        wollte. */
     touch-action:manipulation;
+    /* Nichts markieren, was zum Antippen da ist.
+
+       Rückmeldung vom 26.08.2026: „Dadurch, dass die Buchstaben der App
+       markierbar sind, markiert man sie manchmal beim Drücken der
+       Buttons." Am Finger ist ein Tipp nie ganz punktgenau — wandert er
+       ein paar Pixel, deutet der Browser das als Textmarkierung, blendet
+       die Lupe ein und stellt die Auswahlgriffe auf. Man wollte
+       antworten und darf jetzt erst einmal etwas wegtippen.
+
+       Die App ist zum ganz überwiegenden Teil eine Tippfläche, also ist
+       „nicht markierbar" hier die richtige Grundeinstellung. Ausgenommen
+       sind unten die Stellen, die man LIEST statt antippt (Wörterbuch,
+       Kulturrolle, Erklärtexte) und natürlich Eingabefelder — dort will
+       man kopieren bzw. den Cursor setzen können.
+
+       -webkit-touch-callout:none nimmt zusätzlich das lange Drücken:
+       Sonst erscheint auf iOS beim Halten eines Knopfes das
+       Teilen-Menü. */
+    -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;
     margin:0; font-family:var(--font-main);
     background:var(--page-bg); color:var(--text); display:flex; justify-content:center;
   }
+  /* Die Ausnahmen zur Markier-Sperre oben: Was man liest, darf man auch
+     kopieren. Eingabefelder MÜSSEN es, sonst lässt sich der Cursor nicht
+     setzen und nichts korrigieren. */
+  input, textarea, .dict-entry, .culture-body, .info-context, .concept-text,
+  .grammar-card-intro, .recap-list, .outlook-item{
+    -webkit-user-select:text; user-select:text; -webkit-touch-callout:default;}
   #app{ width:100%; max-width:var(--app-w); min-height:100vh; min-height:100dvh; background:var(--bg);
     display:flex; flex-direction:column; position:relative; box-shadow:0 0 24px rgba(0,0,0,.06);}
   /* ---- Header ---- */
@@ -281,6 +306,14 @@
     display:flex; align-items:center; justify-content:space-between; gap:8px;}
   .option .option-text{ flex:1; text-align:left;}
   .option .speak-btn{ flex-shrink:0;}
+  /* Umschrift unter einer koreanischen Antwortmöglichkeit — im
+     Einfach-Modus (settings.showRoman). Sie steht in derselben Spalte
+     wie das Wort, damit sie mitrückt, wenn der Lautsprecher daneben
+     sitzt. Stil wie überall sonst die Umschrift: kleiner, kursiv,
+     zurückgenommen. */
+  .option .option-col{ flex:1; display:flex; flex-direction:column; gap:1px; min-width:0;}
+  .option .option-roman{ font-size:0.75rem; font-weight:600; font-style:italic;
+    color:var(--gray-dark); line-height:1.2;}
   .option:hover{ background:var(--option-hover-bg); border-color:var(--blue);}
   .option.selected{ border-color:var(--blue); background:var(--option-selected-bg);}
   .option.correct{ border-color:var(--green); background:var(--correct-bg); color:var(--green-dark);}
@@ -1227,8 +1260,8 @@
    öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
    statt eine leere Zeile zu zeigen.
    ========================================================= */
-const APP_VERSION = '1.11.2';
-const APP_BUILD = '383cf415d5cf';
+const APP_VERSION = '1.11.3';
+const APP_BUILD = 'eaed50c6f90d';
 const APP_CONTACT = {
   name: '',                 // z. B. 'Vorname Nachname'
   ort: '',                  // z. B. 'Musterstadt' (nur wenn du ein Impressum führst)
@@ -1242,6 +1275,7 @@ function appBuildLabel(){
    will, was ihm entgeht. Bewusst nur die letzten Einträge — eine
    vollständige Chronik gehört ins Projekt-Dokument, nicht in die App. */
 const CHANGELOG = [
+  { v:'1.11.3', text:'Umschrift jetzt auch unter koreanischen Antwortmöglichkeiten. Jede Frage fängt oben an, nichts markiert sich mehr beim Tippen.' },
   { v:'1.11.2', text:'Das ✕ der Kulturrollen bleibt jetzt immer im Bild — auch am Ende einer langen Rolle.' },
   { v:'1.11.1', text:'ㅖ und Verwandte werden auch dann erkannt, wenn die Senkrechte am Ästchen beginnt. Mehr Luft unter dem Wochenrückblick.' },
   { v:'1.11.0', text:'Beim Malen wird nur noch der Laut gezeigt — das Zeichen kommt aus dem Kopf. Erkennung verträgt eigene Strichlängen.' },
@@ -4731,6 +4765,23 @@ function getAllVocabEver(){
 function getAllHangulWordsEver(){
   return COURSE.filter(l => l.type === 'hangul' && l.words).flatMap(l => l.words);
 }
+/* Die Umschrift zu koreanischen Antwortmöglichkeiten nachschlagen.
+
+   Hintergrund: pickDistractorsWithFallback liefert blanke Zeichenketten
+   ("사과"), die Umschrift steht in den Objekten, aus denen sie gezogen
+   wurden. Deshalb wird hier aus denselben Töpfen eine Zuordnung gebaut.
+   Findet sich zu keiner Möglichkeit eine Umschrift, kommt null zurück —
+   dann bleibt die Anzeige wie zuvor, statt halb beschriftete Knöpfe zu
+   zeigen. */
+function romanFuerOptionen(options, ...quellen){
+  const bekannt = {};
+  quellen.forEach(q => (q || []).forEach(o => {
+    if(o && o.kr && o.roman && bekannt[o.kr] === undefined) bekannt[o.kr] = o.roman;
+  }));
+  const raus = {};
+  options.forEach(opt => { if(bekannt[opt]) raus[opt] = bekannt[opt]; });
+  return Object.keys(raus).length ? raus : null;
+}
 function makeVocabMcExercise(v, pool, direction, phase, lessonId, idOverride){
   const id = idOverride || `vocab:${lessonId || 'mixed'}:${v.kr}:${direction}`;
   const meta = { entryKind:'vocab', lessonId: lessonId || null, term:v.kr, roman:v.roman, de:v.de, direction };
@@ -4741,8 +4792,9 @@ function makeVocabMcExercise(v, pool, direction, phase, lessonId, idOverride){
       options: shuffle([v.de, ...distractors]), correct: v.de, mistakeMeta: meta };
   }
   const distractors = pickDistractorsWithFallback(pool, fallback, v.kr, 'kr', 3);
+  const options = shuffle([v.kr, ...distractors]);
   return { phase, kind:'mc', id, title:'Wie sagt man das auf Koreanisch?', prompt:v.de, sub:'', promptIsKr:false, optionsAreKr:true,
-    options: shuffle([v.kr, ...distractors]), correct: v.kr, mistakeMeta: meta };
+    options, optionsRoman: romanFuerOptionen(options, [v], pool, fallback), correct: v.kr, mistakeMeta: meta };
 }
 function makeHangulMcExercise(l, pool, direction, phase, lessonId, idOverride){
   const id = idOverride || `hangul:${lessonId || 'mixed'}:${l.ch}:${direction}`;
@@ -4770,8 +4822,9 @@ function makeHangulWordMcExercise(w, pool, direction, phase, lessonId, idOverrid
       options: shuffle([w.de, ...distractors]), correct: w.de, mistakeMeta: meta };
   }
   const distractors = pickDistractorsWithFallback(pool, fallback, w.kr, 'kr', 3);
+  const options = shuffle([w.kr, ...distractors]);
   return { phase, kind:'mc', id, title:'Wie sagt man das auf Koreanisch?', prompt:w.de, sub:'', promptIsKr:false, optionsAreKr:true,
-    options: shuffle([w.kr, ...distractors]), correct: w.kr, mistakeMeta: meta };
+    options, optionsRoman: romanFuerOptionen(options, [w], pool, fallback), correct: w.kr, mistakeMeta: meta };
 }
 /* =========================================================
    HÖRVERSTEHEN ("listen", Feedback vom 24.08.2026)
@@ -7352,17 +7405,48 @@ function currentUnitNumber(){
   const idx = getCurrentLessonIdx();
   return COURSE[idx] ? getCourseUnit(COURSE[idx]) : 0;
 }
+/* Die tatsächliche Höhe der unteren Leiste an das Stylesheet
+   durchreichen (--nav-h). Sie ändert sich mit der Systemschriftgröße, im
+   Querformat, mit dem Geräterand — und, was der eigentliche Fehler war,
+   NACHDEM die Schrift der App fertig geladen ist.
+
+   Rückmeldung vom 26.08.2026: „Beim Starten der App hängt die Box
+   ‚Einheiten' halb in den Einstellungen." Gemessen wurde bis dahin genau
+   einmal, beim Start. Ist die Leiste danach höher geworden, blieb der
+   Knopf auf dem alten (zu kleinen) Wert stehen und rutschte damit in die
+   Leiste hinein. Auf dem Prüfgerät passierte das nie, weil die Schrift
+   dort sofort da ist.
+
+   Deshalb wird jetzt nicht mehr GERATEN, wann sich die Höhe ändert,
+   sondern zugesehen: Ein ResizeObserver auf der Leiste meldet jede
+   Änderung, egal woher sie kommt. Das ist die einzige Fassung, die auch
+   für Ursachen stimmt, die ich nicht bedacht habe. */
+function messeNavHoehe(){
+  const nav = $('bottomNav');
+  if(!nav) return;
+  const h = Math.round(nav.getBoundingClientRect().height);
+  if(h > 0) document.documentElement.style.setProperty('--nav-h', h + 'px');
+}
+if(typeof ResizeObserver === 'function'){
+  const nav = document.getElementById('bottomNav');
+  if(nav){
+    const beobachter = new ResizeObserver(() => messeNavHoehe());
+    /* Ausdrücklich der Rahmenkasten: Der Geräterand unten steckt als
+       padding-bottom in der Leiste. Im (voreingestellten) Inhaltskasten
+       bliebe eine Änderung daran unbemerkt — und genau die ist einer der
+       Gründe, aus denen sich die Höhe nachträglich ändert. */
+    try{ beobachter.observe(nav, { box:'border-box' }); }
+    catch(e){ beobachter.observe(nav); }
+  }
+}
+/* Und noch einmal, wenn die Schriften wirklich fertig sind — für
+   Browser ohne ResizeObserver und als Gürtel zum Hosenträger. */
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => messeNavHoehe());
+
 function updateJumpBtn(){
   const btn = $('jumpBtn');
   if(!btn) return;
-  /* Die tatsächliche Höhe der unteren Leiste an das Stylesheet
-     durchreichen — sie ändert sich mit der Schriftgröße, im Querformat
-     und je nach Geräterand. */
-  const nav = $('bottomNav');
-  if(nav){
-    const h = Math.round(nav.getBoundingClientRect().height);
-    if(h > 0) document.documentElement.style.setProperty('--nav-h', h + 'px');
-  }
+  messeNavHoehe();
   /* Nur dort, wo es etwas zu springen gibt — und erst, wenn die
      Vorkenntnis-Frage beantwortet ist (vorher ist der Pfad zugerollt). */
   const zeigen = currentScreenName === 'home' && onboarding.hangulAsked;
@@ -8943,6 +9027,13 @@ function renderOnboardingCard(home){
     showHomeAtCurrentLesson();
   };
 }
+/* Sofort und ohne Animation nach oben. Bewusst eine eigene Funktion:
+   Sie wird an mehreren Stellen gebraucht, und `behavior:'smooth'` wäre
+   hier falsch — ein Bildschirmwechsel soll nicht sichtbar rollen. */
+function scrollNachOben(){
+  try{ window.scrollTo({ top:0, behavior:'auto' }); }
+  catch(e){ window.scrollTo(0, 0); }
+}
 function showScreen(name){
   $('home').style.display = name === 'home' ? 'flex' : 'none';
   $('practice').style.display = name === 'practice' ? 'flex' : 'none';
@@ -8957,6 +9048,11 @@ function showScreen(name){
   if(topLevel.includes(name)){
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.screen === name));
   }
+  /* Bildschirme ohne eigenes Sprungziel fangen oben an. Der Lernpfad
+     steht bewusst NICHT in dieser Liste: Er springt selbst zur aktuellen
+     Lektion (showHomeAtCurrentLesson), und ein Zurücksetzen hier würde
+     ihm dabei in die Quere kommen. */
+  if(name === 'lesson' || name === 'complete' || name === 'fail') scrollNachOben();
   currentScreenName = name;
   updateJumpBtn();
   /* Für den Android-Zurück-Knopf (s. unten, Abschnitt "Zurück-Knopf"):
@@ -9087,6 +9183,15 @@ function renderExercise(){
   answered = false;
   selectedOption = null;
   $('feedback').className = 'feedback';
+  /* Jede Frage fängt oben an.
+
+     Ohne das behält die Seite die Scroll-Position der vorigen Frage: Wer
+     bei einer langen Aufgabe nach unten gescrollt hat, bekommt die
+     nächste — die kürzer sein kann — mitten im Bild oder oben
+     angeschnitten. Gemessen über eine Lektion hinweg: 303, 321, 375,
+     134 px übernommene Scroll-Position (Rückmeldung vom 26.08.2026:
+     „das Fenster hängt öfters einen Fingerbreit nach oben"). */
+  scrollNachOben();
   const ex = exercises[exIdx];
   const area = $('exerciseArea');
   area.innerHTML = '';
@@ -9182,7 +9287,16 @@ function renderExercise(){
       b.className = 'option';
       b.dataset.value = opt;
       if(ex.optionsAreKr){
-        b.innerHTML = `<span class="option-text">${opt}</span>${speakBtnHtml(opt)}`;
+        /* Umschrift unter der Antwortmöglichkeit, sofern die Übung eine
+           mitliefert (s. optionsRoman). Bewusst nicht überall: Wo die
+           Umschrift SELBST die Frage ist — „Welches Zeichen macht diesen
+           Laut?", „Wie wird das wirklich ausgesprochen?" — stünde sonst
+           die Lösung unter jeder Möglichkeit. */
+        const roman = (settings.showRoman && ex.optionsRoman) ? ex.optionsRoman[opt] : null;
+        b.innerHTML = roman
+          ? `<span class="option-col"><span class="option-text">${opt}</span>
+               <span class="option-roman">${roman}</span></span>${speakBtnHtml(opt)}`
+          : `<span class="option-text">${opt}</span>${speakBtnHtml(opt)}`;
       } else {
         b.textContent = opt;
       }
