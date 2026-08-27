@@ -520,7 +520,15 @@
      Bild läuft, sind Symbol und Beschriftung zusätzlich an die Bildbreite
      gekoppelt (min(): es gilt der kleinere der beiden Werte). */
   .nav-btn{ flex:1 1 0; min-width:0; background:none; border:none; padding:10px 2px 8px; display:flex;
-    flex-direction:column; align-items:center; gap:2px; font-size:min(1.375rem, 6.4vw);
+    flex-direction:column; align-items:center; gap:2px;
+    /* Die Symbolgröße steht als Variable, weil sie an ZWEI Stellen
+       gebraucht wird: für die Emoji-Symbole (font-size des Knopfes) und
+       für das gezeichnete Tor (.nav-icon). Ohne sie erbte das Tor die
+       Schriftgröße der BESCHRIFTUNG und kam mit 10 statt 22 Pixeln
+       heraus — dieselbe Zahl zweimal hinzuschreiben hätte das beim
+       nächsten Nachjustieren wieder auseinanderlaufen lassen. */
+    --nav-symbol:min(1.375rem, 6.4vw);
+    font-size:var(--nav-symbol);
     color:var(--gray-dark); cursor:pointer; position:relative;}
   /* line-height mit Luft: sonst schneidet das overflow:hidden die
      Umlautpunkte von "Üben" ab. */
@@ -901,6 +909,61 @@
     text-overflow:ellipsis; white-space:nowrap;}
   .jump-count{ font-size:0.6875rem; font-weight:700; color:var(--gray-dark);
     font-variant-numeric:tabular-nums; flex-shrink:0;}
+  /* ---- Die gezeichneten Zeichen: Pflaumenblüte und Norigae ----
+     Beide sind eingebettetes SVG statt Emoji (Rückmeldung/Rechte-Durchsicht
+     vom 27.08.2026: Apple lehnt Apps ab, die Apple-Emoji als Symbole der
+     Bedienoberfläche verwenden — und ein eigenes Zeichen ist ohnehin das
+     bessere). Die Farben stehen als Variablen, damit dieselbe Zeichnung
+     Tageslicht, Abendlicht und den einfarbigen Fall bedienen kann. */
+  .maehwa{ display:inline-block; line-height:0;}
+  .maehwa svg{ width:1em; height:1em; display:block;}
+  /* Die Blüte erbt ihre Größe vom umgebenden font-size — dadurch passen
+     die vorhandenen Regeln für die Streublüten unverändert weiter. */
+  body.theme-joseon{
+    --mh-licht:#fdeff4; --mh-blatt:#f6c4d6; --mh-schatten:#dd93b1;
+    --mh-tiefe:#cd7d9f; --mh-rand:#cf7b9d; --mh-stempel:#d8a54a; --mh-herz:#a84f70;
+  }
+  body.theme-night{
+    --mh-licht:#e9cfda; --mh-blatt:#d49bb4; --mh-schatten:#a86b87;
+    --mh-tiefe:#8e5570; --mh-rand:#a3607c; --mh-stempel:#d9a94e; --mh-herz:#7d4058;
+  }
+  /* Der Norigae hängt am Rollenkopf. Er ist hoch statt quadratisch, deshalb
+     bestimmt hier die HÖHE die Größe und die Breite folgt — gemessen sitzt
+     er bei 30px richtig: auf einer Höhe mit der Zähler-Pille daneben. */
+  /* Die Münze sitzt in der Kopfzeile neben der Streak-Zahl und in der
+     Ruhetag-Meldung. Sie erbt ihre Größe vom Text — 1.35em, weil eine
+     runde Scheibe optisch kleiner wirkt als eine Ziffer derselben Höhe. */
+  /* Das Gwanghwamun in der unteren Leiste. Es erbt seine Größe vom
+     font-size des Feldes (dort min(1.375rem, 6.4vw)) — dadurch bleibt es
+     genau so groß wie die Emoji daneben und die Leiste springt nicht. */
+  .tor{ display:inline-block; line-height:0;}
+  .tor svg{ width:1em; height:1em; display:block;}
+  /* Höhere Spezifität als .nav-btn span, damit die Beschriftungsgröße
+     das Symbol nicht mitnimmt — auch im Querformat nicht, wo .nav-btn span
+     noch einmal kleiner gesetzt wird. */
+  .nav-btn .nav-icon{ font-size:var(--nav-symbol); display:flex; align-items:center;
+    justify-content:center; line-height:1; overflow:visible;}
+  /* Die Größe direkt am SVG statt über 1em: Das Tor steckt in einem
+     eigenen <span class="tor">, und .nav-btn span setzt ALLE Spans der
+     Leiste auf Beschriftungsgröße — über die em-Kette käme das Tor
+     deshalb wieder klein heraus, egal was am Behälter steht. */
+  .nav-btn .nav-icon svg{ width:var(--nav-symbol); height:var(--nav-symbol);}
+  body.theme-night{
+    --gh-stein:#8f897d; --gh-stein-hell:#a49d90; --gh-fuge:#5b564b;
+    --gh-holz:#8a3a28; --gh-holz-dunkel:#5e2116;
+    --gh-dach:#3d4850; --gh-dach-dunkel:#232b31;
+    --gh-tafel:#141110; --gh-gold:#b8962f;
+  }
+  .muenze{ display:inline-block; line-height:0; vertical-align:-0.28em;}
+  .muenze svg{ width:1.35em; height:1.35em; display:block;}
+  .norigae{ display:inline-block; line-height:0;}
+  .norigae svg{ height:30px; width:auto; display:block;}
+  .culture-btn{ display:inline-flex; align-items:center; padding:0;}
+  /* Im Abendlicht bekommt die Jade etwas mehr Licht, sonst versinkt sie
+     im dunklen Papier; Band und Quaste bleiben, wie sie sind — sie tragen
+     die Farbe der Einheit und sollen wiedererkennbar bleiben. */
+  body.theme-night .norigae{ --nr-glanz:#ffffff; --nr-stein-rand:#00000055;}
+  body.theme-night .norigae svg{ filter:saturate(.9) brightness(1.08);}
   /* ---- Wochenrückblick ---- */
   /* Die Balken standen direkt auf den Wochentagen — ohne Luft dazwischen
      klebte alles aneinander (Rückmeldung vom 26.08.2026). Jetzt haben sie
@@ -1168,14 +1231,13 @@
     <div class="gate-rosettes" aria-hidden="true"></div>
     <div class="gate-frieze" aria-hidden="true"></div>
     <div class="gate-blossoms" aria-hidden="true">
-      <span>🌸</span><span>🌸</span><span>🌸</span><span>🌸</span>
     </div>
     <div class="header-row">
       <div class="brand">
         <span class="brand-joseon-plaque">道德</span>
       </div>
       <div class="header-stats">
-        <div class="stat streak" id="streakStat" title="Tage in Folge gelernt">🎴 <span id="streakVal">0</span></div>
+        <div class="stat streak" id="streakStat" title="Tage in Folge gelernt"><span id="streakIcon"></span><span id="streakVal">0</span></div>
         <div class="daily-goal" id="dailyGoal" title="Tagesziel">
           <svg viewBox="0 0 36 36" aria-hidden="true">
             <circle class="ring-track" cx="18" cy="18" r="15.5"></circle>
@@ -1243,7 +1305,7 @@
   </div>
   <!-- UNTERE NAVIGATION -->
   <nav id="bottomNav">
-    <button class="nav-btn" data-screen="home">🏠<span>Lernpfad</span></button>
+    <button class="nav-btn" data-screen="home"><span class="nav-icon" id="navHomeIcon"></span><span>Lernpfad</span></button>
     <button class="nav-btn" data-screen="practice" id="navPracticeBtn">🎯<span>Üben</span></button>
     <button class="nav-btn" data-screen="dictionary">📖<span>Wörterbuch</span></button>
     <button class="nav-btn" data-screen="grammar">📐<span>Grammatik</span></button>
@@ -1269,8 +1331,8 @@
    öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
    statt eine leere Zeile zu zeigen.
    ========================================================= */
-const APP_VERSION = '1.11.4';
-const APP_BUILD = 'df1f22234694';
+const APP_VERSION = '1.12.2';
+const APP_BUILD = '10edf0e63d68';
 const APP_CONTACT = {
   name: '',                 // z. B. 'Vorname Nachname'
   ort: '',                  // z. B. 'Musterstadt' (nur wenn du ein Impressum führst)
@@ -1392,6 +1454,9 @@ function appBuildLabel(){
    will, was ihm entgeht. Bewusst nur die letzten Einträge — eine
    vollständige Chronik gehört ins Projekt-Dokument, nicht in die App. */
 const CHANGELOG = [
+  { v:'1.12.2', text:'Der Lernpfad trägt jetzt das Gwanghwamun — das Haupttor, mit seinen drei Durchgängen.' },
+  { v:'1.12.1', text:'Der Streak zählt jetzt in 상평통보 — der Münze der Joseon-Zeit, rund mit eckigem Loch.' },
+  { v:'1.12.0', text:'Eigene Zeichen statt Emoji: die Pflaumenblüte (매화) und der Norigae-Anhänger — jede Einheit mit eigener Farbe und Jade-Form.' },
   { v:'1.11.4', text:'Der vollständige Lizenztext der koreanischen Schrift liegt jetzt in der App — wie es die Open Font License verlangt.' },
   { v:'1.11.3', text:'Umschrift jetzt auch unter koreanischen Antwortmöglichkeiten. Jede Frage fängt oben an, nichts markiert sich mehr beim Tippen.' },
   { v:'1.11.2', text:'Das ✕ der Kulturrollen bleibt jetzt immer im Bild — auch am Ende einer langen Rolle.' },
@@ -1435,6 +1500,569 @@ const CHANGELOG = [
 /* =========================================================
    DATENGRUNDLAGE: HANGUL + KURSDATEN
 ========================================================= */
+/* ==== ZEICHEN ANFANG — erzeugt aus icon/, hier nicht bearbeiten ==== */
+/* Die Pflaumenblüte (매화). ERZEUGT von icon/maehwa-bauen.py,
+   eingesetzt von tools/symbole-einbetten.py — hier nicht bearbeiten. */
+const MAEHWA_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Pflaumenblüte">
+  <!-- 매화 (Maehwa), die Pflaumenblüte. ERZEUGT von icon/maehwa-bauen.py —
+       Änderungen bitte dort, nicht hier.
+
+       Warum RUNDE Blätter: Genau darin unterscheidet sie sich von der
+       Kirschblüte, deren Blätter an der Spitze eine Kerbe haben. Der
+       Umriss allein sagt also, welche Blüte gemeint ist — und der Kurs
+       spielt im Joseon-Korea, nicht in Japan.
+
+       Fünf Blätter wie beim historischen Ihwamun, dem Zeichen des
+       Jeonju-Yi-Clans und später des Kaiserreichs; dort standen sie für
+       fünf Segnungen. Bewusst KEINE Nachbildung dieses Hoheitszeichens,
+       sondern eine eigene Blüte im Stil der App.
+
+       Aufbau, drei Dinge:
+
+       1. Die Blätter überschneiden sich nur um 5.1 Einheiten. Mehr, und
+          die Blüte liest sich als Rosette statt als fünf Blätter.
+
+       2. Gezeichnet wird in zwei Durchgängen: erst alle Umrisse, dann alle
+          Füllungen darüber. Dadurch überdeckt jede Füllung die Strichstücke,
+          die innen liegen, und stehen bleibt genau die Außenlinie der ganzen
+          Blüte statt fünf sich kreuzender Ringe.
+
+       3. Jedes Blatt hat einen EIGENEN Verlauf, dessen heller Punkt weiter
+          außen liegt als die Blattmitte. Dadurch liegt jedes Blatt zur
+          Blütenmitte hin im Schatten und bekommt Wölbung — mit einem
+          einzigen Verlauf über die ganze Blüte wären es fünf flache
+          Scheiben. Die Mitte wird dadurch von fünf Seiten abgedunkelt. -->
+  <defs>
+    <radialGradient id="mh-v0" gradientUnits="userSpaceOnUse"
+        cx="50.0" cy="12.0" r="40">
+      <stop offset="0" stop-color="var(--mh-licht, #fdeff4)"/>
+      <stop offset="0.55" stop-color="var(--mh-blatt, #f6c4d6)"/>
+      <stop offset="1" stop-color="var(--mh-schatten, #dd93b1)"/>
+    </radialGradient>
+    <radialGradient id="mh-v1" gradientUnits="userSpaceOnUse"
+        cx="86.1" cy="38.3" r="40">
+      <stop offset="0" stop-color="var(--mh-licht, #fdeff4)"/>
+      <stop offset="0.55" stop-color="var(--mh-blatt, #f6c4d6)"/>
+      <stop offset="1" stop-color="var(--mh-schatten, #dd93b1)"/>
+    </radialGradient>
+    <radialGradient id="mh-v2" gradientUnits="userSpaceOnUse"
+        cx="72.3" cy="80.7" r="40">
+      <stop offset="0" stop-color="var(--mh-licht, #fdeff4)"/>
+      <stop offset="0.55" stop-color="var(--mh-blatt, #f6c4d6)"/>
+      <stop offset="1" stop-color="var(--mh-schatten, #dd93b1)"/>
+    </radialGradient>
+    <radialGradient id="mh-v3" gradientUnits="userSpaceOnUse"
+        cx="27.7" cy="80.7" r="40">
+      <stop offset="0" stop-color="var(--mh-licht, #fdeff4)"/>
+      <stop offset="0.55" stop-color="var(--mh-blatt, #f6c4d6)"/>
+      <stop offset="1" stop-color="var(--mh-schatten, #dd93b1)"/>
+    </radialGradient>
+    <radialGradient id="mh-v4" gradientUnits="userSpaceOnUse"
+        cx="13.9" cy="38.3" r="40">
+      <stop offset="0" stop-color="var(--mh-licht, #fdeff4)"/>
+      <stop offset="0.55" stop-color="var(--mh-blatt, #f6c4d6)"/>
+      <stop offset="1" stop-color="var(--mh-schatten, #dd93b1)"/>
+    </radialGradient>
+    <!-- Die Mittelscheibe schließt das Fünfeck zwischen den Blättern
+         (rechnerisch offen bis Radius 13.2). Ohne sie scheint dort der
+         Hintergrund durch — auf dem grünen Balken sofort sichtbar. Sie
+         trägt den dunkelsten Ton, damit die Blüte gewölbt wirkt.
+
+         Nach außen blendet sie aus, statt hart zu enden: Mit einer
+         harten Kante zeichnete sie sich als eigener Kreis über den
+         Blättern ab. Deckend ist sie bis Radius 13.6 und damit
+         sicher über dem Loch. -->
+    <radialGradient id="mh-mitte" gradientUnits="userSpaceOnUse"
+        cx="50" cy="50" r="17.4">
+      <stop offset="0" stop-color="var(--mh-tiefe, #cd7d9f)"/>
+      <stop offset="0.78" stop-color="var(--mh-schatten, #dd93b1)"/>
+      <stop offset="1" stop-color="var(--mh-schatten, #dd93b1)" stop-opacity="0"/>
+    </radialGradient>
+    <g id="mh-blaetter">
+      <circle cx="50.0" cy="22.0" r="19"/>
+      <circle cx="76.6" cy="41.3" r="19"/>
+      <circle cx="66.5" cy="72.7" r="19"/>
+      <circle cx="33.5" cy="72.7" r="19"/>
+      <circle cx="23.4" cy="41.3" r="19"/>
+    </g>
+  </defs>
+  <use href="#mh-blaetter" fill="none" stroke="var(--mh-rand, #cf7b9d)" stroke-width="5"/>
+  <circle cx="50.0" cy="22.0" r="19" fill="url(#mh-v0)"/>
+  <circle cx="76.6" cy="41.3" r="19" fill="url(#mh-v1)"/>
+  <circle cx="66.5" cy="72.7" r="19" fill="url(#mh-v2)"/>
+  <circle cx="33.5" cy="72.7" r="19" fill="url(#mh-v3)"/>
+  <circle cx="23.4" cy="41.3" r="19" fill="url(#mh-v4)"/>
+  <circle cx="50" cy="50" r="17.4" fill="url(#mh-mitte)"/>
+  <!-- Staubgefäße: bei der Pflaumenblüte auffällig lang und zahlreich.
+       Sie verschwinden als Erstes, wenn die Blüte klein wird — das ist
+       richtig so, der Umriss trägt das Zeichen dann allein. -->
+  <g stroke="var(--mh-stempel, #d8a54a)" stroke-width="2.2" stroke-linecap="round" fill="none">
+    <path d="M50 50 L60.0 36.2"/>
+    <path d="M50 50 L66.2 55.3"/>
+    <path d="M50 50 L50.0 67.0"/>
+    <path d="M50 50 L33.8 55.3"/>
+    <path d="M50 50 L40.0 36.2"/>
+  </g>
+  <g fill="var(--mh-stempel, #d8a54a)">
+    <circle cx="60.0" cy="36.2" r="2.7"/>
+    <circle cx="66.2" cy="55.3" r="2.7"/>
+    <circle cx="50.0" cy="67.0" r="2.7"/>
+    <circle cx="33.8" cy="55.3" r="2.7"/>
+    <circle cx="40.0" cy="36.2" r="2.7"/>
+  </g>
+  <circle cx="50" cy="50" r="4.6" fill="var(--mh-herz, #a84f70)"/>
+</svg>`;
+function bluetenSpan(klasse){
+  return `<span class="maehwa ${klasse || ''}">${MAEHWA_SVG}</span>`;
+}
+
+/* Der Norigae-Anhänger (노리개) in fünf Jade-Formen und elf
+   Farbstellungen nach dem 오방색. ERZEUGT von icon/norigae-bauen.py,
+   eingesetzt von tools/symbole-einbetten.py — hier nicht bearbeiten. */
+const NORIGAE_FORMEN = {
+  schmetterling: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 66 118"
+     role="img" aria-label="Norigae-Anhänger">
+  <!-- 노리개 (Norigae), Form „schmetterling". ERZEUGT von icon/norigae-bauen.py —
+       Änderungen bitte dort, nicht hier.
+
+       Der Anhänger, den man am Band (고름) des Jeogori oder am Rock trägt.
+       Vier Teile: 띠돈 (Ring), 국화매듭 (geknotete Chrysanthemen-Blüte),
+       패물 (Jade-Anhänger), 술 (lange Quaste).
+
+       Hochformat statt Quadrat: Ein Norigae ist schmal und lang, ein
+       quadratischer Zeichenraum würde ihn auf die halbe Größe zwingen.
+       Die App gibt die HÖHE vor, die Breite folgt.
+
+       Die Farben kommen von außen über Variablen (--nr-band, --nr-stein,
+       --nr-quaste …). Es gibt elf Stellungen nach dem 오방색, dem
+       koreanischen Fünf-Farben-System — eine je Einheit. -->
+  <!-- 띠돈 (Ttidon): der Ring, mit dem der Anhänger am Band hängt -->
+  <ellipse cx="33.0" cy="6.5" rx="6.5" ry="5.5"
+      fill="none" stroke="var(--nr-metall, #c9a227)" stroke-width="4"/>
+  <path d="M33.0 11 L33.0 16"
+      stroke="var(--nr-band, #2f6fa8)" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- 국화매듭 (Gukhwa-maedeup): der geknotete Chrysanthemen-Knoten -->
+  <g fill="none" stroke="var(--nr-band, #2f6fa8)" stroke-width="3">
+    <circle cx="33.0" cy="16.6" r="4.8"/>
+    <circle cx="38.5" cy="19.8" r="4.8"/>
+    <circle cx="38.5" cy="26.2" r="4.8"/>
+    <circle cx="33.0" cy="29.4" r="4.8"/>
+    <circle cx="27.5" cy="26.2" r="4.8"/>
+    <circle cx="27.5" cy="19.8" r="4.8"/>
+  </g>
+  <g fill="none" stroke="var(--nr-band-hell, #8fbcd8)" stroke-width="1.8" stroke-linecap="round"
+     opacity=".9">
+    <path d="M28.4 18.4 L37.6 27.6"/>
+    <path d="M37.6 18.4 L28.4 27.6"/>
+  </g>
+  <circle cx="33.0" cy="23" r="2.6" fill="var(--nr-band-dunkel, #1d4a76)"/>
+  <path d="M33.0 32.199999999999996 L33.0 36"
+      stroke="var(--nr-band, #2f6fa8)" stroke-width="3.4" stroke-linecap="round"/>
+  <!-- 패물 (Paemul): der Jade-Anhänger -->
+  <g>
+    <path d="M33.0 40 C38.0 33, 49.0 34, 49.5 44 C50.0 50.5, 41.0 49.5, 36.0 51 C42.5 53, 47.0 58, 43.5 62 C40.0 65, 35.0 62.5, 33.0 59.5 C31.0 62.5, 26.0 65, 22.5 62 C19.0 58, 23.5 53, 30.0 51 C25.0 49.5, 16.0 50.5, 16.5 44 C17.0 34, 28.0 33, 33.0 40 Z"
+        fill="var(--nr-stein, #4e9c78)" stroke="var(--nr-stein-rand, #00000033)" stroke-width="1.6"
+        stroke-linejoin="round"/>
+    <!-- Der Körper trennt die Flügelpaare sichtbar — ohne ihn liest sich
+         die Silhouette als Kleeblatt. -->
+    <ellipse cx="33.0" cy="50" rx="2.4" ry="10.5" fill="var(--nr-metall, #c9a227)"/>
+    <g stroke="var(--nr-metall, #c9a227)" stroke-width="1.8" fill="none" stroke-linecap="round">
+      <path d="M31.6 39.5 C28.0 34, 25.0 33.5, 23.5 36"/>
+      <path d="M34.4 39.5 C38.0 34, 41.0 33.5, 42.5 36"/>
+    </g>
+    <ellipse cx="24.0" cy="42" rx="3" ry="2.2" fill="var(--nr-glanz, #ffffff)" opacity=".38"
+        transform="rotate(-24 24.0 42)"/>
+  </g>
+  <!-- 술 (Sul): die lange Seidenquaste -->
+  <path d="M23.5 64 L42.5 64 L40.5 70 L25.5 70 Z"
+      fill="var(--nr-band-dunkel, #1d4a76)"/>
+  <path d="M24.5 70 L41.5 70 L45.5 114 L20.5 114 Z"
+      fill="var(--nr-quaste, #8fbcd8)"/>
+  <g stroke="var(--nr-band, #2f6fa8)" stroke-width="1.5" opacity=".45" fill="none">
+    <path d="M27.4 71 L24.8 114"/>
+    <path d="M31.1 71 L30.2 114"/>
+    <path d="M34.9 71 L35.8 114"/>
+    <path d="M38.6 71 L41.2 114"/>
+  </g>
+</svg>`,
+  kuerbis: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 66 118"
+     role="img" aria-label="Norigae-Anhänger">
+  <!-- 노리개 (Norigae), Form „kuerbis". ERZEUGT von icon/norigae-bauen.py —
+       Änderungen bitte dort, nicht hier.
+
+       Der Anhänger, den man am Band (고름) des Jeogori oder am Rock trägt.
+       Vier Teile: 띠돈 (Ring), 국화매듭 (geknotete Chrysanthemen-Blüte),
+       패물 (Jade-Anhänger), 술 (lange Quaste).
+
+       Hochformat statt Quadrat: Ein Norigae ist schmal und lang, ein
+       quadratischer Zeichenraum würde ihn auf die halbe Größe zwingen.
+       Die App gibt die HÖHE vor, die Breite folgt.
+
+       Die Farben kommen von außen über Variablen (--nr-band, --nr-stein,
+       --nr-quaste …). Es gibt elf Stellungen nach dem 오방색, dem
+       koreanischen Fünf-Farben-System — eine je Einheit. -->
+  <!-- 띠돈 (Ttidon): der Ring, mit dem der Anhänger am Band hängt -->
+  <ellipse cx="33.0" cy="6.5" rx="6.5" ry="5.5"
+      fill="none" stroke="var(--nr-metall, #c9a227)" stroke-width="4"/>
+  <path d="M33.0 11 L33.0 16"
+      stroke="var(--nr-band, #2f6fa8)" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- 국화매듭 (Gukhwa-maedeup): der geknotete Chrysanthemen-Knoten -->
+  <g fill="none" stroke="var(--nr-band, #2f6fa8)" stroke-width="3">
+    <circle cx="33.0" cy="16.6" r="4.8"/>
+    <circle cx="38.5" cy="19.8" r="4.8"/>
+    <circle cx="38.5" cy="26.2" r="4.8"/>
+    <circle cx="33.0" cy="29.4" r="4.8"/>
+    <circle cx="27.5" cy="26.2" r="4.8"/>
+    <circle cx="27.5" cy="19.8" r="4.8"/>
+  </g>
+  <g fill="none" stroke="var(--nr-band-hell, #8fbcd8)" stroke-width="1.8" stroke-linecap="round"
+     opacity=".9">
+    <path d="M28.4 18.4 L37.6 27.6"/>
+    <path d="M37.6 18.4 L28.4 27.6"/>
+  </g>
+  <circle cx="33.0" cy="23" r="2.6" fill="var(--nr-band-dunkel, #1d4a76)"/>
+  <path d="M33.0 32.199999999999996 L33.0 36"
+      stroke="var(--nr-band, #2f6fa8)" stroke-width="3.4" stroke-linecap="round"/>
+  <!-- 패물 (Paemul): der Jade-Anhänger -->
+  <g>
+    <path d="M33.0 38
+             C40.5 38, 42.0 41.74, 38.0 45.7
+             C35.2 48.120000000000005, 35.2 48.56, 38.6 51.2
+             C44.5 55.16, 43.0 60, 33.0 60
+             C23.0 60, 21.5 55.16, 27.4 51.2
+             C30.8 48.56, 30.8 48.120000000000005, 28.0 45.7
+             C24.0 41.74, 25.5 38, 33.0 38 Z"
+        fill="var(--nr-stein, #3f8a63)" stroke="var(--nr-stein-rand, #00000033)" stroke-width="1.6"/>
+    <ellipse cx="29.6" cy="54.72" rx="2.8" ry="3.6" fill="var(--nr-glanz, #ffffff)" opacity=".38"/>
+  </g>
+  <!-- 술 (Sul): die lange Seidenquaste -->
+  <path d="M23.5 64 L42.5 64 L40.5 70 L25.5 70 Z"
+      fill="var(--nr-band-dunkel, #1d4a76)"/>
+  <path d="M24.5 70 L41.5 70 L45.5 114 L20.5 114 Z"
+      fill="var(--nr-quaste, #8fbcd8)"/>
+  <g stroke="var(--nr-band, #2f6fa8)" stroke-width="1.5" opacity=".45" fill="none">
+    <path d="M27.4 71 L24.8 114"/>
+    <path d="M31.1 71 L30.2 114"/>
+    <path d="M34.9 71 L35.8 114"/>
+    <path d="M38.6 71 L41.2 114"/>
+  </g>
+</svg>`,
+  fisch: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 66 118"
+     role="img" aria-label="Norigae-Anhänger">
+  <!-- 노리개 (Norigae), Form „fisch". ERZEUGT von icon/norigae-bauen.py —
+       Änderungen bitte dort, nicht hier.
+
+       Der Anhänger, den man am Band (고름) des Jeogori oder am Rock trägt.
+       Vier Teile: 띠돈 (Ring), 국화매듭 (geknotete Chrysanthemen-Blüte),
+       패물 (Jade-Anhänger), 술 (lange Quaste).
+
+       Hochformat statt Quadrat: Ein Norigae ist schmal und lang, ein
+       quadratischer Zeichenraum würde ihn auf die halbe Größe zwingen.
+       Die App gibt die HÖHE vor, die Breite folgt.
+
+       Die Farben kommen von außen über Variablen (--nr-band, --nr-stein,
+       --nr-quaste …). Es gibt elf Stellungen nach dem 오방색, dem
+       koreanischen Fünf-Farben-System — eine je Einheit. -->
+  <!-- 띠돈 (Ttidon): der Ring, mit dem der Anhänger am Band hängt -->
+  <ellipse cx="33.0" cy="6.5" rx="6.5" ry="5.5"
+      fill="none" stroke="var(--nr-metall, #c9a227)" stroke-width="4"/>
+  <path d="M33.0 11 L33.0 16"
+      stroke="var(--nr-band, #2f6fa8)" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- 국화매듭 (Gukhwa-maedeup): der geknotete Chrysanthemen-Knoten -->
+  <g fill="none" stroke="var(--nr-band, #2f6fa8)" stroke-width="3">
+    <circle cx="33.0" cy="16.6" r="4.8"/>
+    <circle cx="38.5" cy="19.8" r="4.8"/>
+    <circle cx="38.5" cy="26.2" r="4.8"/>
+    <circle cx="33.0" cy="29.4" r="4.8"/>
+    <circle cx="27.5" cy="26.2" r="4.8"/>
+    <circle cx="27.5" cy="19.8" r="4.8"/>
+  </g>
+  <g fill="none" stroke="var(--nr-band-hell, #8fbcd8)" stroke-width="1.8" stroke-linecap="round"
+     opacity=".9">
+    <path d="M28.4 18.4 L37.6 27.6"/>
+    <path d="M37.6 18.4 L28.4 27.6"/>
+  </g>
+  <circle cx="33.0" cy="23" r="2.6" fill="var(--nr-band-dunkel, #1d4a76)"/>
+  <path d="M33.0 32.199999999999996 L33.0 36"
+      stroke="var(--nr-band, #2f6fa8)" stroke-width="3.4" stroke-linecap="round"/>
+  <!-- 패물 (Paemul): der Jade-Anhänger -->
+  <g>
+    <path d="M20.0 49
+             C24.0 40, 38.0 39, 43.0 49
+             C38.0 59, 24.0 58, 20.0 49 Z"
+        fill="var(--nr-stein, #2f7d5a)" stroke="var(--nr-stein-rand, #00000033)" stroke-width="1.6"/>
+    <path d="M42.0 49 L48.0 42 L47.0 49 L48.0 56 Z"
+        fill="var(--nr-stein, #2f7d5a)" stroke="var(--nr-stein-rand, #00000033)" stroke-width="1.6"
+        stroke-linejoin="round"/>
+    <circle cx="25.5" cy="47" r="2" fill="var(--nr-glanz, #ffffff)" opacity=".65"/>
+    <path d="M30.0 43.5 C34.0 47, 34.0 51, 30.0 54.5"
+        stroke="var(--nr-glanz, #ffffff)" stroke-width="1.4" fill="none" opacity=".35"/>
+  </g>
+  <!-- 술 (Sul): die lange Seidenquaste -->
+  <path d="M23.5 64 L42.5 64 L40.5 70 L25.5 70 Z"
+      fill="var(--nr-band-dunkel, #1d4a76)"/>
+  <path d="M24.5 70 L41.5 70 L45.5 114 L20.5 114 Z"
+      fill="var(--nr-quaste, #8fbcd8)"/>
+  <g stroke="var(--nr-band, #2f6fa8)" stroke-width="1.5" opacity=".45" fill="none">
+    <path d="M27.4 71 L24.8 114"/>
+    <path d="M31.1 71 L30.2 114"/>
+    <path d="M34.9 71 L35.8 114"/>
+    <path d="M38.6 71 L41.2 114"/>
+  </g>
+</svg>`,
+  ring: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 66 118"
+     role="img" aria-label="Norigae-Anhänger">
+  <!-- 노리개 (Norigae), Form „ring". ERZEUGT von icon/norigae-bauen.py —
+       Änderungen bitte dort, nicht hier.
+
+       Der Anhänger, den man am Band (고름) des Jeogori oder am Rock trägt.
+       Vier Teile: 띠돈 (Ring), 국화매듭 (geknotete Chrysanthemen-Blüte),
+       패물 (Jade-Anhänger), 술 (lange Quaste).
+
+       Hochformat statt Quadrat: Ein Norigae ist schmal und lang, ein
+       quadratischer Zeichenraum würde ihn auf die halbe Größe zwingen.
+       Die App gibt die HÖHE vor, die Breite folgt.
+
+       Die Farben kommen von außen über Variablen (--nr-band, --nr-stein,
+       --nr-quaste …). Es gibt elf Stellungen nach dem 오방색, dem
+       koreanischen Fünf-Farben-System — eine je Einheit. -->
+  <!-- 띠돈 (Ttidon): der Ring, mit dem der Anhänger am Band hängt -->
+  <ellipse cx="33.0" cy="6.5" rx="6.5" ry="5.5"
+      fill="none" stroke="var(--nr-metall, #c9a227)" stroke-width="4"/>
+  <path d="M33.0 11 L33.0 16"
+      stroke="var(--nr-band, #2f6fa8)" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- 국화매듭 (Gukhwa-maedeup): der geknotete Chrysanthemen-Knoten -->
+  <g fill="none" stroke="var(--nr-band, #2f6fa8)" stroke-width="3">
+    <circle cx="33.0" cy="16.6" r="4.8"/>
+    <circle cx="38.5" cy="19.8" r="4.8"/>
+    <circle cx="38.5" cy="26.2" r="4.8"/>
+    <circle cx="33.0" cy="29.4" r="4.8"/>
+    <circle cx="27.5" cy="26.2" r="4.8"/>
+    <circle cx="27.5" cy="19.8" r="4.8"/>
+  </g>
+  <g fill="none" stroke="var(--nr-band-hell, #8fbcd8)" stroke-width="1.8" stroke-linecap="round"
+     opacity=".9">
+    <path d="M28.4 18.4 L37.6 27.6"/>
+    <path d="M37.6 18.4 L28.4 27.6"/>
+  </g>
+  <circle cx="33.0" cy="23" r="2.6" fill="var(--nr-band-dunkel, #1d4a76)"/>
+  <path d="M33.0 32.199999999999996 L33.0 36"
+      stroke="var(--nr-band, #2f6fa8)" stroke-width="3.4" stroke-linecap="round"/>
+  <!-- 패물 (Paemul): der Jade-Anhänger -->
+  <g>
+    <path d="M33.0 38 A11 11 0 1 1 32.99 38 Z
+             M33.0 44.2 A4.8 4.8 0 1 0 33.01 44.2 Z"
+        fill="var(--nr-stein, #3a6ea5)" fill-rule="evenodd"
+        stroke="var(--nr-stein-rand, #00000033)" stroke-width="1.6"/>
+    <path d="M25.4 43.4 A9.5 9.5 0 0 1 32.0 39.8"
+        stroke="var(--nr-glanz, #ffffff)" stroke-width="2.4" fill="none" opacity=".4" stroke-linecap="round"/>
+  </g>
+  <!-- 술 (Sul): die lange Seidenquaste -->
+  <path d="M23.5 64 L42.5 64 L40.5 70 L25.5 70 Z"
+      fill="var(--nr-band-dunkel, #1d4a76)"/>
+  <path d="M24.5 70 L41.5 70 L45.5 114 L20.5 114 Z"
+      fill="var(--nr-quaste, #8fbcd8)"/>
+  <g stroke="var(--nr-band, #2f6fa8)" stroke-width="1.5" opacity=".45" fill="none">
+    <path d="M27.4 71 L24.8 114"/>
+    <path d="M31.1 71 L30.2 114"/>
+    <path d="M34.9 71 L35.8 114"/>
+    <path d="M38.6 71 L41.2 114"/>
+  </g>
+</svg>`,
+  bluete: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 66 118"
+     role="img" aria-label="Norigae-Anhänger">
+  <!-- 노리개 (Norigae), Form „bluete". ERZEUGT von icon/norigae-bauen.py —
+       Änderungen bitte dort, nicht hier.
+
+       Der Anhänger, den man am Band (고름) des Jeogori oder am Rock trägt.
+       Vier Teile: 띠돈 (Ring), 국화매듭 (geknotete Chrysanthemen-Blüte),
+       패물 (Jade-Anhänger), 술 (lange Quaste).
+
+       Hochformat statt Quadrat: Ein Norigae ist schmal und lang, ein
+       quadratischer Zeichenraum würde ihn auf die halbe Größe zwingen.
+       Die App gibt die HÖHE vor, die Breite folgt.
+
+       Die Farben kommen von außen über Variablen (--nr-band, --nr-stein,
+       --nr-quaste …). Es gibt elf Stellungen nach dem 오방색, dem
+       koreanischen Fünf-Farben-System — eine je Einheit. -->
+  <!-- 띠돈 (Ttidon): der Ring, mit dem der Anhänger am Band hängt -->
+  <ellipse cx="33.0" cy="6.5" rx="6.5" ry="5.5"
+      fill="none" stroke="var(--nr-metall, #c9a227)" stroke-width="4"/>
+  <path d="M33.0 11 L33.0 16"
+      stroke="var(--nr-band, #2f6fa8)" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- 국화매듭 (Gukhwa-maedeup): der geknotete Chrysanthemen-Knoten -->
+  <g fill="none" stroke="var(--nr-band, #2f6fa8)" stroke-width="3">
+    <circle cx="33.0" cy="16.6" r="4.8"/>
+    <circle cx="38.5" cy="19.8" r="4.8"/>
+    <circle cx="38.5" cy="26.2" r="4.8"/>
+    <circle cx="33.0" cy="29.4" r="4.8"/>
+    <circle cx="27.5" cy="26.2" r="4.8"/>
+    <circle cx="27.5" cy="19.8" r="4.8"/>
+  </g>
+  <g fill="none" stroke="var(--nr-band-hell, #8fbcd8)" stroke-width="1.8" stroke-linecap="round"
+     opacity=".9">
+    <path d="M28.4 18.4 L37.6 27.6"/>
+    <path d="M37.6 18.4 L28.4 27.6"/>
+  </g>
+  <circle cx="33.0" cy="23" r="2.6" fill="var(--nr-band-dunkel, #1d4a76)"/>
+  <path d="M33.0 32.199999999999996 L33.0 36"
+      stroke="var(--nr-band, #2f6fa8)" stroke-width="3.4" stroke-linecap="round"/>
+  <!-- 패물 (Paemul): der Jade-Anhänger -->
+  <g>
+    <g fill="var(--nr-stein, #d9a021)" stroke="var(--nr-stein-rand, #00000033)" stroke-width="1.4">
+      <circle cx="33.0" cy="42.4" r="5.2"/>
+      <circle cx="39.3" cy="47.0" r="5.2"/>
+      <circle cx="36.9" cy="54.3" r="5.2"/>
+      <circle cx="29.1" cy="54.3" r="5.2"/>
+      <circle cx="26.7" cy="47.0" r="5.2"/>
+    </g>
+    <circle cx="33.0" cy="49" r="4.6" fill="var(--nr-stein, #d9a021)"/>
+    <circle cx="33.0" cy="49" r="2.4" fill="var(--nr-glanz, #ffffff)" opacity=".5"/>
+  </g>
+  <!-- 술 (Sul): die lange Seidenquaste -->
+  <path d="M23.5 64 L42.5 64 L40.5 70 L25.5 70 Z"
+      fill="var(--nr-band-dunkel, #1d4a76)"/>
+  <path d="M24.5 70 L41.5 70 L45.5 114 L20.5 114 Z"
+      fill="var(--nr-quaste, #8fbcd8)"/>
+  <g stroke="var(--nr-band, #2f6fa8)" stroke-width="1.5" opacity=".45" fill="none">
+    <path d="M27.4 71 L24.8 114"/>
+    <path d="M31.1 71 L30.2 114"/>
+    <path d="M34.9 71 L35.8 114"/>
+    <path d="M38.6 71 L41.2 114"/>
+  </g>
+</svg>`
+};
+const NORIGAE_STELLUNGEN = [
+  { name:'Blau · Osten', form:'schmetterling', band:'#2f6fa8', dunkel:'#1d4a76', hell:'#8fbcd8', stein:'#4e9c78' },
+  { name:'Rot · Süden', form:'kuerbis', band:'#b4392f', dunkel:'#83241c', hell:'#e5a096', stein:'#3f8a63' },
+  { name:'Gelb · Mitte', form:'fisch', band:'#d9a021', dunkel:'#a1710f', hell:'#f2d78e', stein:'#2f7d5a' },
+  { name:'Weiß · Westen', form:'ring', band:'#cdc4ad', dunkel:'#948a70', hell:'#efe9da', stein:'#3a6ea5' },
+  { name:'Schwarz · Norden', form:'bluete', band:'#3b3f45', dunkel:'#1f2328', hell:'#8d949c', stein:'#d9a021' },
+  { name:'Grün', form:'schmetterling', band:'#3f7d5a', dunkel:'#255239', hell:'#9ac5ac', stein:'#d9736b' },
+  { name:'Rosarot', form:'kuerbis', band:'#d1653c', dunkel:'#9c4020', hell:'#eeae8e', stein:'#3a6ea5' },
+  { name:'Türkis', form:'fisch', band:'#4f93a6', dunkel:'#2f6b7d', hell:'#a9d3dc', stein:'#d9a021' },
+  { name:'Violett', form:'ring', band:'#6f4a86', dunkel:'#472b5a', hell:'#b49bc4', stein:'#3f8a63' },
+  { name:'Schwefelgelb', form:'bluete', band:'#9a8f5c', dunkel:'#675e33', hell:'#cfc79a', stein:'#8a3b34' },
+  { name:'Koralle', form:'schmetterling', band:'#d9736b', dunkel:'#a3443e', hell:'#f0aca4', stein:'#3f7d5a' }
+];
+/* Jede Einheit bekommt ihre eigene Stellung; mehr Einheiten als
+   Stellungen wären kein Fehler, dann beginnt die Reihe von vorn. */
+function norigaeFuerEinheit(unit){
+  const s = NORIGAE_STELLUNGEN[unit % NORIGAE_STELLUNGEN.length];
+  const stil = `--nr-band:${s.band};--nr-band-dunkel:${s.dunkel};`
+    + `--nr-band-hell:${s.hell};--nr-quaste:${s.hell};--nr-stein:${s.stein}`;
+  return `<span class="norigae" style="${stil}">${NORIGAE_FORMEN[s.form]}</span>`;
+}
+
+/* Die Sangpyeong-Tongbo-Münze (상평통보). ERZEUGT von
+   icon/muenze-bauen.py, eingesetzt von tools/symbole-einbetten.py
+   — hier nicht bearbeiten. */
+const MUENZE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"
+     role="img" aria-label="Sangpyeong-Tongbo-Münze">
+  <!-- 상평통보 (常平通寶). ERZEUGT von icon/muenze-bauen.py — Änderungen
+       bitte dort, nicht hier.
+
+       Die Münze der Joseon-Zeit: rund, mit quadratischem Loch, im Umlauf
+       von 1633 bis 1891. Ihre Form ist der Grund, warum sie hier steht —
+       Kreis mit eckigem Loch bleibt bei jeder Größe erkennbar, während
+       eine moderne Prägung bei 20 Pixeln nur ein Punkt wäre.
+
+       Die vier Zeichen sind echte Umrisse aus Noto Serif CJK, beim Bauen
+       geholt: Der in die App eingebettete Ausschnitt der Schrift enthält
+       diese Hanja nicht, gesetzter Text bliebe also leer. -->
+  <defs>
+    <radialGradient id="mz-flaeche" gradientUnits="userSpaceOnUse"
+        cx="38.0" cy="36.0" r="64.0">
+      <stop offset="0" stop-color="var(--mz-licht, #e2b866)"/>
+      <stop offset="0.55" stop-color="var(--mz-messing, #c08a34)"/>
+      <stop offset="1" stop-color="var(--mz-schatten, #8a5c1e)"/>
+    </radialGradient>
+  </defs>
+  <!-- Der Münzkörper. Das Loch ist Teil DESSELBEN Pfades (fill-rule
+       evenodd), nicht ein aufgesetztes Rechteck in Hintergrundfarbe —
+       sonst leuchtete es auf jedem anderen Untergrund falsch. -->
+  <path d="M50.0 4.0 A46.0 46.0 0 1 1 49.99 4.0 Z
+           M37.0 37.0 L63.0 37.0
+           L63.0 63.0 L37.0 63.0 Z"
+      fill="url(#mz-flaeche)" fill-rule="evenodd"
+      stroke="var(--mz-rand, #6f4715)" stroke-width="2.5"/>
+  <!-- Der erhabene Rand außen und um das Loch — bei echten Münzen der
+       Grund, warum sich Stapel sauber aufeinanderlegen lassen. -->
+  <circle cx="50.0" cy="50.0" r="40.5"
+      fill="none" stroke="var(--mz-rand, #6f4715)" stroke-width="1.8" opacity=".55"/>
+  <rect x="33.5" y="33.5"
+      width="33.0" height="33.0"
+      fill="none" stroke="var(--mz-rand, #6f4715)" stroke-width="1.8" opacity=".55"/>
+  <!-- 常平通寶 — gelesen oben, unten, rechts, links -->
+  <g fill="var(--mz-schrift, #5b3a10)">
+    <g transform="translate(39.50 32.32) scale(0.02100 -0.02100)">
+      <path d="M223 825 212 817C252 783 295 722 300 672C367 622 423 767 223 825ZM176 247V-34H186C213 -34 241 -21 241 -14V218H465V-76H475C508 -76 529 -56 529 -51V218H760V65C760 52 755 46 738 46C714 46 615 53 615 53V38C659 33 685 23 699 13C712 3 718 -14 720 -33C814 -25 825 8 825 58V206C845 209 862 218 868 225L783 287L750 247H529V351H684V313H693C714 313 747 328 748 334V497C766 500 780 508 786 515L709 573L675 536H323L254 567V303H263C289 303 318 317 318 323V351H465V247H247L176 280ZM318 380V506H684V380ZM710 828C686 775 647 704 614 653H531V799C556 803 565 812 567 826L466 836V653H184C183 668 180 684 175 701H158C160 633 121 571 82 546C61 534 48 513 58 492C70 469 104 472 129 490C158 510 186 556 186 624H840C828 590 811 548 797 521L811 513C846 538 895 581 921 612C940 613 952 615 959 622L882 697L838 653H644C691 690 739 737 771 772C791 769 805 776 810 786Z"/>
+    </g>
+    <g transform="translate(39.50 85.32) scale(0.02100 -0.02100)">
+      <path d="M614 661 603 652C671 599 757 505 780 431C860 382 898 559 614 661ZM295 673C252 564 185 460 124 398L137 386C218 435 299 515 358 612C378 609 392 617 397 627ZM106 759 115 730H467V331H42L51 302H467V-79H477C511 -79 533 -62 533 -57V302H931C946 302 956 306 958 317C922 350 864 394 864 394L812 331H533V730H875C889 730 899 735 901 746C866 778 807 823 807 823L755 759Z"/>
+    </g>
+    <g transform="translate(66.00 58.82) scale(0.02100 -0.02100)">
+      <path d="M114 815 104 806C149 773 202 714 217 666C284 627 322 769 114 815ZM74 611 64 602C111 571 168 513 184 465C254 428 287 572 74 611ZM427 418H592V297H427ZM427 447V565H592V447ZM467 723 461 706C556 676 620 636 657 599L667 593H432L364 626V64H373C401 64 427 80 427 87V267H592V72H602C634 72 654 87 654 91V267H825V159C825 145 821 140 806 140C788 140 716 146 716 146V130C751 126 770 118 781 109C792 99 796 83 798 64C880 73 889 103 889 153V552C909 555 926 564 932 571L848 635L816 593H705C726 605 729 638 674 669C741 690 824 723 869 751C891 752 903 754 911 760L837 831L794 790H347L356 761H772C737 734 689 703 651 680C611 697 552 713 467 723ZM654 565H825V447H654ZM654 418H825V297H654ZM226 299C253 302 268 310 275 317L188 389L150 338H40L46 308H165V79C119 49 70 21 38 5L85 -75C94 -69 98 -63 96 -51C128 -19 181 38 214 81C287 -29 369 -53 556 -53C671 -53 813 -53 915 -53C919 -22 937 -4 966 1V16C841 12 676 12 555 12C378 12 299 23 226 101Z"/>
+    </g>
+    <g transform="translate(13.00 58.82) scale(0.02100 -0.02100)">
+      <path d="M391 73C325 24 190 -33 67 -60L73 -77C203 -65 340 -28 423 11C445 4 462 6 470 14ZM555 53 551 37C684 9 783 -30 843 -67C920 -114 1030 27 555 53ZM220 390V31H230C256 31 284 45 284 51V76H728V44H738C759 44 792 59 793 66V355C808 357 821 364 826 370L754 427L720 390H290L223 421C334 443 417 462 477 476L475 493L335 479V534H440C454 534 462 539 465 550C442 570 408 595 408 595L379 564H335V626H454C467 626 476 631 479 641C452 665 413 693 413 693L378 655H162C171 673 177 696 178 723H841L817 673L798 687L765 650H587L608 678C631 675 639 678 642 688L561 714C548 676 523 621 498 590L512 581C529 592 545 606 560 621H661V573H475L483 545H661V469H577V495C594 498 600 504 601 515L521 523V406H532C552 406 577 419 577 425V439H805V408H816C836 408 862 421 862 427V495C879 498 886 504 887 515L805 523V469H720V545H899C912 545 921 550 923 561C896 583 856 611 856 611L820 573H720V621H837C850 621 859 626 862 636L839 655C867 672 899 694 918 712C936 714 949 715 956 722L882 793L841 753H531V801C556 805 567 815 569 829L465 838V753H178C176 768 174 783 169 800H151C153 751 125 697 97 677C77 663 65 643 75 625C86 603 118 607 138 624C144 629 150 636 156 645L161 626H275V564H156L164 534H275V473C198 465 133 459 94 457L136 387C146 390 153 396 158 408L220 420ZM728 268V201H284V268ZM728 298H284V361H728ZM728 172V106H284V172Z"/>
+    </g>
+  </g>
+</svg>`;
+function muenzeSpan(){ return `<span class="muenze">${MUENZE_SVG}</span>`; }
+
+/* Das Gwanghwamun (광화문). ERZEUGT von icon/gwanghwamun-bauen.py,
+   eingesetzt von tools/symbole-einbetten.py — hier nicht bearbeiten. */
+const GWANGHWAMUN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"
+     role="img" aria-label="Gwanghwamun, das Haupttor">
+  <!-- 광화문 (光化門), das Haupttor des Gyeongbokgung. ERZEUGT von
+       icon/gwanghwamun-bauen.py — Änderungen bitte dort, nicht hier.
+
+       Drei Bogendurchgänge im Steinsockel (der mittlere für den König,
+       darum größer), darüber ein zweistöckiger Holzaufbau mit den nach
+       oben geschwungenen Traufen. Der Schwung an den Dachecken ist das
+       Merkmal, an dem ein koreanisches Dach hängt.
+
+       Die Farben stehen als Variablen, damit dasselbe Tor Tageslicht und
+       Abendlicht bedienen kann. -->
+  <!-- Der Steinsockel mit den drei Durchgängen. Die Durchgänge sind Teil
+       DESSELBEN Pfades (fill-rule evenodd), keine aufgesetzten Formen in
+       Hintergrundfarbe — sonst leuchteten sie auf jedem anderen
+       Untergrund falsch. -->
+  <path d="M6 58 L94 58
+           L96 95 L4 95 Z
+           M40.5 95.0 L40.5 75.5 A9.5 9.5 0 0 1 59.5 75.5 L59.5 95.0 Z M68.5 95.0 L68.5 81.0 A7.0 7.0 0 0 1 82.5 81.0 L82.5 95.0 Z M17.5 95.0 L17.5 81.0 A7.0 7.0 0 0 1 31.5 81.0 L31.5 95.0 Z"
+      fill="var(--gh-stein, #b9b2a4)" fill-rule="evenodd"
+      stroke="var(--gh-fuge, #7d7668)" stroke-width="1.6" stroke-linejoin="round"/>
+  <!-- Die Brüstung (여장) auf der Sockelkante -->
+  <rect x="5" y="54" width="90" height="4.5"
+      fill="var(--gh-stein-hell, #cfc8ba)" stroke="var(--gh-fuge, #7d7668)" stroke-width="1.2"/>
+
+  <!-- Unteres Geschoss: die Wand hinter der Traufe, mit der Namenstafel -->
+  <rect x="20" y="46" width="60" height="12"
+      fill="var(--gh-holz, #a8452f)" stroke="var(--gh-holz-dunkel, #75291a)" stroke-width="1.4"/>
+  <!-- Die Namenstafel: schwarzer Grund, goldene Zeichen — so hängt sie
+       seit der Wiederherstellung 2023 dort, und so hängt auch die Tafel
+       in der Kopfzeile dieser App. -->
+  <rect x="37" y="49" width="26" height="9" rx="1"
+      fill="var(--gh-tafel, #1c1712)" stroke="var(--gh-gold, #d4af37)" stroke-width="1.4"/>
+
+  <!-- Unteres Dach -->
+  <path d="M16.0 33.0 L84.0 33.0 C84.6 43.5, 92.2 48.0, 98.0 44.5 C79.8 54.2, 20.2 54.2, 2.0 44.5 C7.8 48.0, 15.4 43.5, 16.0 33.0 Z"
+      fill="var(--gh-dach, #4d5a63)" stroke="var(--gh-dach-dunkel, #2f383f)"
+      stroke-width="1.6" stroke-linejoin="round"/>
+
+  <!-- Oberes Geschoss -->
+  <rect x="28" y="23" width="44" height="12"
+      fill="var(--gh-holz, #a8452f)" stroke="var(--gh-holz-dunkel, #75291a)" stroke-width="1.4"/>
+  <!-- Oberes Dach -->
+  <path d="M28.0 8.0 L72.0 8.0 C74.5 18.5, 79.9 24.5, 84.0 21.0 C71.1 29.2, 28.9 29.2, 16.0 21.0 C20.1 24.5, 25.5 18.5, 28.0 8.0 Z"
+      fill="var(--gh-dach, #4d5a63)" stroke="var(--gh-dach-dunkel, #2f383f)"
+      stroke-width="1.6" stroke-linejoin="round"/>
+</svg>`;
+function torSpan(){ return `<span class="tor">${GWANGHWAMUN_SVG}</span>`; }
+/* ==== ZEICHEN ENDE ==== */
+
 /* ==== KURSDATEN ANFANG — eingesetzt aus kurs/kurs.js, hier nicht bearbeiten ==== */
 /* =========================================================
    DER KURS — alle Inhalte an einer Stelle
@@ -7665,7 +8293,7 @@ function buildPathSection(label){
 function buildHomeTitleBanner(){
   const banner = document.createElement('div');
   banner.className = 'unit-banner';
-  banner.innerHTML = `<span class="banner-text">한국어 배우기<small>Von Hangul bis zu deinen ersten Sätzen – ${COURSE.length} Lektionen</small></span><div class="banner-blossoms" aria-hidden="true"><span>🌸</span><span>🌸</span><span>🌸</span></div>`;
+  banner.innerHTML = `<span class="banner-text">한국어 배우기<small>Von Hangul bis zu deinen ersten Sätzen – ${COURSE.length} Lektionen</small></span><div class="banner-blossoms" aria-hidden="true">${bluetenSpan()}${bluetenSpan()}${bluetenSpan()}</div>`;
   return banner;
 }
 /* Merkt sich pro Einheit, ob ihre Schriftrolle gerade aufgerollt (offen)
@@ -7783,7 +8411,7 @@ function buildScrollUnit(unit, lessonsInOrder){
   header.innerHTML = `<div class="scroll-header-row">
       <span>${unitLocked ? '🔒 ' : `<span class="scroll-toggle-icon">▾</span>`}${info.title}</span>
       <span class="scroll-header-right">
-        ${showCultureBtn ? `<button type="button" class="culture-btn" aria-label="Wissenswertes über Korea">🏮</button>` : ''}
+        ${showCultureBtn ? `<button type="button" class="culture-btn" aria-label="Wissenswertes über Korea">${norigaeFuerEinheit(unit)}</button>` : ''}
         <span class="unit-counter">${mastery.mastered}/${mastery.total}</span>
       </span>
     </div>
@@ -7826,7 +8454,7 @@ function buildScrollUnit(unit, lessonsInOrder){
       const lessonMastery = getLessonMasteryInfo(lesson);
       return `<span class="scroll-lesson-counter">${lessonMastery.mastered}/${lessonMastery.total}</span>`;
     })();
-    btn.innerHTML = `<span class="scroll-lesson-icon">${isLessonLocked ? '🔒' : (isDone ? '🌸' : lesson.icon)}</span>
+    btn.innerHTML = `<span class="scroll-lesson-icon">${isLessonLocked ? '🔒' : (isDone ? bluetenSpan() : lesson.icon)}</span>
       <span class="scroll-lesson-title">${lesson.title}</span>
       ${counterHtml}`;
     btn.onclick = (e) => { e.stopPropagation(); if(!isLessonLocked) startLesson(idx); };
@@ -10621,8 +11249,11 @@ function finishSession(){
   const goalNote = doneToday >= goal
     ? `🎯 Tagesziel geschafft – ${doneToday} XP heute.`
     : `Tagesziel: noch ${goal - doneToday} XP heute.`;
-  $('dailyGoalNote').textContent = restDayUsed
-    ? `🎴 Ruhetag eingelöst – dein Streak läuft weiter. ${goalNote}`
+  /* innerHTML statt textContent, weil die Münze eine Zeichnung ist.
+     goalNote ist eigener, fester Text ohne Fremdanteil — hier kommt
+     nichts vom Nutzer an. */
+  $('dailyGoalNote').innerHTML = restDayUsed
+    ? `${muenzeSpan()} Ruhetag eingelöst – dein Streak läuft weiter. ${goalNote}`
     : goalNote;
   maybeCelebrateCourseComplete();
   $('completeTitle').textContent =
@@ -10732,6 +11363,19 @@ if('speechSynthesis' in window){
    aufhalten — die Antwort kommt, wenn sie kommt, und bis dahin gilt
    einfach der bisherige Zustand. */
 loadAudioIndex();
+/* Die Blüten im Kopfbalken. Sie stehen nicht im Markup, weil dort sonst
+   viermal dieselbe SVG-Zeichnung ausgeschrieben stünde — das Skript setzt
+   sie ein, sobald es läuft. Rein schmückend, deshalb aria-hidden am
+   Behälter und keine Rücksicht darauf, dass sie eine Wimper später da
+   sind als die Kopfzeile. */
+(function zeichenInDieKopfzeile(){
+  const feld = document.querySelector('.gate-blossoms');
+  if(feld) feld.innerHTML = bluetenSpan() + bluetenSpan() + bluetenSpan() + bluetenSpan();
+  const streak = document.getElementById('streakIcon');
+  if(streak) streak.innerHTML = muenzeSpan();
+  const tor = document.getElementById('navHomeIcon');
+  if(tor) tor.innerHTML = torSpan();
+})();
 applyTheme();
 updateHeaderStats();
 // Erst den Lernpfad aufbauen (damit im Hintergrund etwas steht), dann ggf.
