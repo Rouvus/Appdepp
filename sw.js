@@ -15,7 +15,7 @@
    VERSION wird beim Bauen (build-pwa.sh) automatisch gesetzt. Ändert
    sich die App, ändert sich die Version, und der alte Speicher wird
    verworfen. */
-const VERSION = '27e3ba0c3488';
+const VERSION = '5475d0890c02';
 const CACHE = 'koreanisch-' + VERSION;
 const ASSETS = [
   './',

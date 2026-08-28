@@ -463,6 +463,13 @@
     background:var(--blue); color:#fff; font-size:2.5rem; line-height:1;
     display:flex; align-items:center; justify-content:center;}
   .listen-play:active{ transform:scale(.96);}
+  /* Der große Hörknopf ist blau. Das Messing des Gongs steht darauf gut,
+     seine dunkelbraunen Schallbögen dagegen verschwinden — hier bekommen
+     sie deshalb die Farbe des Knopftextes. Der Gong füllt den Knopf fast
+     ganz aus; 2.5rem Schriftgröße mal 1.2em wären zu wenig für 96px. */
+  .listen-play .gong{ --gg-schall:#ffeec9; --gg-kordel:#ff6a5a;
+    vertical-align:0;}
+  .listen-play .gong svg{ width:74px; height:74px;}
   .listen-slow-btn{ border:2px solid var(--gray); background:var(--bg); border-radius:999px;
     padding:6px 14px; font-family:inherit; font-size:0.8125rem; font-weight:700; cursor:pointer;
     color:var(--text);}
@@ -994,6 +1001,32 @@
   }
   .muenze{ display:inline-block; line-height:0; vertical-align:-0.28em;}
   .muenze svg{ width:1.35em; height:1.35em; display:block;}
+  /* Fischschloss, Gong und Tuschestein stehen MITTEN IM TEXT — in
+     Überschriften, Lektionszeilen, auf Knöpfen. Anders als die fünf
+     Leistenzeichen bekommen sie ihre Größe deshalb nicht vom Feld,
+     sondern vom Text, in dem sie stehen (em). Der negative
+     vertical-align setzt sie auf die Grundlinie der Schrift statt auf
+     die Zeilenoberkante — sonst hängen sie zu hoch. */
+  .schloss, .gong, .tusche{ display:inline-block; line-height:0;
+    vertical-align:-0.2em;}
+  .schloss svg{ width:1.05em; height:1.05em; display:block;}
+  .gong svg{ width:1.2em; height:1.2em; display:block;}
+  .tusche svg{ width:1.15em; height:1.15em; display:block;}
+  /* In der Sprungliste und in den Lektionszeilen steht das Schloss in
+     einem eigenen, festen Feld — dort füllt es dieses Feld ganz aus,
+     statt sich an einer Textgröße zu orientieren, die es dort nicht gibt. */
+  .jump-mark .schloss svg, .scroll-lesson-icon .schloss svg{
+    width:1em; height:1em;}
+  /* Abends nimmt das Messing etwas Licht auf, sonst versinken beide
+     Zeichen im dunklen Papier — dieselbe Behandlung wie beim Norigae. */
+  body.theme-night .schloss svg, body.theme-night .gong svg{
+    filter:brightness(1.12);}
+  /* Der Tuschestein ist von Haus aus fast schwarz. Auf dem dunklen
+     Abendpapier braucht er deshalb eine hellere Fassung, sonst
+     verschwindet er als Fleck. */
+  body.theme-night .tusche{ --ts-licht:#7c828c; --ts-stein:#565c65;
+    --ts-tief:#383d44; --ts-kante:#98a0aa; --ts-stange-licht:#5a616a;
+    --ts-stange:#2e333a;}
   /* Der Norigae HÄNGT über der Zeile, statt sie aufzublähen. Mit seinen
      30px machte er die Kopfzeile der Schriftrolle 14px höher, und der
      Titel „Einheit 3" rutschte entsprechend nach unten — in der
@@ -1377,8 +1410,8 @@
    öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
    statt eine leere Zeile zu zeigen.
    ========================================================= */
-const APP_VERSION = '1.13.0';
-const APP_BUILD = '27e3ba0c3488';
+const APP_VERSION = '1.14.0';
+const APP_BUILD = '5475d0890c02';
 const APP_CONTACT = {
   name: '',                 // z. B. 'Vorname Nachname'
   ort: '',                  // z. B. 'Musterstadt' (nur wenn du ein Impressum führst)
@@ -1500,6 +1533,7 @@ function appBuildLabel(){
    will, was ihm entgeht. Bewusst nur die letzten Einträge — eine
    vollständige Chronik gehört ins Projekt-Dokument, nicht in die App. */
 const CHANGELOG = [
+  { v:'1.14.0', text:'Auch im Inhalt eigene Zeichen: das Fischschloss für Verschlossenes, der Gong zum Anhören, das Jade-Go-Brett auf jeder Wiederholung, der Tuschestein beim Zeichenmalen.' },
   { v:'1.13.0', text:'Die untere Leiste trägt jetzt eigene Zeichen: Tor, Go-Brett, Schriftrolle, Amtsmütze und Siegel.' },
   { v:'1.12.3', text:'Menüschrift steht wieder auf einer Linie und bleibt beige; der Rollentitel sitzt wieder oben wie zuvor.' },
   { v:'1.12.2', text:'Der Lernpfad trägt jetzt das Gwanghwamun — das Haupttor, mit seinen drei Durchgängen.' },
@@ -2429,6 +2463,194 @@ const SIEGEL_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100
   </g>
 </svg>`;
 function siegelSpan(){ return `<span class="siegel">${SIEGEL_SVG}</span>`; }
+
+/* Tuschestein und Tuschestange (벼루 · 먹). ERZEUGT von
+   icon/tuschestein-bauen.py, eingesetzt von
+   tools/symbole-einbetten.py — hier nicht bearbeiten. */
+const TUSCHESTEIN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"
+     role="img" aria-label="Tuschestein mit Tuschestange">
+  <defs>
+    <linearGradient id="ts-stein" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="var(--ts-licht, #5d6168)"/>
+      <stop offset="0.5" stop-color="var(--ts-stein, #3b3f45)"/>
+      <stop offset="1" stop-color="var(--ts-tief, #23262b)"/>
+    </linearGradient>
+    <radialGradient id="ts-tusche" cx="40%" cy="30%" r="80%">
+      <stop offset="0" stop-color="var(--ts-glanz, #4a4f57)"/>
+      <stop offset="0.6" stop-color="var(--ts-nass, #14161a)"/>
+      <stop offset="1" stop-color="var(--ts-nass, #14161a)"/>
+    </radialGradient>
+    <linearGradient id="ts-stange" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="var(--ts-stange-licht, #3a3f46)"/>
+      <stop offset="1" stop-color="var(--ts-stange, #191c20)"/>
+    </linearGradient>
+  </defs>
+  <!-- Der Stein: eine flache Platte von schräg oben -->
+  <path d="M14 40 L86 40 L92 76 A8 8 0 0 1 84 84 L16 84 A8 8 0 0 1 8 76 Z"
+      fill="url(#ts-stein)" stroke="var(--ts-kante, #6b7078)" stroke-width="2"
+      stroke-linejoin="round"/>
+  <path d="M14 40 L86 40 L88 52 L12 52 Z" fill="var(--ts-licht, #5d6168)" opacity=".35"/>
+  <!-- Die Vertiefung mit angeriebener Tusche. Der Glanzpunkt sagt, dass
+       sie nass ist — trocken wäre der Stein nur eine graue Platte. -->
+  <ellipse cx="50" cy="64" rx="26" ry="13" fill="url(#ts-tusche)"
+      stroke="var(--ts-kante, #6b7078)" stroke-width="1.8"/>
+  <ellipse cx="41" cy="59" rx="6" ry="2.6" fill="var(--ts-glanz, #8f959e)" opacity=".5"/>
+  <!-- Die Tuschestange, quer aufgelegt, mit vergoldeter Prägung -->
+  <g transform="rotate(-18 50 34)">
+    <rect x="20" y="24" width="60" height="15" rx="4"
+        fill="url(#ts-stange)" stroke="var(--ts-kante, #6b7078)" stroke-width="1.8"/>
+    <rect x="42" y="28" width="16" height="7" rx="1.5"
+        fill="var(--ts-gold, #c9a227)" opacity=".85"/>
+  </g>
+</svg>`;
+function tuscheSpan(klasse){ return `<span class="tusche${klasse ? " " + klasse : ""}">${TUSCHESTEIN_SVG}</span>`; }
+
+/* Das Fischschloss (물고기 자물쇠). ERZEUGT von
+   icon/schloss-bauen.py, eingesetzt von
+   tools/symbole-einbetten.py — hier nicht bearbeiten. */
+const SCHLOSS_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"
+     role="img" aria-label="Verschlossen">
+  <!-- 물고기 자물쇠, das Fischschloss. ERZEUGT von icon/schloss-bauen.py —
+       Änderungen bitte dort, nicht hier.
+
+       Die Lesbarkeit hängt an der Silhouette: Bügel oben, gedrungener
+       Körper unten, Schlüsselloch mittig. Erst danach kommt der Fisch —
+       Auge, Kiemenbogen, Schuppen, gespaltene Schwanzflosse. Wer das
+       Zeichen in der Leiste nur streift, sieht ein Schloss; wer
+       hinschaut, sieht, dass es wacht. -->
+  <defs>
+    <linearGradient id="sl-messing" x1="0.15" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="var(--sl-licht, #e0bd6a)"/>
+      <stop offset="0.42" stop-color="var(--sl-messing, #b98f3c)"/>
+      <stop offset="1" stop-color="var(--sl-tief, #7b5720)"/>
+    </linearGradient>
+    <linearGradient id="sl-buegel" x1="0" y1="0" x2="1" y2="0.4">
+      <stop offset="0" stop-color="var(--sl-buegel-licht, #cfae62)"/>
+      <stop offset="0.5" stop-color="var(--sl-buegel, #9a742e)"/>
+      <stop offset="1" stop-color="var(--sl-tief, #7b5720)"/>
+    </linearGradient>
+    <linearGradient id="sl-flosse" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="var(--sl-messing, #b98f3c)"/>
+      <stop offset="1" stop-color="var(--sl-tief, #7b5720)"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Der Bügel. Er sitzt HINTER dem Körper, damit seine Enden im Rücken
+       verschwinden statt darauf zu liegen. -->
+  <path d="M33 54 L33 32
+           A17 17 0 0 1 67 32
+           L67 54"
+      fill="none" stroke="var(--sl-kante, #4e3510)" stroke-width="13"
+      stroke-linecap="round"/>
+  <path d="M33 54 L33 32
+           A17 17 0 0 1 67 32
+           L67 54"
+      fill="none" stroke="url(#sl-buegel)" stroke-width="9"
+      stroke-linecap="round"/>
+
+  <!-- Die Schwanzflosse, gespalten. Sie steht vor dem Körper links unten
+       im Bild rechts — bei einem Schloss ist das die Seite, an der der
+       Riegel austritt. -->
+  <path d="M79 57 L96 46
+           C92 60, 92 72, 96 86
+           L79 75 Z"
+      fill="url(#sl-flosse)" stroke="var(--sl-kante, #4e3510)" stroke-width="2.4"
+      stroke-linejoin="round"/>
+
+  <!-- Der Körper: vorn (links) der stumpfe Kopf, hinten die Einschnürung
+       zur Flosse. Bewusst gedrungen — ein schlanker Fisch verlöre die
+       Schloss-Silhouette. -->
+  <path d="M10 66
+           C10 50, 26 41, 48 42
+           C66 43, 76 49, 81 57
+           C83 61, 83 71, 81 75
+           C76 83, 66 89, 48 90
+           C26 91, 10 82, 10 66 Z"
+      fill="url(#sl-messing)" stroke="var(--sl-kante, #4e3510)" stroke-width="2.8"
+      stroke-linejoin="round"/>
+
+  <!-- Kiemendeckel: der eine Strich, der aus dem Körper einen Fisch macht -->
+  <path d="M28 46 C34 57, 34 75, 28 86"
+      fill="none" stroke="var(--sl-kante, #4e3510)" stroke-width="2.2"
+      stroke-linecap="round" opacity=".75"/>
+  <!-- Zwei Schuppenreihen, angedeutet. Sie verschwinden als Erstes. -->
+  <g fill="none" stroke="var(--sl-kante, #4e3510)" stroke-width="1.5"
+     stroke-linecap="round" opacity=".4">
+    <path d="M62 49 C68 58, 68 74, 62 83"/>
+    <path d="M70 53 C75 60, 75 72, 70 79"/>
+  </g>
+  <!-- Das Auge. Der Fisch schließt es nie — darum bewacht er das Tor. -->
+  <circle cx="20" cy="61" r="4.2" fill="var(--sl-kante, #4e3510)"/>
+  <circle cx="18.6" cy="59.6" r="1.4" fill="var(--sl-licht, #e0bd6a)" opacity=".85"/>
+
+  <!-- Das Schlüsselloch: Kreis mit Bart, wie bei den geschmiedeten
+       Riegelschlössern. Es liegt genau in der Mitte des Körpers — dort
+       sucht das Auge es. -->
+  <path d="M46 60
+           A5.2 5.2 0 1 1 54 60
+           L52.4 77 L47.6 77 Z"
+      fill="var(--sl-loch, #3a2709)"/>
+</svg>`;
+function schlossSpan(klasse){ return `<span class="schloss${klasse ? " " + klasse : ""}">${SCHLOSS_SVG}</span>`; }
+
+/* Der Gong (징) für die Sprachausgabe. ERZEUGT von
+   icon/gong-bauen.py, eingesetzt von
+   tools/symbole-einbetten.py — hier nicht bearbeiten. */
+const GONG_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"
+     role="img" aria-label="Anhören">
+  <!-- 징, der Gong. ERZEUGT von icon/gong-bauen.py — Änderungen bitte
+       dort, nicht hier.
+
+       Aufbau von innen nach außen: der erhabene Buckel (봉우리), auf den
+       geschlagen wird; die geschmiedete Scheibe mit ihren Hammerspuren;
+       der umgeschlagene Rand; die rote Haltekordel links; und rechts die
+       drei Schallbögen, die aus der Scheibe einen Ton machen. -->
+  <defs>
+    <radialGradient id="gg-scheibe" cx="0.34" cy="0.3" r="0.85">
+      <stop offset="0" stop-color="var(--gg-licht, #e6c477)"/>
+      <stop offset="0.55" stop-color="var(--gg-messing, #bb9140)"/>
+      <stop offset="1" stop-color="var(--gg-tief, #7d5920)"/>
+    </radialGradient>
+    <radialGradient id="gg-buckel" cx="0.35" cy="0.28" r="0.9">
+      <stop offset="0" stop-color="var(--gg-buckel-licht, #f0d391)"/>
+      <stop offset="1" stop-color="var(--gg-messing, #bb9140)"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Die Kordel: durch zwei Löcher am Rand geknüpft, in der linken Hand
+       gehalten. Zuerst gezeichnet, damit sie hinter der Scheibe liegt. -->
+  <path d="M17.6 33.6
+           C6 18, 32 12, 27.1 27.6"
+      fill="none" stroke="var(--gg-kordel, #a8342a)" stroke-width="3.6"
+      stroke-linecap="round"/>
+
+  <!-- Die Scheibe -->
+  <circle cx="36" cy="52" r="26" fill="url(#gg-scheibe)"
+      stroke="var(--gg-kante, #563d13)" stroke-width="3"/>
+  <!-- Der umgeschlagene Rand: ein 징 ist keine flache Platte, sein Rand
+       ist nach hinten gebogen. Der schmale Ring sagt das. -->
+  <circle cx="36" cy="52" r="21.5" fill="none"
+      stroke="var(--gg-kante, #563d13)" stroke-width="1.6" opacity=".45"/>
+  <!-- Hammerspuren: zwei Kreisbögen aus dem Treiben des Blechs -->
+  <g fill="none" stroke="var(--gg-kante, #563d13)" stroke-width="1.2" opacity=".25">
+    <circle cx="36" cy="52" r="17"/>
+    <circle cx="36" cy="52" r="12.5"/>
+  </g>
+  <!-- Der Buckel in der Mitte — die Schlagstelle -->
+  <circle cx="36" cy="52" r="9" fill="url(#gg-buckel)"
+      stroke="var(--gg-kante, #563d13)" stroke-width="2"/>
+  <!-- Die beiden Kordellöcher am Rand -->
+  <circle cx="17.6" cy="33.6" r="1.9" fill="var(--gg-kante, #563d13)"/>
+  <circle cx="27.1" cy="27.6" r="1.9" fill="var(--gg-kante, #563d13)"/>
+
+  <!-- Der Schall -->
+  <g fill="none" stroke="var(--gg-schall, #8a6524)" stroke-linecap="round">
+    <path d="M61.0 26.1 A36 36 0 0 1 61.0 77.9" stroke-width="6.5" opacity="0.95"/>
+    <path d="M68.0 18.9 A46 46 0 0 1 68.0 85.1" stroke-width="5.4" opacity="0.77"/>
+    <path d="M74.9 11.7 A56 56 0 0 1 74.9 92.3" stroke-width="4.3" opacity="0.59"/>
+  </g>
+</svg>`;
+function gongSpan(klasse){ return `<span class="gong${klasse ? " " + klasse : ""}" aria-hidden="true">${GONG_SVG}</span>`; }
 /* ==== ZEICHEN ENDE ==== */
 
 /* ==== KURSDATEN ANFANG — eingesetzt aus kurs/kurs.js, hier nicht bearbeiten ==== */
@@ -5813,7 +6035,7 @@ function showConfirmDialog(title, message, confirmLabel, onConfirm){
 }
 function speakBtnHtml(text){
   if(!settings.showPronunciation || !text) return '';
-  return `<button type="button" class="speak-btn" data-speak="${escapeAttr(text)}" aria-label="Aussprache anhören">🔊</button>`;
+  return `<button type="button" class="speak-btn" data-speak="${escapeAttr(text)}" aria-label="Aussprache anhören">${gongSpan()}</button>`;
 }
 function romanHtml(roman, className){
   if(!settings.showRoman || !roman) return '';
@@ -8377,7 +8599,16 @@ function buildReviewLesson(afterLesson, pool){
   if(totalItems < MIN_REVIEW_POOL_SIZE) return null;
   return {
     id: `review-after-${afterLesson.id}`, type:'review', reviewUnit: getCourseUnit(afterLesson),
-    title:'Wiederholung', icon:'🔁',
+    // Das Jade-Go-Brett statt 🔁: Wiederholen ist in dieser App kein
+    // Zurückspulen, sondern das Legen eines weiteren Steins auf ein Brett,
+    // das schon steht. Ein gezeichnetes Zeichen statt eines Emoji auch
+    // deshalb, weil die Wiederholungszeilen die einzigen sind, die in
+    // JEDER Einheit auftauchen — sie geben dem Lernpfad seinen Takt.
+    // icon trägt hier HTML statt eines Zeichens; das ist unbedenklich,
+    // weil Wiederholungslektionen weder .vocab noch .words haben und
+    // damit nie in die Wörterbuchgruppen geraten, die .icon als reinen
+    // Text setzen.
+    title:'Wiederholung', icon: badukSpan(),
     reviewVocabItems: pool.vocabItems.slice(), reviewWordItems: pool.wordItems.slice(),
     reviewClozeItems: pool.clozeItems.slice(), reviewSentenceItems: pool.sentenceItems.slice()
   };
@@ -8598,7 +8829,7 @@ function showUnitJumpDialog(){
       const gate = unit > 0 ? getUnitMasteryInfo(unit - 1) : null;
       const gesperrt = !settings.unlockAll && !!gate && !gate.isComplete;
       const fertig = m.total > 0 && m.mastered >= m.total;
-      const zeichen = gesperrt ? '🔒' : fertig ? '✓' : unit === jetzt ? '▸' : '·';
+      const zeichen = gesperrt ? schlossSpan() : fertig ? '✓' : unit === jetzt ? '▸' : '·';
       return `<button type="button" class="jump-row${unit === jetzt ? ' now' : ''}${gesperrt ? ' locked' : ''}"
                 data-unit="${unit}"${gesperrt ? ' disabled' : ''}>
                 <span class="jump-mark">${zeichen}</span>
@@ -8777,7 +9008,7 @@ function buildScrollUnit(unit, lessonsInOrder){
   // im Testmodus immer, auch bei noch gesperrten Einheiten.
   const showCultureBtn = !!cultureFor(unit) && (!unitLocked || settings.unlockAll);
   header.innerHTML = `<div class="scroll-header-row">
-      <span>${unitLocked ? '🔒 ' : `<span class="scroll-toggle-icon">▾</span>`}${info.title}</span>
+      <span>${unitLocked ? schlossSpan() + ' ' : `<span class="scroll-toggle-icon">▾</span>`}${info.title}</span>
       <span class="scroll-header-right">
         ${showCultureBtn ? `<button type="button" class="culture-btn" aria-label="Wissenswertes über Korea">${norigaeFuerEinheit(unit)}</button>` : ''}
         <span class="unit-counter">${mastery.mastered}/${mastery.total}</span>
@@ -8822,7 +9053,7 @@ function buildScrollUnit(unit, lessonsInOrder){
       const lessonMastery = getLessonMasteryInfo(lesson);
       return `<span class="scroll-lesson-counter">${lessonMastery.mastered}/${lessonMastery.total}</span>`;
     })();
-    btn.innerHTML = `<span class="scroll-lesson-icon">${isLessonLocked ? '🔒' : (isDone ? bluetenSpan() : lesson.icon)}</span>
+    btn.innerHTML = `<span class="scroll-lesson-icon">${isLessonLocked ? schlossSpan() : (isDone ? bluetenSpan() : lesson.icon)}</span>
       <span class="scroll-lesson-title">${lesson.title}</span>
       ${counterHtml}`;
     btn.onclick = (e) => { e.stopPropagation(); if(!isLessonLocked) startLesson(idx); };
@@ -9075,7 +9306,7 @@ function renderPractice(){
     subtitle: 'Übe frei alle Wörter aus bereits abgeschlossenen Lektionen',
     color: 'var(--blue)',
     html: poolSize === 0
-      ? `<div class="trainer-emoji">🔒</div><h3>Noch keine Vokabeln freigeschaltet</h3>
+      ? `<div class="trainer-emoji">${schlossSpan()}</div><h3>Noch keine Vokabeln freigeschaltet</h3>
          <p>Schließe zuerst eine Lektion im Lernpfad ab – danach kannst du ihre Wörter hier trainieren.</p>`
       : `<div class="trainer-emoji">🎯</div><h3>${poolSize} gelernte Vokabeln</h3>
          <p>Mische Fragen aus allen bisher abgeschlossenen Lektionen.</p>
@@ -9092,7 +9323,7 @@ function renderPractice(){
     subtitle: 'Übe frei alle gelernten Buchstaben und Kombinationsregeln (z. B. stummes ㅇ, 2-vs-3-Blöcke)',
     color: 'var(--purple)',
     html: learnedLetters.length === 0
-      ? `<div class="trainer-emoji">🔒</div><h3>Noch keine Buchstaben freigeschaltet</h3>
+      ? `<div class="trainer-emoji">${schlossSpan()}</div><h3>Noch keine Buchstaben freigeschaltet</h3>
          <p>Schließe zuerst eine Hangul-Lektion im Lernpfad ab – danach kannst du ihre Buchstaben hier trainieren.</p>`
       : `<div class="trainer-emoji">🔤</div><h3>${learnedLetters.length} gelernte Buchstaben</h3>
          <p>Mische Buchstaben-Abfragen und Silbenbau-Übungen aus allen bisher abgeschlossenen Hangul-Lektionen.</p>
@@ -9109,9 +9340,9 @@ function renderPractice(){
     subtitle: 'Schreib die gelernten Buchstaben mit dem Finger — die App sagt dir, ob die Form stimmt',
     color: 'var(--amber)',
     html: malbar.length === 0
-      ? `<div class="trainer-emoji">🔒</div><h3>Noch keine Buchstaben freigeschaltet</h3>
+      ? `<div class="trainer-emoji">${schlossSpan()}</div><h3>Noch keine Buchstaben freigeschaltet</h3>
          <p>Schließe zuerst eine Hangul-Lektion im Lernpfad ab – danach kannst du ihre Zeichen hier malen.</p>`
-      : `<div class="trainer-emoji">🖌️</div><h3>${malbar.length} Zeichen zum Malen</h3>
+      : `<div class="trainer-emoji">${tuscheSpan()}</div><h3>${malbar.length} Zeichen zum Malen</h3>
          <p>Lesen können und schreiben können sind zweierlei. Hier malst du die Buchstaben selbst —
          mit dem Finger, ohne Tastatur. Danach legt die App die richtige Form über deine Zeichnung.</p>
          <button class="btn btn-primary" id="startDrawTrainerBtn" style="margin-top:16px; background:var(--amber);">Malen starten</button>`
@@ -9207,7 +9438,7 @@ function renderGrammar(){
         });
         card.appendChild(list);
       } else {
-        card.innerHTML = eyebrow + `<h3 style="margin:0 0 6px;">🔒 ${g.heading}</h3>
+        card.innerHTML = eyebrow + `<h3 style="margin:0 0 6px;">${schlossSpan()} ${g.heading}</h3>
           <p style="font-size:0.8125rem; color:var(--gray-dark);">Wird sichtbar, sobald Einheit ${entry.unit} erreicht ist.</p>`;
       }
     } else if(lesson && lesson.soundChangeExamples){
@@ -9230,7 +9461,7 @@ function renderGrammar(){
         });
         card.appendChild(list);
       } else {
-        card.innerHTML = eyebrow + `<h3 style="margin:0 0 6px;">🔒 ${c.heading}</h3>
+        card.innerHTML = eyebrow + `<h3 style="margin:0 0 6px;">${schlossSpan()} ${c.heading}</h3>
           <p style="font-size:0.8125rem; color:var(--gray-dark);">Wird sichtbar, sobald Einheit ${entry.unit} erreicht ist.</p>`;
       }
     } else if(lesson && lesson.type === 'concept' && lesson.concept && lesson.concept.examples && lesson.concept.examples.length){
@@ -9252,7 +9483,7 @@ function renderGrammar(){
         });
         card.appendChild(list);
       } else {
-        card.innerHTML = eyebrow + `<h3 style="margin:0 0 6px;">🔒 ${c.heading}</h3>
+        card.innerHTML = eyebrow + `<h3 style="margin:0 0 6px;">${schlossSpan()} ${c.heading}</h3>
           <p style="font-size:0.8125rem; color:var(--gray-dark);">Wird sichtbar, sobald Einheit ${entry.unit} erreicht ist.</p>`;
       }
     } else {
@@ -10513,7 +10744,7 @@ function renderListenStep(ex, area){
   const card = document.createElement('div');
   card.className = 'prompt-card listen-card';
   card.innerHTML = `
-    <button type="button" class="listen-play" id="listenPlayBtn" aria-label="Noch einmal anhören">🔊</button>
+    <button type="button" class="listen-play" id="listenPlayBtn" aria-label="Noch einmal anhören">${gongSpan()}</button>
     <button type="button" class="listen-slow-btn" id="listenSlowBtn">🐢 Langsam &amp; deutlich</button>
     <div class="listen-hint">Tippe auf das Symbol, um es noch einmal zu hören.</div>
     <div class="listen-reveal" id="listenReveal" hidden></div>
@@ -10773,7 +11004,8 @@ function renderDrawStep(ex, area){
     const hoeren = document.createElement('button');
     hoeren.type = 'button';
     hoeren.className = 'listen-slow-btn';
-    hoeren.textContent = '🔊 Anhören';
+    // innerHTML statt textContent: Der Gong ist eine Zeichnung, kein Zeichen.
+    hoeren.innerHTML = gongSpan() + ' Anhören';
     hoeren.onclick = () => speak(ex.correct);
     leiste.appendChild(hoeren);
   }
@@ -11125,7 +11357,7 @@ function renderSentenceStep(ex, area){
         speakCurrent.className = 'speak-btn';
         speakCurrent.setAttribute('data-speak', sentenceState.chosen.join(' '));
         speakCurrent.setAttribute('aria-label', 'Aussprache anhören');
-        speakCurrent.textContent = '🔊';
+        speakCurrent.innerHTML = gongSpan();
         answerRow.appendChild(speakCurrent);
       }
     }
