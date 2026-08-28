@@ -15,7 +15,7 @@
    VERSION wird beim Bauen (build-pwa.sh) automatisch gesetzt. Ändert
    sich die App, ändert sich die Version, und der alte Speicher wird
    verworfen. */
-const VERSION = '5475d0890c02';
+const VERSION = 'cf14794f37a2';
 const CACHE = 'koreanisch-' + VERSION;
 const ASSETS = [
   './',
@@ -84,6 +84,26 @@ self.addEventListener('fetch', (event) => {
   if (req.mode === 'navigate') {
     event.respondWith(
       caches.match('./index.html').then((hit) => hit || fetch(req))
+    );
+    return;
+  }
+
+  /* kurs.json ist die EINZIGE Datei, bei der zuerst gefragt wird, ob es
+     etwas Neueres gibt. Sie ist der Inhaltsstand zum Nachladen — würde
+     sie wie alles andere zuerst aus dem Vorrat bedient, käme auf genau
+     die Anfrage, die nach einer neueren Fassung sucht, verlässlich die
+     alte zurück. Der Vorrat bleibt trotzdem der Rückfall: ohne Netz
+     antwortet die zuletzt geholte Fassung, und die App bleibt offline
+     vollständig benutzbar. */
+  if (url.pathname.endsWith('/kurs.json')) {
+    event.respondWith(
+      fetch(req).then((res) => {
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy));
+        }
+        return res;
+      }).catch(() => caches.match(req))
     );
     return;
   }

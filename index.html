@@ -187,6 +187,46 @@
   .unit-section-banner{ background:var(--purple); margin-top:4px;}
   .unit-counter{ font-size:0.8125rem; font-weight:800; background:rgba(255,255,255,.25);
     padding:2px 10px; border-radius:10px; white-space:nowrap;}
+  /* Ist eine Einheit ganz gemeistert, wird ihr Zähler ABGESTEMPELT: Der
+     rote Abdruck 완료 liegt darüber, die Zahl bleibt darunter stehen. Sie
+     tritt dabei ein wenig zurück, aber nur ein wenig: Solange der
+     Stempel groß war, mussten sich beide die Fläche teilen und die Zahl
+     musste weit weichen; ein kleiner Abdruck verdeckt ohnehin nur zwei,
+     drei Ziffern, und mehr als das wäre unnötig. So liest sich die
+     Stelle wie ein erledigter Vorgang: die Zahl ist der Beleg, der
+     Stempel die Auskunft.
+
+     Der Stempel ist QUADRATISCH wie das Siegel der Einstellungen und
+     höchstens drei Zeichen breit — also so breit wie „223" in derselben
+     Schrift, daher 3ch. Ein erster Entwurf war querformatig und doppelt
+     so groß; er erschlug die Zeile (Rückmeldung vom 28.08.2026).
+
+     Wo genau er sitzt und wie schief, kommt aus stempelLage() im
+     Programm: quer über das Zahlenfeld gestreut, mal über „223", mal
+     über „23/", mal über „3/2", mit einer Neigung nach links oder rechts
+     und gelegentlich fast gerade. Die Werte sind aus der Einheitsnummer
+     gerechnet, nicht gewürfelt — der Stempel sitzt bei jedem Öffnen der
+     App an derselben Stelle, so wie ein einmal gesetzter Abdruck. */
+  /* Die Farbregel muss so spezifisch sein wie .scroll-header-row
+     .unit-counter weiter unten, sonst gewinnt die spätere Regel und die
+     Zahl bleibt schwarz. */
+  .unit-counter{ --pillen-luft:10px;}
+  .unit-counter.erledigt, .scroll-header-row .unit-counter.erledigt{
+    position:relative; color:rgba(43,38,32,.72);}
+  body.theme-night .scroll-header-row .unit-counter.erledigt{ color:rgba(232,220,192,.66);}
+  /* Die Spanne, über die gestreut wird, ist das ZAHLENFELD, nicht die
+     Pille: Deren Innenabstand wird links und rechts wieder abgezogen,
+     sonst könnte der Stempel halb neben der Zahl landen. */
+  .erledigt-stempel{ position:absolute; top:50%;
+    width:3ch; height:3ch;
+    left:calc(var(--pillen-luft) +
+      (100% - 2 * var(--pillen-luft) - 3ch) * var(--stempel-quer, .5));
+    transform:translateY(calc(-50% + var(--stempel-hoch, 0px)))
+      rotate(var(--stempel-dreh, -8deg));
+    pointer-events:none; line-height:0;}
+  .erledigt-stempel svg{ width:100%; height:100%; display:block;}
+  body.theme-night .erledigt-stempel{
+    --er-rot-licht:#d8543f; --er-rot:#c03a28; --er-rot-tief:#9a2a1a;}
   /* Vorkenntnis-Karte im Lernpfad (zwischen grünem Titel-Kasten und
      die Hangul-Einheit): volle Karte vor der Antwort, danach eine kleine
      ausgegraute Zusammenfassung im selben Format wie ein Einheiten-
@@ -1017,6 +1057,17 @@
      statt sich an einer Textgröße zu orientieren, die es dort nicht gibt. */
   .jump-mark .schloss svg, .scroll-lesson-icon .schloss svg{
     width:1em; height:1em;}
+  /* Die Amtsmütze ist breit und flach: In einem quadratischen Feld füllt
+     sie nur ein mittleres Band, und daneben wirken die Emoji der übrigen
+     Lektionen deutlich größer. Sie bekommt in der Lektionszeile deshalb
+     etwas mehr Kantenlänge, damit ihre TINTE so hoch steht wie die der
+     Nachbarn — im Feld selbst darf sie dabei überstehen. */
+     Der negative Rand nimmt ihr genau die Höhe wieder ab, die sie sonst
+     zusätzlich einbrächte — sonst wäre die Grammatikzeile ein paar Pixel
+     höher als alle anderen, und die Liste bekäme eine Delle. */
+  .scroll-lesson-icon{ overflow:visible;}
+  .scroll-lesson-icon .samo{ margin:-3px 0;}
+  .scroll-lesson-icon .samo svg{ width:1.35em; height:1.35em;}
   /* Abends nimmt das Messing etwas Licht auf, sonst versinken beide
      Zeichen im dunklen Papier — dieselbe Behandlung wie beim Norigae. */
   body.theme-night .schloss svg, body.theme-night .gong svg{
@@ -1410,8 +1461,8 @@
    öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
    statt eine leere Zeile zu zeigen.
    ========================================================= */
-const APP_VERSION = '1.14.0';
-const APP_BUILD = '5475d0890c02';
+const APP_VERSION = '1.16.0';
+const APP_BUILD = 'cf14794f37a2';
 const APP_CONTACT = {
   name: '',                 // z. B. 'Vorname Nachname'
   ort: '',                  // z. B. 'Musterstadt' (nur wenn du ein Impressum führst)
@@ -1533,7 +1584,9 @@ function appBuildLabel(){
    will, was ihm entgeht. Bewusst nur die letzten Einträge — eine
    vollständige Chronik gehört ins Projekt-Dokument, nicht in die App. */
 const CHANGELOG = [
-  { v:'1.14.0', text:'Auch im Inhalt eigene Zeichen: das Fischschloss für Verschlossenes, der Gong zum Anhören, das Jade-Go-Brett auf jeder Wiederholung, der Tuschestein beim Zeichenmalen.' },
+  { v:'1.16.0', text:'Die App kennt jetzt ihren Kursstand und liefert den Inhalt zusätzlich als reine Daten mit — die Grundlage dafür, dass neue Lektionen später ohne neues Programm nachkommen können.' },
+  { v:'1.15.0', text:'Eine ganz gemeisterte Einheit wird abgestempelt: der rote Abdruck 완료, klein und schief, irgendwo auf ihrem Zähler — bei jeder Einheit anders, aber immer an derselben Stelle.' },
+  { v:'1.14.0', text:'Auch im Inhalt eigene Zeichen: das Fischschloss für Verschlossenes, der Gong zum Anhören, das Jade-Go-Brett auf jeder Wiederholung, die Amtsmütze auf jeder Grammatiklektion, der Tuschestein beim Zeichenmalen.' },
   { v:'1.13.0', text:'Die untere Leiste trägt jetzt eigene Zeichen: Tor, Go-Brett, Schriftrolle, Amtsmütze und Siegel.' },
   { v:'1.12.3', text:'Menüschrift steht wieder auf einer Linie und bleibt beige; der Rollentitel sitzt wieder oben wie zuvor.' },
   { v:'1.12.2', text:'Der Lernpfad trägt jetzt das Gwanghwamun — das Haupttor, mit seinen drei Durchgängen.' },
@@ -2421,8 +2474,8 @@ function samoSpan(){ return `<span class="samo">${SAMO_SVG}</span>`; }
    tools/symbole-einbetten.py — hier nicht bearbeiten. */
 const SIEGEL_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"
      role="img" aria-label="Roter Siegelabdruck">
-  <!-- 낙관, der rote Siegelabdruck. ERZEUGT von
-       icon/siegelabdruck-bauen.py — Änderungen bitte dort, nicht hier.
+  <!-- 낙관, der rote Siegelabdruck. ERZEUGT von icon/siegelabdruck-bauen.py — Änderungen bitte
+       dort, nicht hier.
 
        Drei Dinge machen den Unterschied zwischen einem Siegel und einem
        roten Kästchen:
@@ -2436,8 +2489,8 @@ const SIEGEL_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100
        Rahmen und Zeichen teilen sich denselben Verlauf im Zeichenraum —
        mit je eigenem sähe die Paste an jeder Stelle anders aus.
 
-       Die ZEICHEN sind echt: 한글, beim Bauen als Umrisse aus Noto Serif
-       CJK geholt. Erfundene Balken in einem Raster ergaben im ersten
+       Die ZEICHEN sind echt: 한글, beim Bauen als Umrisse aus Noto
+       Serif CJK geholt. Erfundene Balken in einem Raster ergaben im ersten
        Entwurf genau das, wonach es aussah — eine Tabelle. -->
   <defs>
     <radialGradient id="sa-paste" gradientUnits="userSpaceOnUse"
@@ -2651,6 +2704,54 @@ const GONG_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"
   </g>
 </svg>`;
 function gongSpan(klasse){ return `<span class="gong${klasse ? " " + klasse : ""}" aria-hidden="true">${GONG_SVG}</span>`; }
+
+/* Der Erledigt-Stempel 완료. ERZEUGT von
+   icon/erledigt-bauen.py (Geometrie aus icon/siegelabdruck-bauen.py),
+   eingesetzt von tools/symbole-einbetten.py — hier nicht bearbeiten. */
+const ERLEDIGT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"
+     role="img" aria-label="Erledigt">
+  <!-- 완료 — der Erledigt-Stempel, derselbe Stein wie das Siegel der Einstellungen, nur mit anderer Aufschrift. ERZEUGT von icon/siegelabdruck-bauen.py — Änderungen bitte
+       dort, nicht hier.
+
+       Drei Dinge machen den Unterschied zwischen einem Siegel und einem
+       roten Kästchen:
+
+       Die KANTE ist nicht gerade. Ein Siegel wird von Hand in Stein
+       geschnitten und mit Paste aufs Papier gedrückt — die Kante ist
+       leicht wellig und an zwei Stellen ausgebrochen.
+
+       Die FARBE deckt ungleichmäßig. Zinnoberpaste liegt in der Mitte
+       satter als am Rand; ein flaches Rot sieht nach Druckerzeugnis aus.
+       Rahmen und Zeichen teilen sich denselben Verlauf im Zeichenraum —
+       mit je eigenem sähe die Paste an jeder Stelle anders aus.
+
+       Die ZEICHEN sind echt: 완료, beim Bauen als Umrisse aus Noto
+       Serif CJK geholt. Erfundene Balken in einem Raster ergaben im ersten
+       Entwurf genau das, wonach es aussah — eine Tabelle. -->
+  <defs>
+    <radialGradient id="er-paste" gradientUnits="userSpaceOnUse"
+        cx="42" cy="36" r="78">
+      <stop offset="0" stop-color="var(--er-rot-licht, #c8402c)"/>
+      <stop offset="0.62" stop-color="var(--er-rot, #b02f1f)"/>
+      <stop offset="1" stop-color="var(--er-rot-tief, #8d2416)"/>
+    </radialGradient>
+  </defs>
+  <!-- Die Rahmenlinie. Sie IST der handgeschnittene Rand — als Strich,
+       nicht als Kante einer Fläche. Rund und mit weichen Ecken, damit
+       die Wellen nicht wie Zacken aussehen. -->
+  <path d="M9.0 9.0 L16.5 10.1 L23.9 9.9 L31.4 9.3 L38.8 9.4 L46.3 9.3 L53.7 11.0 L61.2 7.6 L68.6 8.2 L76.1 9.2 L83.5 9.4 L89.8 9.0 L90.4 16.5 L91.7 23.9 L92.0 31.4 L91.5 38.8 L91.4 46.3 L91.6 53.7 L90.9 61.2 L89.8 68.6 L89.8 76.1 L90.8 83.5 L91.0 91.3 L83.5 92.1 L76.1 92.1 L66.4 90.9 L61.2 90.0 L53.7 90.3 L46.3 90.6 L38.8 90.4 L31.4 90.6 L23.9 91.8 L16.5 92.4 L9.1 91.0 L9.1 83.5 L9.8 76.1 L10.3 68.6 L9.5 61.2 L8.3 53.7 L8.2 46.3 L8.6 38.8 L8.4 31.4 L8.3 23.9 L9.2 16.5 Z" fill="none" stroke="url(#er-paste)" stroke-width="7"
+      stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- 완료 — erhaben geschnitten (양각), also in der Farbe der Paste. -->
+  <g fill="url(#er-paste)">
+    <g transform="translate(17.75 62.60) scale(0.03000 -0.03000)">
+      <path d="M473 590C473 517 412 472 333 472C254 472 193 517 193 590C193 664 254 709 333 709C412 709 473 664 473 590ZM546 590C546 691 453 760 333 760C213 760 120 691 120 590C120 500 196 435 299 424V304C237 299 180 295 136 294C104 293 65 297 34 303L27 290C25 285 26 283 30 279C55 259 90 237 123 223C141 230 180 238 200 240C326 249 566 285 685 314V298C685 252 686 165 690 125H732C747 175 756 253 756 323V423L929 426C936 426 944 428 948 431C955 436 961 449 960 467C960 475 954 481 946 484C928 488 887 490 858 489L826 470L756 467V755L758 807C758 817 755 824 746 827C718 839 655 852 619 853C611 853 609 851 608 848L600 824C635 812 667 794 685 773V351C606 336 484 321 368 310V424C471 436 546 500 546 590ZM350 41V91L351 135C351 146 347 152 337 154C312 160 255 163 222 163C216 163 212 161 211 157L206 135C233 129 261 119 277 106V-3C277 -58 300 -80 366 -80L807 -77C812 -77 817 -76 820 -73C825 -69 831 -56 831 -38C831 -30 826 -25 818 -24C799 -19 755 -16 726 -16L694 -34C633 -37 442 -38 375 -37C357 -37 350 -30 350 -12Z"/>
+    </g>
+    <g transform="translate(52.25 62.60) scale(0.03000 -0.03000)">
+      <path d="M756 699 768 728C770 734 770 739 766 742C757 748 737 758 726 764C720 766 714 766 709 764L674 747C601 744 328 741 271 742C245 742 204 745 176 750L170 738C168 734 169 731 173 728C196 710 225 693 257 681C283 689 324 697 343 698C389 700 607 703 675 702C677 673 675 594 672 562L651 555C604 553 365 549 292 550C267 553 201 555 173 555C167 555 164 552 163 549L159 529C182 524 203 515 217 504V375C217 326 235 306 290 305L792 313C797 313 802 314 805 317C810 321 815 333 815 350C815 357 811 362 803 364C784 368 739 372 709 371L681 355C613 351 397 348 310 349C296 349 290 356 290 369V468V508L748 515C753 519 758 530 758 542C758 546 757 549 753 551L734 560C742 594 754 661 756 699ZM390 187 393 229C393 237 391 242 383 245C358 253 307 258 276 258C267 258 265 256 264 253L260 230C283 224 307 211 318 197L323 94L144 93C113 93 66 97 33 103L26 89C25 86 26 83 29 80C54 60 91 39 127 28C151 36 202 45 227 47C280 50 738 56 808 55C838 55 897 53 924 50C933 55 945 70 945 87C945 95 939 101 932 104C909 111 856 117 820 119L784 103L679 100L690 200L696 239C698 246 695 251 687 255C663 265 618 276 587 280C581 280 577 278 576 275L567 256C590 245 610 229 619 213L616 99L388 95Z"/>
+    </g>
+  </g>
+</svg>`;
+function erledigtSpan(stil){ return `<span class="erledigt-stempel" style="${stil || ''}" title="Einheit abgeschlossen">${ERLEDIGT_SVG}</span>`; }
 /* ==== ZEICHEN ENDE ==== */
 
 /* ==== KURSDATEN ANFANG — eingesetzt aus kurs/kurs.js, hier nicht bearbeiten ==== */
@@ -4499,6 +4600,15 @@ const GRAMMAR_ROADMAP = [
   { unit:10, lessonId:'verbsGrammar1' },
   { unit:10, lessonId:'verbsGrammar2' }
 ];
+
+/* Der Kursstand — erzeugt von tools/kurs-json-bauen.mjs,
+   eingesetzt von tools/kurs-einbetten.py. Hier nicht bearbeiten.
+
+   Die laufende Nummer ist das, woran eine spätere Fassung erkennt,
+   ob eine nachgeladene kurs.json neuer ist als der eingebaute
+   Inhalt. Eine Prüfsumme allein könnte das nicht: Sie sagt, DASS
+   sich etwas unterscheidet, nicht welche Seite die jüngere ist. */
+const KURS_STAND = {"nummer": 1, "datum": "2026-08-28", "pruefsumme": "6a762403a369", "lektionen": 80, "vokabeln": 250};
 /* ==== KURSDATEN ENDE ==== */
 
 
@@ -5750,6 +5860,7 @@ function legalHtml(){
     <p>Inhalt, Aufbau und Programmierung des Kurses stammen von den Betreibern dieser App.</p>
     <h4>Fassung</h4>
     <p>Version ${APP_VERSION} · Auslieferung <code>${appBuildLabel()}</code></p>
+    <p>Kursstand ${KURS_STAND.nummer} vom ${KURS_STAND.datum} · ${KURS_STAND.lektionen} Lektionen, ${KURS_STAND.vokabeln} Vokabeln <code>${KURS_STAND.pruefsumme}</code></p>
     ${CHANGELOG.map(e => `<p><strong>${e.v}</strong> — ${e.text}</p>`).join('')}
   </div>`;
 }
@@ -5769,6 +5880,13 @@ function diagnosticsText(){
   const l = currentLessonIdx !== null && COURSE[currentLessonIdx] ? COURSE[currentLessonIdx].id : '—';
   const zeilen = [
     'Version:      ' + APP_VERSION + ' (' + appBuildLabel() + ')',
+    /* Der Kursstand steht getrennt von der Programmversion, weil sich
+       beide ab Phase 5 unabhängig voneinander bewegen: Inhalte lassen
+       sich austauschen, ohne dass ein neues Programm ausgeliefert wird.
+       Bei einer Meldung „das Wort ist falsch" ist die Kursnummer die
+       Angabe, auf die es ankommt. */
+    'Kursstand:    ' + KURS_STAND.nummer + ' vom ' + KURS_STAND.datum
+                     + ' (' + KURS_STAND.pruefsumme + ')',
     'Adresse:      ' + location.origin + location.pathname,
     'Browser:      ' + navigator.userAgent,
     'Bildschirm:   ' + window.innerWidth + '×' + window.innerHeight,
@@ -8579,6 +8697,40 @@ function getCourseUnit(lesson){
    getUnitQuestionKeys weiter oben, dort bleibt der Typ 'review'
    ausgeschlossen (unverändert gegenüber der alten Fassung). */
 const REVIEW_EXERCISE_COUNT = 10;
+/* Wo ein Erledigt-Stempel auf dem Zähler einer fertigen Einheit sitzt.
+
+   Ein Stempel wird von Hand aufgesetzt: mal weiter links, mal weiter
+   rechts, mal nach links geneigt, mal nach rechts, gelegentlich aus
+   Versehen fast gerade. Elf gleich sitzende Abdrücke sähen gedruckt aus.
+
+   Zufällig, aber NICHT gewürfelt. Die drei Werte kommen aus der
+   Einheitsnummer, gerechnet mit einem xorshift — derselben Sorte
+   Rechnung, die auch die unregelmäßige Siegelkante erzeugt. Damit sitzt
+   der Abdruck bei jedem Öffnen der App an genau derselben Stelle. Ein
+   echtes Math.random() wäre hier falsch: Die Einheit würde bei jedem
+   Blättern neu gestempelt, und das ist kein Abdruck mehr, sondern ein
+   Flackern. Gespeichert werden muss dafür nichts.
+
+   Rückgabe ist ein style-Wert, weil die drei Zahlen im CSS gebraucht
+   werden (Lage und Drehung stehen dort, nicht in der Zeichnung — das SVG
+   bleibt rechtwinklig und anderswo verwendbar). */
+function stempelLage(saat){
+  // Knuths Streufaktor, damit aus benachbarten Einheitsnummern nicht
+  // benachbarte Lagen werden; danach drei Runden xorshift32.
+  let x = ((saat + 1) * 2654435761) >>> 0;
+  const zufall = () => {
+    x ^= x << 13; x >>>= 0;
+    x ^= x >>> 17;
+    x ^= x << 5;  x >>>= 0;
+    return x / 4294967296;
+  };
+  const quer = zufall();                     // 0 = ganz links, 1 = ganz rechts
+  const dreh = (zufall() * 2 - 1) * 17;      // Grad; Werte nahe 0 sind erlaubt
+  const hoch = (zufall() * 2 - 1) * 2.2;     // px, damit er nicht wie gesetzt sitzt
+  return `--stempel-quer:${quer.toFixed(3)};`
+       + `--stempel-dreh:${dreh.toFixed(1)}deg;`
+       + `--stempel-hoch:${hoch.toFixed(1)}px`;
+}
 const MIN_REVIEW_POOL_SIZE = 4;
 /* Baut EINE Wiederholungslektion aus dem bis zu "afterLesson" (inklusive)
    eingesammelten Pool. "afterLesson" bestimmt nur Anzeigename/Einheit
@@ -9007,11 +9159,12 @@ function buildScrollUnit(unit, lessonsInOrder){
   // Schriftrolle erneut auf. Sichtbar, sobald die Einheit offen ist —
   // im Testmodus immer, auch bei noch gesperrten Einheiten.
   const showCultureBtn = !!cultureFor(unit) && (!unitLocked || settings.unlockAll);
+
   header.innerHTML = `<div class="scroll-header-row">
       <span>${unitLocked ? schlossSpan() + ' ' : `<span class="scroll-toggle-icon">▾</span>`}${info.title}</span>
       <span class="scroll-header-right">
         ${showCultureBtn ? `<button type="button" class="culture-btn" aria-label="Wissenswertes über Korea">${norigaeFuerEinheit(unit)}</button>` : ''}
-        <span class="unit-counter">${mastery.mastered}/${mastery.total}</span>
+        <span class="unit-counter${mastery.isComplete ? ' erledigt' : ''}">${mastery.mastered}/${mastery.total}${mastery.isComplete ? erledigtSpan(stempelLage(unit)) : ''}</span>
       </span>
     </div>
     <small>${info.subtitle}</small>
@@ -9053,7 +9206,16 @@ function buildScrollUnit(unit, lessonsInOrder){
       const lessonMastery = getLessonMasteryInfo(lesson);
       return `<span class="scroll-lesson-counter">${lessonMastery.mastered}/${lessonMastery.total}</span>`;
     })();
-    btn.innerHTML = `<span class="scroll-lesson-icon">${isLessonLocked ? schlossSpan() : (isDone ? bluetenSpan() : lesson.icon)}</span>
+    /* Grammatiklektionen tragen alle dieselbe Amtsmütze 사모 — dasselbe
+       Zeichen, das unten in der Leiste für „Grammatik" steht. Vorher hatte
+       jede ihr eigenes Emoji (🧩, 🧬, 🧮, 🪢 …), was hübsch aussah, aber
+       nichts sagte: Aus dem Bild war nie zu erkennen, dass es sich um
+       Grammatik handelt. Jetzt ist es auf einen Blick zu sehen, und die
+       Zeile verweist zugleich auf den Ort, an dem die Regel nachzulesen
+       ist. Ersetzt wird erst beim Zeichnen, nicht in den Kursdaten — dort
+       stehen weiterhin die Emoji, damit die Daten reine Daten bleiben. */
+    const lektionsZeichen = lesson.type === 'grammar' ? samoSpan() : lesson.icon;
+    btn.innerHTML = `<span class="scroll-lesson-icon">${isLessonLocked ? schlossSpan() : (isDone ? bluetenSpan() : lektionsZeichen)}</span>
       <span class="scroll-lesson-title">${lesson.title}</span>
       ${counterHtml}`;
     btn.onclick = (e) => { e.stopPropagation(); if(!isLessonLocked) startLesson(idx); };
