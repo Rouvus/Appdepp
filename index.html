@@ -1461,8 +1461,8 @@
    öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
    statt eine leere Zeile zu zeigen.
    ========================================================= */
-const APP_VERSION = '1.16.0';
-const APP_BUILD = 'cf14794f37a2';
+const APP_VERSION = '1.17.0';
+const APP_BUILD = '98aef1cd9afc';
 const APP_CONTACT = {
   name: '',                 // z. B. 'Vorname Nachname'
   ort: '',                  // z. B. 'Musterstadt' (nur wenn du ein Impressum führst)
@@ -1584,6 +1584,7 @@ function appBuildLabel(){
    will, was ihm entgeht. Bewusst nur die letzten Einträge — eine
    vollständige Chronik gehört ins Projekt-Dokument, nicht in die App. */
 const CHANGELOG = [
+  { v:'1.17.0', text:'Neue Lektionen kommen jetzt ohne neue App: In den Einstellungen kannst du nach ihnen suchen. Von selbst fragt die App nirgends nach — sie erinnert nur alle vier Wochen beim Starten daran.' },
   { v:'1.16.0', text:'Die App kennt jetzt ihren Kursstand und liefert den Inhalt zusätzlich als reine Daten mit — die Grundlage dafür, dass neue Lektionen später ohne neues Programm nachkommen können.' },
   { v:'1.15.0', text:'Eine ganz gemeisterte Einheit wird abgestempelt: der rote Abdruck 완료, klein und schief, irgendwo auf ihrem Zähler — bei jeder Einheit anders, aber immer an derselben Stelle.' },
   { v:'1.14.0', text:'Auch im Inhalt eigene Zeichen: das Fischschloss für Verschlossenes, der Gong zum Anhören, das Jade-Go-Brett auf jeder Wiederholung, die Amtsmütze auf jeder Grammatiklektion, der Tuschestein beim Zeichenmalen.' },
@@ -4611,6 +4612,134 @@ const GRAMMAR_ROADMAP = [
 const KURS_STAND = {"nummer": 1, "datum": "2026-08-28", "pruefsumme": "6a762403a369", "lektionen": 80, "vokabeln": 250};
 /* ==== KURSDATEN ENDE ==== */
 
+/* =========================================================
+   NACHGELADENER KURSINHALT
+   =========================================================
+   Der Kurs kann sich ändern, ohne dass ein neues Programm ausgeliefert
+   wird — neue Lektionen, korrigierte Vokabeln, ein erweiterter
+   Kulturtext. Dafür liegt derselbe Inhalt zusätzlich als reine Daten
+   neben der App (kurs.json, erzeugt von tools/kurs-json-bauen.mjs).
+
+   GESUCHT WIRD NUR AUF KNOPFDRUCK. Die App fragt von sich aus nirgends
+   nach — das ist eine bewusste Entscheidung und steht so auch im
+   Datenschutztext. Alle vier Wochen erinnert sie beim Starten einmal
+   daran, dass man nachsehen könnte; das Programm selbst (die PWA)
+   aktualisiert sich davon unabhängig weiter von allein, das macht der
+   Service Worker und daran ändert sich nichts.
+
+   WARUM HIER, DIREKT HINTER DEM INHALT. Aus COURSE leiten sich gleich
+   mehrere Dinge ab, die nur EINMAL beim Laden entstehen: VOCAB_LESSONS,
+   COURSE_UNITS, die Wiederholungslektionen. Ein nachgeladener Inhalt
+   muss deshalb stehen, BEVOR irgendetwas davon gebaut wird. Danach ihn
+   auszutauschen hieße, all das nachzuziehen — viel Fläche für einen
+   Fehler, der sich als „eine Lektion fehlt" zeigt und schwer zu finden
+   wäre. Deshalb wird das Nachgeladene beim Start angewandt und ein
+   frisch geholter Inhalt erst nach einem Neustart wirksam. Denselben Weg
+   geht die App bei einer neuen Programmfassung auch.
+
+   WARUM IN DIE VORHANDENEN LISTEN HINEIN. `const COURSE` lässt sich
+   nicht neu zuweisen — der Inhalt einer Liste aber sehr wohl ändern.
+   Das ist kein Trick, sondern das Sauberste, was hier geht: Sonst müsste
+   der Inhaltsblock von `const` auf `let` umgeschrieben werden, und die
+   Inhaltsdatei würde damit um einer Programmfrage willen angefasst.
+   ========================================================= */
+const KURS_SPEICHER = 'koreanKursInhalt_v1';
+/* Steht hier oben und nicht unten bei kursErinnerungVielleicht(),
+   obwohl er nur dort gebraucht wird: Der Startlauf ruft diese
+   Funktion auf, bevor der Programmtext bei ihrer eigenen Stelle
+   angekommen ist. Funktionen werden vorgezogen, `const` nicht — der
+   Aufruf lief dort in einen Fehler, den man nur sah, wenn die App
+   über eine Adresse geöffnet wurde. Aufgefallen ist er beim Test
+   über einen echten Server; der Rauchtest öffnet die Datei direkt
+   und kam nie an dieser Zeile vorbei. */
+const KURS_ERINNERUNG_TAGE = 28;
+/* Der Stand, der gerade GILT — anfangs der eingebaute. KURS_STAND selbst
+   bleibt unangetastet, damit die App jederzeit sagen kann, was in ihr
+   steckt und was dazugekommen ist. */
+let kursStandAktiv = KURS_STAND;
+let kursQuelle = 'eingebaut';
+
+/* Prüft eine geholte oder gespeicherte Fassung, BEVOR sie zum Kurs wird.
+   Der Inhalt kommt über das Netz; ihn ungeprüft in die Listen zu kippen,
+   hieße, aus einer halb übertragenen Datei eine halbe App zu machen.
+   Geprüft wird nicht auf Schönheit, sondern auf das, was die App
+   voraussetzt: dass jede Lektion eine Kennung und einen Titel hat, dass
+   die Kennungen eindeutig sind, und dass die Grundbausteine der Schrift
+   da sind. Zurück kommt eine Klartext-Begründung statt nur „ungültig" —
+   sie steht im Dialog, damit ein Fehler auffindbar ist. */
+function kursPaketPruefen(paket){
+  if(!paket || typeof paket !== 'object') return 'Die Datei enthält kein Objekt.';
+  const st = paket.stand, inh = paket.inhalt;
+  if(!st || !inh) return 'Der Datei fehlt „stand" oder „inhalt".';
+  if(!Number.isInteger(st.nummer) || st.nummer < 1) return 'Der Kursstand hat keine gültige Nummer.';
+  if(typeof st.datum !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(st.datum)) return 'Der Kursstand hat kein gültiges Datum.';
+  const noetig = ['VOWELS','CONSONANTS','DOUBLE_CONSONANTS','DOUBLE_VOWELS','HANGUL_PACKS',
+    'COURSE','UNIT_CULTURE','COURSE_OUTLOOK','PATH_SECTIONS','GRAMMAR_ROADMAP'];
+  for(const name of noetig){ if(inh[name] === undefined) return 'Im Inhalt fehlt ' + name + '.'; }
+  if(!Array.isArray(inh.COURSE) || inh.COURSE.length === 0) return 'Der Kurs enthält keine Lektionen.';
+  if(!Array.isArray(inh.VOWELS) || inh.VOWELS.length === 0) return 'Die Vokale fehlen.';
+  if(!Array.isArray(inh.CONSONANTS) || inh.CONSONANTS.length === 0) return 'Die Konsonanten fehlen.';
+  const gesehen = new Set();
+  for(const l of inh.COURSE){
+    if(!l || typeof l.id !== 'string' || !l.id) return 'Eine Lektion hat keine Kennung.';
+    if(typeof l.title !== 'string' || !l.title) return 'Lektion „' + l.id + '" hat keinen Titel.';
+    if(gesehen.has(l.id)) return 'Die Kennung „' + l.id + '" kommt doppelt vor.';
+    gesehen.add(l.id);
+  }
+  return null;
+}
+
+/* Ersetzt den Inhalt der vorhandenen Listen und Objekte. Listen werden
+   geleert und neu gefüllt, Objekte Schlüssel für Schlüssel geräumt —
+   beides erhält die Referenz, an der der Rest des Programms hängt. */
+function kursInhaltUebernehmen(inh){
+  const listen = { VOWELS, CONSONANTS, DOUBLE_CONSONANTS, DOUBLE_VOWELS,
+    HANGUL_PACKS, COURSE, COURSE_OUTLOOK, GRAMMAR_ROADMAP };
+  Object.keys(listen).forEach(name => {
+    if(!Array.isArray(inh[name])) return;
+    listen[name].length = 0;
+    inh[name].forEach(e => listen[name].push(e));
+  });
+  const objekte = { UNIT_CULTURE, PATH_SECTIONS, SILENT_NG_LESSON, BATCHIM_LESSON,
+    HANGUL_POSITION_LESSON, HANGUL_SOUND_CHANGE_LESSON };
+  Object.keys(objekte).forEach(name => {
+    const neu = inh[name];
+    if(!neu || typeof neu !== 'object') return;
+    Object.keys(objekte[name]).forEach(k => { delete objekte[name][k]; });
+    Object.assign(objekte[name], neu);
+  });
+}
+
+/* Beim Start: Liegt ein nachgeladener Inhalt im Speicher, und ist er
+   NEUER als der eingebaute? Die zweite Frage ist die wichtigere. Wer
+   später eine neue Programmfassung bekommt, trägt den Inhalt von damals
+   schon eingebaut mit sich — ein älteres oder gleich altes Paket im
+   Speicher würde die App sonst zurückdrehen. Es wird dann nicht nur
+   übergangen, sondern weggeräumt. */
+(function kursAusSpeicher(){
+  let roh = null;
+  try{ roh = localStorage.getItem(KURS_SPEICHER); }catch(e){ return; }
+  if(!roh) return;
+  let paket = null;
+  try{ paket = JSON.parse(roh); }catch(e){ paket = null; }
+  const fehler = kursPaketPruefen(paket);
+  if(fehler || paket.stand.nummer <= KURS_STAND.nummer){
+    try{ localStorage.removeItem(KURS_SPEICHER); }catch(e){}
+    return;
+  }
+  try{
+    kursInhaltUebernehmen(paket.inhalt);
+    kursStandAktiv = paket.stand;
+    kursQuelle = 'nachgeladen';
+  }catch(e){
+    /* Bricht das Übernehmen mittendrin ab, stünde ein halber Kurs da.
+       Dann lieber das Paket wegwerfen und neu laden — der eingebaute
+       Inhalt ist vollständig, der halb ersetzte wäre es nicht. */
+    try{ localStorage.removeItem(KURS_SPEICHER); }catch(e2){}
+    location.reload();
+  }
+})();
+
 
 
 
@@ -4774,6 +4903,7 @@ function saveState(){
       restDayWeek,
       favorites: Array.from(favorites),
       templateMasteryMigrated,
+      letzteKursSuche,
       maxUnlockedUnit2: maxUnlockedUnit,
       settings,
       onboarding
@@ -4808,6 +4938,12 @@ let mistakes = saved ? (saved.mistakes || []) : [];
    passiert ist. Steuert die Einheiten-Freischaltung + den Fortschritts-
    Zähler neben den Einheiten-Überschriften. */
 let masteredQuestions = new Set(saved ? (saved.masteredQuestions || []) : []);
+/* Wann zuletzt nach neuen Lektionen gesucht wurde. Steuert nur die
+   Erinnerung alle vier Wochen — gesucht wird ausschließlich auf
+   Knopfdruck. 0 heißt „noch nie"; die Uhr beginnt dann beim ersten
+   Start zu laufen, damit ein frisch eingerichtetes Gerät nicht schon
+   am ersten Tag gefragt wird. */
+let letzteKursSuche = saved ? (saved.letzteKursSuche || 0) : 0;
 /* ---------------------------------------------------------
    GEDÄCHTNIS-MODELL / WIEDERHOLUNGSINTERVALLE (Feedback vom 24.08.2026)
    masteredQuestions oben beantwortet nur die Frage "wurde das JE einmal
@@ -5843,7 +5979,14 @@ function legalHtml(){
     <p>Übertragen wird nur, was jede Webseite überträgt: Beim Aufruf holt dein Browser die
     Dateien der App vom Webspeicher, auf dem sie liegt. Dessen Betreiber sieht dabei — wie
     bei jedem Seitenaufruf im Internet — deine IP-Adresse. Danach läuft die App offline
-    weiter.</p>
+    weiter; von allein nimmt sie keine weitere Verbindung auf.</p>
+    <p><strong>Nach neuen Lektionen suchen:</strong> Der Kurs kann wachsen, ohne dass du
+    eine neue Fassung der App brauchst. Gesucht wird aber ausschließlich, wenn du in den
+    Einstellungen auf „Nach neuen Lektionen suchen" tippst — die App fragt von sich aus
+    bei niemandem nach. Bei so einer Suche holt dein Browser eine Datei von demselben
+    Webspeicher, von dem auch die App kommt; dessen Betreiber sieht dabei wieder deine
+    IP-Adresse. Alle vier Wochen erinnert die App beim Starten einmal daran, dass du
+    nachsehen könntest; auch diese Erinnerung sucht nichts, sie fragt nur dich.</p>
     <p>Die Aussprache erzeugt dein Gerät selbst oder sie kommt aus mitgelieferten
     Aufnahmen. Es wird dafür nichts an einen Sprachdienst geschickt.</p>
     <p><strong>Löschen:</strong> Browserdaten für diese Seite löschen entfernt alles
@@ -5860,7 +6003,7 @@ function legalHtml(){
     <p>Inhalt, Aufbau und Programmierung des Kurses stammen von den Betreibern dieser App.</p>
     <h4>Fassung</h4>
     <p>Version ${APP_VERSION} · Auslieferung <code>${appBuildLabel()}</code></p>
-    <p>Kursstand ${KURS_STAND.nummer} vom ${KURS_STAND.datum} · ${KURS_STAND.lektionen} Lektionen, ${KURS_STAND.vokabeln} Vokabeln <code>${KURS_STAND.pruefsumme}</code></p>
+    <p>Kursstand ${kursStandAktiv.nummer} vom ${kursStandAktiv.datum} · ${kursStandAktiv.lektionen} Lektionen, ${kursStandAktiv.vokabeln} Vokabeln <code>${kursStandAktiv.pruefsumme}</code>${kursQuelle === 'nachgeladen' ? ` · nachgeladen, eingebaut ist ${KURS_STAND.nummer}` : ''}</p>
     ${CHANGELOG.map(e => `<p><strong>${e.v}</strong> — ${e.text}</p>`).join('')}
   </div>`;
 }
@@ -5885,8 +6028,9 @@ function diagnosticsText(){
        sich austauschen, ohne dass ein neues Programm ausgeliefert wird.
        Bei einer Meldung „das Wort ist falsch" ist die Kursnummer die
        Angabe, auf die es ankommt. */
-    'Kursstand:    ' + KURS_STAND.nummer + ' vom ' + KURS_STAND.datum
-                     + ' (' + KURS_STAND.pruefsumme + ')',
+    'Kursstand:    ' + kursStandAktiv.nummer + ' vom ' + kursStandAktiv.datum
+                     + ' (' + kursStandAktiv.pruefsumme + ', ' + kursQuelle
+                     + (kursQuelle === 'nachgeladen' ? ', eingebaut ' + KURS_STAND.nummer : '') + ')',
     'Adresse:      ' + location.origin + location.pathname,
     'Browser:      ' + navigator.userAgent,
     'Bildschirm:   ' + window.innerWidth + '×' + window.innerHeight,
@@ -10297,15 +10441,22 @@ function renderSettings(){
         <strong>${appBuildLabel()}</strong></p>
       <p class="about-line">${fakten.einheiten} Einheiten · ${fakten.lektionen} Lektionen ·
         ${fakten.woerter} Wörter</p>
+      <p class="about-line">Kurs: ${kursstandSatz(kursStandAktiv)}${
+        kursQuelle === 'nachgeladen' ? ' (nachgeladen)' : ''} · ${kursSucheSatz()}</p>
     </div>
     <div class="backup-actions">
       <button class="btn btn-primary" id="updateCheckBtn">Nach neuer Fassung suchen</button>
+      <button class="btn btn-blue" id="kursCheckBtn">Nach neuen Lektionen suchen</button>
+      ${kursQuelle === 'nachgeladen'
+        ? '<button class="btn btn-gray" id="kursResetBtn">Eingebauten Kurs verwenden</button>' : ''}
       <button class="btn btn-gray" id="legalBtn">Datenschutz &amp; Rechtliches</button>
       <button class="btn btn-gray" id="reportBtn">Problem melden</button>
     </div>
   `;
   el.appendChild(aboutCard);
   $('updateCheckBtn').onclick = () => checkForUpdate(false);
+  $('kursCheckBtn').onclick = () => kursAbgleich();
+  if($('kursResetBtn')) $('kursResetBtn').onclick = kursZuruecksetzen;
   $('legalBtn').onclick = showLegalDialog;
   $('reportBtn').onclick = showReportDialog;
 
@@ -12154,6 +12305,7 @@ updateHeaderStats();
 // das Fortsetzen einer unterbrochenen Sitzung anbieten.
 showHomeAtCurrentLesson();
 maybeOfferResume();
+kursErinnerungVielleicht();
 updatePracticeIndicator();
 $('jumpBtn').onclick = showUnitJumpDialog;
 updateJumpBtn();
@@ -12322,6 +12474,178 @@ async function applyUpdateAndReload(reg, erwartet){
   if(exercises.length) saveOpenSession();
   location.reload();
 }
+/* =========================================================
+   NEUE LEKTIONEN SUCHEN (Kursinhalt)
+   =========================================================
+   Zwei Dinge können neu sein, und sie werden bewusst verschieden
+   behandelt:
+
+   Das PROGRAMM (oben) aktualisiert sich in der PWA von allein. Das macht
+   der Service Worker, das ist im Web das übliche Verhalten, und es lässt
+   sich ohne eigenen Server ohnehin nicht abstellen.
+
+   Der INHALT wird NUR auf Knopfdruck geholt. Damit bleibt der Satz im
+   Datenschutztext wahr, dass die App nach dem Laden offline weiterläuft:
+   Sie fragt von sich aus bei niemandem nach. Alle vier Wochen erinnert
+   sie beim Starten einmal daran, dass man nachsehen könnte — mehr nicht.
+
+   Wirksam wird ein geholter Inhalt erst nach einem Neustart (Begründung
+   oben bei „NACHGELADENER KURSINHALT"). Der Fortschritt überlebt das:
+   Er hängt an Frage-Schlüsseln, nicht an Lektionsnummern, und eine
+   einmal freigeschaltete Einheit fällt nie wieder zu (s. maxUnlockedUnit).
+   Was sich ändern KANN, ist ein Zähler — korrigiert jemand eine Vokabel,
+   ist ihre Frage neu und will einmal beantwortet werden. Das ist ehrlich
+   so gewollt: Der Zähler zeigt dann 221/223 und lädt ein, das Neue
+   nachzuholen. */
+function kursSucheMoeglich(){ return location.protocol.startsWith('http'); }
+function kursstandSatz(st){
+  return `Stand ${st.nummer} vom ${new Date(st.datum + 'T00:00:00').toLocaleDateString('de-DE')}`;
+}
+/* „zuletzt gesucht" in Wochen statt als Datum: Die Frage, die hier
+   jemand hat, lautet nicht „an welchem Tag war das", sondern „ist das
+   lange her". */
+function kursSucheSatz(){
+  if(!kursSucheMoeglich()) return 'Suche hier nicht möglich';
+  if(!letzteKursSuche) return 'noch nie nach neuen Lektionen gesucht';
+  const tage = Math.floor((Date.now() - letzteKursSuche) / (24 * 60 * 60 * 1000));
+  if(tage < 1) return 'heute nach neuen Lektionen gesucht';
+  if(tage < 14) return `zuletzt vor ${tage} Tagen gesucht`;
+  return `zuletzt vor ${Math.floor(tage / 7)} Wochen gesucht`;
+}
+/* Holt kurs.json neben der App. Ohne Zwischenspeicher — sonst bekäme
+   ausgerechnet die Anfrage, die nach etwas Neuem sucht, die alte Fassung
+   zurück (der Service Worker bedient diese eine Datei deshalb auch
+   zuerst aus dem Netz). */
+async function kursPaketHolen(){
+  const res = await fetch('kurs.json?stand=' + Date.now(), { cache:'no-store' });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+async function kursAbgleich(){
+  if(!kursSucheMoeglich()){
+    showChoiceDialog({
+      title:'Keine Suche möglich',
+      message:'Diese App läuft gerade als einzelne Datei und nicht über eine Adresse. '
+        + 'Neue Lektionen bekommst du hier nur, indem du die Datei ersetzt.',
+      buttons:[{ label:'Verstanden', className:'btn-primary' }]
+    });
+    return;
+  }
+  letzteKursSuche = Date.now();
+  saveState();
+  let paket = null;
+  try{ paket = await kursPaketHolen(); }
+  catch(e){
+    showChoiceDialog({
+      title:'Nicht erreichbar',
+      message:'Die Kursdatei war gerade nicht abrufbar. Versuch es später noch einmal — '
+        + 'die App läuft in der Zwischenzeit ganz normal weiter.',
+      buttons:[{ label:'Gut', className:'btn-primary' }]
+    });
+    return;
+  }
+  const fehler = kursPaketPruefen(paket);
+  if(fehler){
+    showChoiceDialog({
+      title:'Kursdatei nicht verwendbar',
+      message:'Die gefundene Datei lässt sich nicht verwenden: ' + escapeHtml(fehler)
+        + ' Dein Kurs bleibt unverändert.',
+      buttons:[{ label:'Gut', className:'btn-primary' }]
+    });
+    return;
+  }
+  if(paket.stand.nummer <= kursStandAktiv.nummer){
+    showChoiceDialog({
+      title:'Dein Kurs ist aktuell',
+      message:`Du hast ${kursstandSatz(kursStandAktiv)} — ${kursStandAktiv.lektionen} Lektionen, `
+        + `${kursStandAktiv.vokabeln} Vokabeln. Etwas Neueres gibt es gerade nicht.`,
+      buttons:[{ label:'Gut', className:'btn-primary' }]
+    });
+    return;
+  }
+  /* Was sich ändert, steht VOR dem Übernehmen im Dialog. Ein Kurs ist
+     das Herz dieser App; ihn stillschweigend auszutauschen wäre falsch,
+     selbst wenn das Neue besser ist. */
+  const alt = kursStandAktiv, neu = paket.stand;
+  const zeile = (was, a, b) => a === b ? `${was}: ${a}` : `${was}: ${a} → <strong>${b}</strong>`;
+  showChoiceDialog({
+    title:'Neue Lektionen gefunden',
+    message:`Draußen liegt ${kursstandSatz(neu)}, du hast ${kursstandSatz(alt)}.<br>`
+      + zeile('Lektionen', alt.lektionen, neu.lektionen) + ' · '
+      + zeile('Vokabeln', alt.vokabeln, neu.vokabeln)
+      + '<br><br>Beim Neustart wird der neue Kurs übernommen. Dein Fortschritt bleibt erhalten; '
+      + 'was neu dazukommt, wartet als noch offene Frage auf dich.',
+    buttons:[
+      { label:'Übernehmen und neu starten', className:'btn-primary', onClick:() => kursUebernehmen(paket) },
+      { label:'Später', className:'btn-gray' }
+    ]
+  });
+}
+/* Legt das geprüfte Paket in den Speicher und startet neu. Angewandt
+   wird es beim nächsten Start (s. kursAusSpeicher). */
+function kursUebernehmen(paket){
+  try{
+    localStorage.setItem(KURS_SPEICHER, JSON.stringify(paket));
+  }catch(e){
+    /* Der häufigste Fall ist ein voller Speicher — dann bleibt der
+       eingebaute Kurs stehen, und das ist die richtige Folge. Wichtig ist
+       nur, dass es NICHT stillschweigend passiert. */
+    showChoiceDialog({
+      title:'Konnte nicht gespeichert werden',
+      message:'Der neue Kurs ließ sich nicht ablegen — vermutlich ist der Speicher des '
+        + 'Browsers voll. Dein bisheriger Kurs und dein Fortschritt bleiben unverändert.',
+      buttons:[{ label:'Gut', className:'btn-primary' }]
+    });
+    return;
+  }
+  if(exercises.length) saveOpenSession();
+  location.reload();
+}
+/* Zurück auf den eingebauten Kurs. Erscheint nur, wenn überhaupt einer
+   nachgeladen ist — und existiert, weil es einen Weg zurück geben MUSS:
+   Wenn eine veröffentlichte Kursdatei je einen Fehler enthält, darf
+   niemand darin festsitzen. */
+function kursZuruecksetzen(){
+  showChoiceDialog({
+    title:'Eingebauten Kurs verwenden?',
+    message:`Der nachgeladene ${kursstandSatz(kursStandAktiv)} wird verworfen; die App `
+      + `arbeitet wieder mit dem eingebauten ${kursstandSatz(KURS_STAND)}. `
+      + 'Dein Lernfortschritt bleibt dabei unangetastet.',
+    buttons:[
+      { label:'Zurücksetzen und neu starten', className:'btn-primary', onClick:() => {
+        try{ localStorage.removeItem(KURS_SPEICHER); }catch(e){}
+        if(exercises.length) saveOpenSession();
+        location.reload();
+      } },
+      { label:'Abbrechen', className:'btn-gray' }
+    ]
+  });
+}
+/* Die Erinnerung beim Starten — höchstens alle vier Wochen, und nie beim
+   ersten Start: Da beginnt die Uhr erst zu laufen. Sie unterbleibt auch,
+   wenn gerade eine unterbrochene Lektion angeboten wird; zwei Fenster
+   übereinander sind eines zu viel. */
+function kursErinnerungVielleicht(){
+  if(!kursSucheMoeglich()) return;
+  if(!onboarding.hangulAsked) return;
+  if(!letzteKursSuche){ letzteKursSuche = Date.now(); saveState(); return; }
+  if(openSession) return;
+  if(Date.now() - letzteKursSuche < KURS_ERINNERUNG_TAGE * 24 * 60 * 60 * 1000) return;
+  const wochen = Math.floor((Date.now() - letzteKursSuche) / (7 * 24 * 60 * 60 * 1000));
+  /* Auch „Später" setzt die Uhr zurück. Eine Erinnerung, die bei jedem
+     Start wiederkommt, bis man sie befolgt, ist keine Erinnerung mehr. */
+  const merken = () => { letzteKursSuche = Date.now(); saveState(); };
+  showChoiceDialog({
+    title:'Schon mal nach neuen Lektionen sehen?',
+    message:`Du hast seit ${wochen} Wochen nicht nachgesehen, ob der Kurs gewachsen ist. `
+      + 'Die App fragt von sich aus nirgends nach — das machst du selbst, wann du willst.',
+    buttons:[
+      { label:'Jetzt nachsehen', className:'btn-primary', onClick:() => { merken(); kursAbgleich(); } },
+      { label:'Später', className:'btn-gray', onClick: merken }
+    ]
+  });
+}
+
 /* Die App vom Startbildschirm wird aus dem Hintergrund geholt, nicht neu
    geladen — deshalb hier prüfen, wenn sie wieder nach vorn kommt. */
 document.addEventListener('visibilitychange', () => {
