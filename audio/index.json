@@ -1,8 +1,2924 @@
 {
  "format": "mp3",
- "voice": null,
- "rate": null,
- "count": 0,
- "hinweis": "Platzhalter. Noch keine Aufnahmen erzeugt - die App spricht so lange mit der Stimme des Geraets. Erzeugen: python3 tools/audio-erzeugen.py --key ... (ueberschreibt diese Datei).",
- "items": []
+ "voice": "ko-KR-Neural2-A",
+ "rate": 0.92,
+ "count": 729,
+ "items": [
+  {
+   "file": "cdd08b15.mp3",
+   "text": "가"
+  },
+  {
+   "file": "c42f9d65.mp3",
+   "text": "가요"
+  },
+  {
+   "file": "b71e3fcd.mp3",
+   "text": "가족"
+  },
+  {
+   "file": "7cda91cf.mp3",
+   "text": "가족이 몇 명이에요?"
+  },
+  {
+   "file": "02c4c8ee.mp3",
+   "text": "감사합니다"
+  },
+  {
+   "file": "bcd07052.mp3",
+   "text": "갑"
+  },
+  {
+   "file": "bbd06ebf.mp3",
+   "text": "값"
+  },
+  {
+   "file": "b8d06a06.mp3",
+   "text": "강"
+  },
+  {
+   "file": "23a76041.mp3",
+   "text": "같이 가요"
+  },
+  {
+   "file": "c1d07831.mp3",
+   "text": "개"
+  },
+  {
+   "file": "6a74832c.mp3",
+   "text": "검은"
+  },
+  {
+   "file": "9c2f2299.mp3",
+   "text": "검은 딸기"
+  },
+  {
+   "file": "9d033c25.mp3",
+   "text": "검은 배"
+  },
+  {
+   "file": "23ecb75b.mp3",
+   "text": "검은 빵"
+  },
+  {
+   "file": "888cd8eb.mp3",
+   "text": "검은 사과"
+  },
+  {
+   "file": "2c66a28c.mp3",
+   "text": "검은 스웨터"
+  },
+  {
+   "file": "960480c0.mp3",
+   "text": "검은 시계"
+  },
+  {
+   "file": "e263404d.mp3",
+   "text": "검은 의자"
+  },
+  {
+   "file": "94c3a466.mp3",
+   "text": "검은 커피"
+  },
+  {
+   "file": "7105a550.mp3",
+   "text": "검은색"
+  },
+  {
+   "file": "0dd56d03.mp3",
+   "text": "게"
+  },
+  {
+   "file": "39d5b247.mp3",
+   "text": "겠"
+  },
+  {
+   "file": "8a51d149.mp3",
+   "text": "격식체 (-ㅂ니다/-습니다)"
+  },
+  {
+   "file": "f7d178ca.mp3",
+   "text": "계"
+  },
+  {
+   "file": "13d1a4de.mp3",
+   "text": "고"
+  },
+  {
+   "file": "21cac654.mp3",
+   "text": "고기"
+  },
+  {
+   "file": "b905d5ed.mp3",
+   "text": "고기 주세요"
+  },
+  {
+   "file": "b44c44dc.mp3",
+   "text": "고기를 먹고 물을 마셔요"
+  },
+  {
+   "file": "d6c2f886.mp3",
+   "text": "고기를 먹고 우유를 마셔요"
+  },
+  {
+   "file": "d74518de.mp3",
+   "text": "고기를 먹고 차를 마셔요"
+  },
+  {
+   "file": "8042af36.mp3",
+   "text": "고기를 먹고 커피를 마셔요"
+  },
+  {
+   "file": "da239c23.mp3",
+   "text": "고마워요"
+  },
+  {
+   "file": "28d1c5ed.mp3",
+   "text": "공"
+  },
+  {
+   "file": "52a44a86.mp3",
+   "text": "공항"
+  },
+  {
+   "file": "1fd1b7c2.mp3",
+   "text": "과"
+  },
+  {
+   "file": "3036964b.mp3",
+   "text": "과일"
+  },
+  {
+   "file": "64e3f232.mp3",
+   "text": "과일 주세요"
+  },
+  {
+   "file": "86be89d4.mp3",
+   "text": "과일을 먹고 물을 마셔요"
+  },
+  {
+   "file": "a04930be.mp3",
+   "text": "과일을 먹고 우유를 마셔요"
+  },
+  {
+   "file": "2c5ea306.mp3",
+   "text": "과일을 먹고 차를 마셔요"
+  },
+  {
+   "file": "3283618e.mp3",
+   "text": "과일을 먹고 커피를 마셔요"
+  },
+  {
+   "file": "b51b1d8c.mp3",
+   "text": "괜찮아요"
+  },
+  {
+   "file": "2bc4531c.mp3",
+   "text": "구"
+  },
+  {
+   "file": "2cc454af.mp3",
+   "text": "국"
+  },
+  {
+   "file": "6be00706.mp3",
+   "text": "국 주세요"
+  },
+  {
+   "file": "066f46d0.mp3",
+   "text": "국을 먹고 물을 마셔요"
+  },
+  {
+   "file": "6c158d52.mp3",
+   "text": "국을 먹고 우유를 마셔요"
+  },
+  {
+   "file": "51047fc2.mp3",
+   "text": "국을 먹고 차를 마셔요"
+  },
+  {
+   "file": "7b9c0082.mp3",
+   "text": "국을 먹고 커피를 마셔요"
+  },
+  {
+   "file": "5bc91bda.mp3",
+   "text": "귀"
+  },
+  {
+   "file": "5df0fb13.mp3",
+   "text": "그래서"
+  },
+  {
+   "file": "27621a50.mp3",
+   "text": "그럼"
+  },
+  {
+   "file": "67780b62.mp3",
+   "text": "그리고"
+  },
+  {
+   "file": "cd84617a.mp3",
+   "text": "금요일"
+  },
+  {
+   "file": "adbb3dfd.mp3",
+   "text": "기"
+  },
+  {
+   "file": "3fb29439.mp3",
+   "text": "기차역"
+  },
+  {
+   "file": "397ad4f6.mp3",
+   "text": "김밥"
+  },
+  {
+   "file": "296d1457.mp3",
+   "text": "김밥 주세요"
+  },
+  {
+   "file": "7ec723a3.mp3",
+   "text": "김밥을 먹고 물을 마셔요"
+  },
+  {
+   "file": "63f6a6d7.mp3",
+   "text": "김밥을 먹고 우유를 마셔요"
+  },
+  {
+   "file": "35179b3d.mp3",
+   "text": "김밥을 먹고 차를 마셔요"
+  },
+  {
+   "file": "3b8fe527.mp3",
+   "text": "김밥을 먹고 커피를 마셔요"
+  },
+  {
+   "file": "541a5df1.mp3",
+   "text": "김치"
+  },
+  {
+   "file": "882fc748.mp3",
+   "text": "김치 주세요"
+  },
+  {
+   "file": "23c6013b.mp3",
+   "text": "김치가 맛있었어요"
+  },
+  {
+   "file": "d0d9c1fd.mp3",
+   "text": "김치는 맛있지만 매워요"
+  },
+  {
+   "file": "6487fbc3.mp3",
+   "text": "김치를 먹고 물을 마셔요"
+  },
+  {
+   "file": "995e5a77.mp3",
+   "text": "김치를 먹고 우유를 마셔요"
+  },
+  {
+   "file": "9489805d.mp3",
+   "text": "김치를 먹고 차를 마셔요"
+  },
+  {
+   "file": "5e284e07.mp3",
+   "text": "김치를 먹고 커피를 마셔요"
+  },
+  {
+   "file": "6bba2a80.mp3",
+   "text": "까"
+  },
+  {
+   "file": "1005c3cd.mp3",
+   "text": "까치"
+  },
+  {
+   "file": "4dd619e0.mp3",
+   "text": "나"
+  },
+  {
+   "file": "624f8e48.mp3",
+   "text": "나라"
+  },
+  {
+   "file": "e0c95489.mp3",
+   "text": "나무"
+  },
+  {
+   "file": "491c6c59.mp3",
+   "text": "내일"
+  },
+  {
+   "file": "debf7608.mp3",
+   "text": "내일 고기를 먹을 거예요"
+  },
+  {
+   "file": "fe1e15b0.mp3",
+   "text": "내일 과일을 먹을 거예요"
+  },
+  {
+   "file": "db03282c.mp3",
+   "text": "내일 국을 먹을 거예요"
+  },
+  {
+   "file": "57616e7d.mp3",
+   "text": "내일 김밥을 먹을 거예요"
+  },
+  {
+   "file": "80db6905.mp3",
+   "text": "내일 김치를 먹을 거예요"
+  },
+  {
+   "file": "c73bfffc.mp3",
+   "text": "내일 딸기를 먹을 거예요"
+  },
+  {
+   "file": "b89f6fbe.mp3",
+   "text": "내일 라면을 먹을 거예요"
+  },
+  {
+   "file": "cfd63a83.mp3",
+   "text": "내일 물을 마실 거예요"
+  },
+  {
+   "file": "08c27f62.mp3",
+   "text": "내일 밥을 먹을 거예요"
+  },
+  {
+   "file": "d88b67aa.mp3",
+   "text": "내일 배를 먹을 거예요"
+  },
+  {
+   "file": "ec001091.mp3",
+   "text": "내일 불고기를 먹을 거예요"
+  },
+  {
+   "file": "65abc2be.mp3",
+   "text": "내일 비빔밥을 먹을 거예요"
+  },
+  {
+   "file": "f7f4d67f.mp3",
+   "text": "내일 빵을 먹을 거예요"
+  },
+  {
+   "file": "5894440e.mp3",
+   "text": "내일 사과를 먹을 거예요"
+  },
+  {
+   "file": "2c6bb5a1.mp3",
+   "text": "내일 우유를 마실 거예요"
+  },
+  {
+   "file": "a956f8f1.mp3",
+   "text": "내일 차를 마실 거예요"
+  },
+  {
+   "file": "e44cb169.mp3",
+   "text": "내일 커피를 마실 거예요"
+  },
+  {
+   "file": "41e37e86.mp3",
+   "text": "너"
+  },
+  {
+   "file": "f4d6e4ef.mp3",
+   "text": "너는 학생이에요?"
+  },
+  {
+   "file": "2de35f0a.mp3",
+   "text": "네"
+  },
+  {
+   "file": "5fee9a60.mp3",
+   "text": "네 명이에요"
+  },
+  {
+   "file": "651695f6.mp3",
+   "text": "네 시 사십 분"
+  },
+  {
+   "file": "5d267486.mp3",
+   "text": "네 시 삼십 분"
+  },
+  {
+   "file": "9775d1c6.mp3",
+   "text": "네 시 십 분"
+  },
+  {
+   "file": "7fbed2a4.mp3",
+   "text": "네 시 오십 분"
+  },
+  {
+   "file": "6224a567.mp3",
+   "text": "네 시 이십 분"
+  },
+  {
+   "file": "327e3a60.mp3",
+   "text": "네, 잘 지내요"
+  },
+  {
+   "file": "3ce376a7.mp3",
+   "text": "넷"
+  },
+  {
+   "file": "71b36012.mp3",
+   "text": "노란"
+  },
+  {
+   "file": "0f0851db.mp3",
+   "text": "노란 딸기"
+  },
+  {
+   "file": "ed0f681f.mp3",
+   "text": "노란 배"
+  },
+  {
+   "file": "fc20c8dd.mp3",
+   "text": "노란 빵"
+  },
+  {
+   "file": "2a3c5f39.mp3",
+   "text": "노란 사과"
+  },
+  {
+   "file": "1cf5dc4a.mp3",
+   "text": "노란 스웨터"
+  },
+  {
+   "file": "4a609c7e.mp3",
+   "text": "노란 시계"
+  },
+  {
+   "file": "91f15e2b.mp3",
+   "text": "노란 의자"
+  },
+  {
+   "file": "b45410d6.mp3",
+   "text": "노란색"
+  },
+  {
+   "file": "b879e5fd.mp3",
+   "text": "누구"
+  },
+  {
+   "file": "bb3822ac.mp3",
+   "text": "누구예요?"
+  },
+  {
+   "file": "9b2bc446.mp3",
+   "text": "누구의"
+  },
+  {
+   "file": "3d056331.mp3",
+   "text": "누구의 가족이에요?"
+  },
+  {
+   "file": "5c04ea95.mp3",
+   "text": "누나"
+  },
+  {
+   "file": "49c0f8dc.mp3",
+   "text": "는"
+  },
+  {
+   "file": "652cdbc6.mp3",
+   "text": "다섯"
+  },
+  {
+   "file": "3ec4b922.mp3",
+   "text": "닥"
+  },
+  {
+   "file": "46c4c5ba.mp3",
+   "text": "닭"
+  },
+  {
+   "file": "85c0de05.mp3",
+   "text": "당신"
+  },
+  {
+   "file": "36bce2c6.mp3",
+   "text": "독일 사람이에요"
+  },
+  {
+   "file": "1d5d60f2.mp3",
+   "text": "동생"
+  },
+  {
+   "file": "d8a91c9f.mp3",
+   "text": "동생 네 명"
+  },
+  {
+   "file": "9a194e22.mp3",
+   "text": "동생 두 명"
+  },
+  {
+   "file": "bcf44a56.mp3",
+   "text": "동생 세 명"
+  },
+  {
+   "file": "4992bcec.mp3",
+   "text": "동생 한 명"
+  },
+  {
+   "file": "47d1e31b.mp3",
+   "text": "동생이 두 명이에요"
+  },
+  {
+   "file": "b7ce71f9.mp3",
+   "text": "돼"
+  },
+  {
+   "file": "18e6c268.mp3",
+   "text": "돼지"
+  },
+  {
+   "file": "48056ea3.mp3",
+   "text": "두"
+  },
+  {
+   "file": "84f4ebd5.mp3",
+   "text": "두 시 사십 분"
+  },
+  {
+   "file": "c7e6cfc5.mp3",
+   "text": "두 시 삼십 분"
+  },
+  {
+   "file": "144b2593.mp3",
+   "text": "두 시 십 분"
+  },
+  {
+   "file": "57bbf5a3.mp3",
+   "text": "두 시 오십 분"
+  },
+  {
+   "file": "9ee52c18.mp3",
+   "text": "두 시 이십 분"
+  },
+  {
+   "file": "50057b3b.mp3",
+   "text": "둘"
+  },
+  {
+   "file": "b20b3e46.mp3",
+   "text": "딸"
+  },
+  {
+   "file": "30c6468b.mp3",
+   "text": "딸 네 명"
+  },
+  {
+   "file": "c772216e.mp3",
+   "text": "딸 두 명"
+  },
+  {
+   "file": "7fe6df52.mp3",
+   "text": "딸 세 명"
+  },
+  {
+   "file": "9e6cd5e0.mp3",
+   "text": "딸 한 명"
+  },
+  {
+   "file": "9bf3b0cc.mp3",
+   "text": "딸기"
+  },
+  {
+   "file": "f7b96deb.mp3",
+   "text": "딸기 네 개"
+  },
+  {
+   "file": "af0569f9.mp3",
+   "text": "딸기 다섯 개"
+  },
+  {
+   "file": "2cedd966.mp3",
+   "text": "딸기 두 개"
+  },
+  {
+   "file": "b1fb1cae.mp3",
+   "text": "딸기 세 개"
+  },
+  {
+   "file": "ccdf2a70.mp3",
+   "text": "딸기 아홉 개"
+  },
+  {
+   "file": "b0bbe032.mp3",
+   "text": "딸기 여덟 개"
+  },
+  {
+   "file": "9b7885a6.mp3",
+   "text": "딸기 여섯 개"
+  },
+  {
+   "file": "aac64a8d.mp3",
+   "text": "딸기 열 개"
+  },
+  {
+   "file": "136af2ab.mp3",
+   "text": "딸기 일곱 개"
+  },
+  {
+   "file": "036c7585.mp3",
+   "text": "딸기 주세요"
+  },
+  {
+   "file": "48c459d0.mp3",
+   "text": "딸기 한 개"
+  },
+  {
+   "file": "269172a1.mp3",
+   "text": "딸기가 검은색이에요"
+  },
+  {
+   "file": "8cbd4f17.mp3",
+   "text": "딸기가 노란색이에요"
+  },
+  {
+   "file": "179cadca.mp3",
+   "text": "딸기가 보라색이에요"
+  },
+  {
+   "file": "a16eacc0.mp3",
+   "text": "딸기가 분홍색이에요"
+  },
+  {
+   "file": "1de4bd92.mp3",
+   "text": "딸기가 빨간색이에요"
+  },
+  {
+   "file": "4540d716.mp3",
+   "text": "딸기가 예뻐요"
+  },
+  {
+   "file": "78e89a76.mp3",
+   "text": "딸기가 작아요"
+  },
+  {
+   "file": "e7e7c640.mp3",
+   "text": "딸기가 주황색이에요"
+  },
+  {
+   "file": "27369ffb.mp3",
+   "text": "딸기가 초록색이에요"
+  },
+  {
+   "file": "2b0f8a49.mp3",
+   "text": "딸기가 커요"
+  },
+  {
+   "file": "60f861aa.mp3",
+   "text": "딸기가 파란색이에요"
+  },
+  {
+   "file": "e06d5ce6.mp3",
+   "text": "딸기가 흰색이에요"
+  },
+  {
+   "file": "778c7ea4.mp3",
+   "text": "딸기를 먹고 물을 마셔요"
+  },
+  {
+   "file": "b938942e.mp3",
+   "text": "딸기를 먹고 우유를 마셔요"
+  },
+  {
+   "file": "02122116.mp3",
+   "text": "딸기를 먹고 차를 마셔요"
+  },
+  {
+   "file": "98550abe.mp3",
+   "text": "딸기를 먹고 커피를 마셔요"
+  },
+  {
+   "file": "3103a517.mp3",
+   "text": "또 만나요"
+  },
+  {
+   "file": "b3f9f84b.mp3",
+   "text": "라"
+  },
+  {
+   "file": "ab5ca68d.mp3",
+   "text": "라면"
+  },
+  {
+   "file": "eeac9bd4.mp3",
+   "text": "라면 주세요"
+  },
+  {
+   "file": "5d873c36.mp3",
+   "text": "라면을 먹고 물을 마셔요"
+  },
+  {
+   "file": "c9ed4c70.mp3",
+   "text": "라면을 먹고 우유를 마셔요"
+  },
+  {
+   "file": "5b8e2d50.mp3",
+   "text": "라면을 먹고 차를 마셔요"
+  },
+  {
+   "file": "eac39eb8.mp3",
+   "text": "라면을 먹고 커피를 마셔요"
+  },
+  {
+   "file": "b396beb3.mp3",
+   "text": "를"
+  },
+  {
+   "file": "2190b018.mp3",
+   "text": "리"
+  },
+  {
+   "file": "6b91d02d.mp3",
+   "text": "마"
+  },
+  {
+   "file": "575fb28c.mp3",
+   "text": "마셔요"
+  },
+  {
+   "file": "5844c05e.mp3",
+   "text": "마셨어요"
+  },
+  {
+   "file": "5e72bd1d.mp3",
+   "text": "마실 거예요"
+  },
+  {
+   "file": "6791c9e1.mp3",
+   "text": "만"
+  },
+  {
+   "file": "863ead02.mp3",
+   "text": "만나서 반가워요"
+  },
+  {
+   "file": "01227335.mp3",
+   "text": "맛없어요"
+  },
+  {
+   "file": "5d5b6b4e.mp3",
+   "text": "맛있어요"
+  },
+  {
+   "file": "1ce5eed2.mp3",
+   "text": "맛있을 거예요"
+  },
+  {
+   "file": "d91bc5c8.mp3",
+   "text": "맛있지만 매워요"
+  },
+  {
+   "file": "f49df76a.mp3",
+   "text": "매워요"
+  },
+  {
+   "file": "b978077a.mp3",
+   "text": "머"
+  },
+  {
+   "file": "8f4c9529.mp3",
+   "text": "머리"
+  },
+  {
+   "file": "63ac8d49.mp3",
+   "text": "먹어요"
+  },
+  {
+   "file": "259ed02c.mp3",
+   "text": "먹었어요"
+  },
+  {
+   "file": "a0b3cf73.mp3",
+   "text": "먹을 거예요"
+  },
+  {
+   "file": "c1b5ce49.mp3",
+   "text": "메뉴"
+  },
+  {
+   "file": "bb78b637.mp3",
+   "text": "면"
+  },
+  {
+   "file": "7a73271f.mp3",
+   "text": "명"
+  },
+  {
+   "file": "7c732a45.mp3",
+   "text": "몇"
+  },
+  {
+   "file": "e8b3db4e.mp3",
+   "text": "몇 개예요?"
+  },
+  {
+   "file": "b9b6d704.mp3",
+   "text": "몇 살이에요?"
+  },
+  {
+   "file": "1218ed05.mp3",
+   "text": "몇 시예요?"
+  },
+  {
+   "file": "1d729c8c.mp3",
+   "text": "목요일"
+  },
+  {
+   "file": "50258992.mp3",
+   "text": "몰라요"
+  },
+  {
+   "file": "2d802572.mp3",
+   "text": "무"
+  },
+  {
+   "file": "2975f828.mp3",
+   "text": "무슨"
+  },
+  {
+   "file": "2be9c777.mp3",
+   "text": "무슨 색이에요?"
+  },
+  {
+   "file": "3580320a.mp3",
+   "text": "물"
+  },
+  {
+   "file": "94df242b.mp3",
+   "text": "물 주세요"
+  },
+  {
+   "file": "8f84914f.mp3",
+   "text": "뭐"
+  },
+  {
+   "file": "df514102.mp3",
+   "text": "뭐 해요?"
+  },
+  {
+   "file": "5db3a0ce.mp3",
+   "text": "바"
+  },
+  {
+   "file": "204dd0e4.mp3",
+   "text": "반갑습니다"
+  },
+  {
+   "file": "2eb356d1.mp3",
+   "text": "밥"
+  },
+  {
+   "file": "100e8d57.mp3",
+   "text": "밥 먹었어요?"
+  },
+  {
+   "file": "180a9a68.mp3",
+   "text": "밥 주세요"
+  },
+  {
+   "file": "e17a0222.mp3",
+   "text": "밥을 먹고 물을 마셔요"
+  },
+  {
+   "file": "823f3074.mp3",
+   "text": "밥을 먹고 우유를 마셔요"
+  },
+  {
+   "file": "07a8c09c.mp3",
+   "text": "밥을 먹고 차를 마셔요"
+  },
+  {
+   "file": "63ea75ac.mp3",
+   "text": "밥을 먹고 커피를 마셔요"
+  },
+  {
+   "file": "41b374ba.mp3",
+   "text": "배"
+  },
+  {
+   "file": "677b9b69.mp3",
+   "text": "배 네 개"
+  },
+  {
+   "file": "fda0e593.mp3",
+   "text": "배 다섯 개"
+  },
+  {
+   "file": "b5b951c4.mp3",
+   "text": "배 두 개"
+  },
+  {
+   "file": "9efd1418.mp3",
+   "text": "배 세 개"
+  },
+  {
+   "file": "943fa69e.mp3",
+   "text": "배 아홉 개"
+  },
+  {
+   "file": "8bf7555c.mp3",
+   "text": "배 여덟 개"
+  },
+  {
+   "file": "87ec36d4.mp3",
+   "text": "배 여섯 개"
+  },
+  {
+   "file": "e2d9c9d3.mp3",
+   "text": "배 열 개"
+  },
+  {
+   "file": "a650ac11.mp3",
+   "text": "배 일곱 개"
+  },
+  {
+   "file": "a5d43c9b.mp3",
+   "text": "배 주세요"
+  },
+  {
+   "file": "4bada70a.mp3",
+   "text": "배 한 개"
+  },
+  {
+   "file": "79c92a57.mp3",
+   "text": "배가 검은색이에요"
+  },
+  {
+   "file": "3bc520f9.mp3",
+   "text": "배가 노란색이에요"
+  },
+  {
+   "file": "aed8224c.mp3",
+   "text": "배가 보라색이에요"
+  },
+  {
+   "file": "e1e536d6.mp3",
+   "text": "배가 분홍색이에요"
+  },
+  {
+   "file": "5b55fa20.mp3",
+   "text": "배가 빨간색이에요"
+  },
+  {
+   "file": "d42fe9f8.mp3",
+   "text": "배가 예뻐요"
+  },
+  {
+   "file": "f39e9fac.mp3",
+   "text": "배가 작아요"
+  },
+  {
+   "file": "29539832.mp3",
+   "text": "배가 주황색이에요"
+  },
+  {
+   "file": "8436f305.mp3",
+   "text": "배가 초록색이에요"
+  },
+  {
+   "file": "5708b07b.mp3",
+   "text": "배가 커요"
+  },
+  {
+   "file": "818340c0.mp3",
+   "text": "배가 파란색이에요"
+  },
+  {
+   "file": "c1e1f6f0.mp3",
+   "text": "배가 흰색이에요"
+  },
+  {
+   "file": "9ea5b263.mp3",
+   "text": "배고파서 밥을 먹어요"
+  },
+  {
+   "file": "a93baedc.mp3",
+   "text": "배고파요"
+  },
+  {
+   "file": "736795b6.mp3",
+   "text": "배를 먹고 물을 마셔요"
+  },
+  {
+   "file": "e9b71bf0.mp3",
+   "text": "배를 먹고 우유를 마셔요"
+  },
+  {
+   "file": "f5bf22d0.mp3",
+   "text": "배를 먹고 차를 마셔요"
+  },
+  {
+   "file": "e1dd7a38.mp3",
+   "text": "배를 먹고 커피를 마셔요"
+  },
+  {
+   "file": "77df95e1.mp3",
+   "text": "배불러요"
+  },
+  {
+   "file": "42b3764d.mp3",
+   "text": "백"
+  },
+  {
+   "file": "ed128d76.mp3",
+   "text": "버스"
+  },
+  {
+   "file": "1aaf65be.mp3",
+   "text": "병"
+  },
+  {
+   "file": "740d0925.mp3",
+   "text": "병원"
+  },
+  {
+   "file": "06c856a9.mp3",
+   "text": "보라색"
+  },
+  {
+   "file": "74c0e9f0.mp3",
+   "text": "봐요"
+  },
+  {
+   "file": "b619f877.mp3",
+   "text": "부모님"
+  },
+  {
+   "file": "99b87c70.mp3",
+   "text": "분"
+  },
+  {
+   "file": "b061e3d3.mp3",
+   "text": "분홍색"
+  },
+  {
+   "file": "fce3c291.mp3",
+   "text": "불고기"
+  },
+  {
+   "file": "c8d327a8.mp3",
+   "text": "불고기 주세요"
+  },
+  {
+   "file": "d68b7da3.mp3",
+   "text": "불고기를 먹고 물을 마셔요"
+  },
+  {
+   "file": "416b04d7.mp3",
+   "text": "불고기를 먹고 우유를 마셔요"
+  },
+  {
+   "file": "8cdbf53d.mp3",
+   "text": "불고기를 먹고 차를 마셔요"
+  },
+  {
+   "file": "19044327.mp3",
+   "text": "불고기를 먹고 커피를 마셔요"
+  },
+  {
+   "file": "6a054535.mp3",
+   "text": "비빔밥"
+  },
+  {
+   "file": "84a4e37c.mp3",
+   "text": "비빔밥 주세요"
+  },
+  {
+   "file": "d5511aae.mp3",
+   "text": "비빔밥을 먹고 물을 마셔요"
+  },
+  {
+   "file": "fa1ed268.mp3",
+   "text": "비빔밥을 먹고 우유를 마셔요"
+  },
+  {
+   "file": "0b340f58.mp3",
+   "text": "비빔밥을 먹고 차를 마셔요"
+  },
+  {
+   "file": "8d0909b0.mp3",
+   "text": "비빔밥을 먹고 커피를 마셔요"
+  },
+  {
+   "file": "18261d8f.mp3",
+   "text": "빨간"
+  },
+  {
+   "file": "9a4ed6a4.mp3",
+   "text": "빨간 딸기"
+  },
+  {
+   "file": "1b866992.mp3",
+   "text": "빨간 배"
+  },
+  {
+   "file": "949e815c.mp3",
+   "text": "빨간 빵"
+  },
+  {
+   "file": "761e209a.mp3",
+   "text": "빨간 사과"
+  },
+  {
+   "file": "ff0eb29b.mp3",
+   "text": "빨간 스웨터"
+  },
+  {
+   "file": "29080ed5.mp3",
+   "text": "빨간 시계"
+  },
+  {
+   "file": "9f7b5a30.mp3",
+   "text": "빨간 의자"
+  },
+  {
+   "file": "b86d4665.mp3",
+   "text": "빨간색"
+  },
+  {
+   "file": "3aa22094.mp3",
+   "text": "빵"
+  },
+  {
+   "file": "d6f5e0c3.mp3",
+   "text": "빵 네 개"
+  },
+  {
+   "file": "c14be791.mp3",
+   "text": "빵 다섯 개"
+  },
+  {
+   "file": "c75c0bde.mp3",
+   "text": "빵 두 개"
+  },
+  {
+   "file": "35004eb6.mp3",
+   "text": "빵 세 개"
+  },
+  {
+   "file": "d5244968.mp3",
+   "text": "빵 아홉 개"
+  },
+  {
+   "file": "f99d949a.mp3",
+   "text": "빵 여덟 개"
+  },
+  {
+   "file": "0ff6855e.mp3",
+   "text": "빵 여섯 개"
+  },
+  {
+   "file": "bf7abb45.mp3",
+   "text": "빵 열 개"
+  },
+  {
+   "file": "7e46de43.mp3",
+   "text": "빵 일곱 개"
+  },
+  {
+   "file": "3f09f7ad.mp3",
+   "text": "빵 주세요"
+  },
+  {
+   "file": "74700478.mp3",
+   "text": "빵 한 개"
+  },
+  {
+   "file": "6da40b19.mp3",
+   "text": "빵을 먹고 물을 마셔요"
+  },
+  {
+   "file": "09542ec5.mp3",
+   "text": "빵을 먹고 우유를 마셔요"
+  },
+  {
+   "file": "17823ad3.mp3",
+   "text": "빵을 먹고 차를 마셔요"
+  },
+  {
+   "file": "6ba6a555.mp3",
+   "text": "빵을 먹고 커피를 마셔요"
+  },
+  {
+   "file": "400fd670.mp3",
+   "text": "빵이 검은색이에요"
+  },
+  {
+   "file": "63abbe56.mp3",
+   "text": "빵이 노란색이에요"
+  },
+  {
+   "file": "1141886f.mp3",
+   "text": "빵이 보라색이에요"
+  },
+  {
+   "file": "132a88a1.mp3",
+   "text": "빵이 분홍색이에요"
+  },
+  {
+   "file": "3c40e7b7.mp3",
+   "text": "빵이 빨간색이에요"
+  },
+  {
+   "file": "1d72c2d1.mp3",
+   "text": "빵이 예뻐요"
+  },
+  {
+   "file": "82e6714d.mp3",
+   "text": "빵이 작아요"
+  },
+  {
+   "file": "452d51b5.mp3",
+   "text": "빵이 주황색이에요"
+  },
+  {
+   "file": "bbd61d42.mp3",
+   "text": "빵이 초록색이에요"
+  },
+  {
+   "file": "153bc9bc.mp3",
+   "text": "빵이 커요"
+  },
+  {
+   "file": "8d053267.mp3",
+   "text": "빵이 파란색이에요"
+  },
+  {
+   "file": "179f7445.mp3",
+   "text": "빵이 흰색이에요"
+  },
+  {
+   "file": "04da1d85.mp3",
+   "text": "사"
+  },
+  {
+   "file": "f2849d82.mp3",
+   "text": "사과"
+  },
+  {
+   "file": "a62f0601.mp3",
+   "text": "사과 네 개"
+  },
+  {
+   "file": "618d030b.mp3",
+   "text": "사과 다섯 개"
+  },
+  {
+   "file": "bee2987c.mp3",
+   "text": "사과 두 개"
+  },
+  {
+   "file": "60be7c20.mp3",
+   "text": "사과 세 개"
+  },
+  {
+   "file": "ff522f76.mp3",
+   "text": "사과 아홉 개"
+  },
+  {
+   "file": "1f457f24.mp3",
+   "text": "사과 여덟 개"
+  },
+  {
+   "file": "6b72e22c.mp3",
+   "text": "사과 여섯 개"
+  },
+  {
+   "file": "ea304eab.mp3",
+   "text": "사과 열 개"
+  },
+  {
+   "file": "a2852b29.mp3",
+   "text": "사과 일곱 개"
+  },
+  {
+   "file": "47e7adc3.mp3",
+   "text": "사과 주세요"
+  },
+  {
+   "file": "094b1c32.mp3",
+   "text": "사과 한 개"
+  },
+  {
+   "file": "8336b68f.mp3",
+   "text": "사과가 검은색이에요"
+  },
+  {
+   "file": "d6433741.mp3",
+   "text": "사과가 노란색이에요"
+  },
+  {
+   "file": "f2ff9c14.mp3",
+   "text": "사과가 보라색이에요"
+  },
+  {
+   "file": "4a3e9c9e.mp3",
+   "text": "사과가 분홍색이에요"
+  },
+  {
+   "file": "4399ef28.mp3",
+   "text": "사과가 빨간색이에요"
+  },
+  {
+   "file": "736bb510.mp3",
+   "text": "사과가 예뻐요"
+  },
+  {
+   "file": "0573fae4.mp3",
+   "text": "사과가 작아요"
+  },
+  {
+   "file": "9b047e2a.mp3",
+   "text": "사과가 주황색이에요"
+  },
+  {
+   "file": "a89c784d.mp3",
+   "text": "사과가 초록색이에요"
+  },
+  {
+   "file": "53ac1933.mp3",
+   "text": "사과가 커요"
+  },
+  {
+   "file": "a2fe8618.mp3",
+   "text": "사과가 파란색이에요"
+  },
+  {
+   "file": "6778c148.mp3",
+   "text": "사과가 흰색이에요"
+  },
+  {
+   "file": "c6d18ace.mp3",
+   "text": "사과를 먹고 물을 마셔요"
+  },
+  {
+   "file": "45e01288.mp3",
+   "text": "사과를 먹고 우유를 마셔요"
+  },
+  {
+   "file": "a47cd678.mp3",
+   "text": "사과를 먹고 차를 마셔요"
+  },
+  {
+   "file": "3606d990.mp3",
+   "text": "사과를 먹고 커피를 마셔요"
+  },
+  {
+   "file": "f4a53c70.mp3",
+   "text": "사람"
+  },
+  {
+   "file": "c3abe257.mp3",
+   "text": "사랑해요"
+  },
+  {
+   "file": "421a04b5.mp3",
+   "text": "사요"
+  },
+  {
+   "file": "18da3d01.mp3",
+   "text": "산"
+  },
+  {
+   "file": "1cda434d.mp3",
+   "text": "살"
+  },
+  {
+   "file": "14da36b5.mp3",
+   "text": "삼"
+  },
+  {
+   "file": "55874d9d.mp3",
+   "text": "삼십오"
+  },
+  {
+   "file": "7f53a263.mp3",
+   "text": "삼촌"
+  },
+  {
+   "file": "fbd63dc3.mp3",
+   "text": "색"
+  },
+  {
+   "file": "f0e77593.mp3",
+   "text": "서"
+  },
+  {
+   "file": "361b0925.mp3",
+   "text": "선생님"
+  },
+  {
+   "file": "1af5d156.mp3",
+   "text": "성함"
+  },
+  {
+   "file": "14e7ae3f.mp3",
+   "text": "세"
+  },
+  {
+   "file": "7910c399.mp3",
+   "text": "세 시 사십 분"
+  },
+  {
+   "file": "9ae14f29.mp3",
+   "text": "세 시 삼십 분"
+  },
+  {
+   "file": "e5269e1f.mp3",
+   "text": "세 시 십 분"
+  },
+  {
+   "file": "eb23b297.mp3",
+   "text": "세 시 오십 분"
+  },
+  {
+   "file": "3df94c14.mp3",
+   "text": "세 시 이십 분"
+  },
+  {
+   "file": "5c051367.mp3",
+   "text": "세요"
+  },
+  {
+   "file": "dde6ac13.mp3",
+   "text": "셋"
+  },
+  {
+   "file": "195d4264.mp3",
+   "text": "수요일"
+  },
+  {
+   "file": "1cc52895.mp3",
+   "text": "스"
+  },
+  {
+   "file": "27614013.mp3",
+   "text": "스웨터"
+  },
+  {
+   "file": "2b426a1c.mp3",
+   "text": "스웨터 네 개"
+  },
+  {
+   "file": "b1523328.mp3",
+   "text": "스웨터 다섯 개"
+  },
+  {
+   "file": "baebd629.mp3",
+   "text": "스웨터 두 개"
+  },
+  {
+   "file": "7c3e417d.mp3",
+   "text": "스웨터 세 개"
+  },
+  {
+   "file": "8bfa062d.mp3",
+   "text": "스웨터 아홉 개"
+  },
+  {
+   "file": "30fd05b3.mp3",
+   "text": "스웨터 여덟 개"
+  },
+  {
+   "file": "c1ede37f.mp3",
+   "text": "스웨터 여섯 개"
+  },
+  {
+   "file": "a80e592e.mp3",
+   "text": "스웨터 열 개"
+  },
+  {
+   "file": "442c5efe.mp3",
+   "text": "스웨터 일곱 개"
+  },
+  {
+   "file": "1adf7b83.mp3",
+   "text": "스웨터 한 개"
+  },
+  {
+   "file": "4b755fba.mp3",
+   "text": "스웨터가 검은색이에요"
+  },
+  {
+   "file": "1ca4368c.mp3",
+   "text": "스웨터가 노란색이에요"
+  },
+  {
+   "file": "62c6ed25.mp3",
+   "text": "스웨터가 보라색이에요"
+  },
+  {
+   "file": "5864b63b.mp3",
+   "text": "스웨터가 분홍색이에요"
+  },
+  {
+   "file": "7dc7ce31.mp3",
+   "text": "스웨터가 빨간색이에요"
+  },
+  {
+   "file": "b1c6bf1f.mp3",
+   "text": "스웨터가 예뻐요"
+  },
+  {
+   "file": "e941d667.mp3",
+   "text": "스웨터가 작아요"
+  },
+  {
+   "file": "576ddbe3.mp3",
+   "text": "스웨터가 주황색이에요"
+  },
+  {
+   "file": "1712bd30.mp3",
+   "text": "스웨터가 초록색이에요"
+  },
+  {
+   "file": "158fca22.mp3",
+   "text": "스웨터가 커요"
+  },
+  {
+   "file": "27151941.mp3",
+   "text": "스웨터가 파란색이에요"
+  },
+  {
+   "file": "e699082b.mp3",
+   "text": "스웨터가 흰색이에요"
+  },
+  {
+   "file": "eec43494.mp3",
+   "text": "시"
+  },
+  {
+   "file": "90c5185d.mp3",
+   "text": "시계"
+  },
+  {
+   "file": "b058e756.mp3",
+   "text": "시계 네 개"
+  },
+  {
+   "file": "79dd946e.mp3",
+   "text": "시계 다섯 개"
+  },
+  {
+   "file": "3d6af6ab.mp3",
+   "text": "시계 두 개"
+  },
+  {
+   "file": "8e33d913.mp3",
+   "text": "시계 세 개"
+  },
+  {
+   "file": "4db8b7c7.mp3",
+   "text": "시계 아홉 개"
+  },
+  {
+   "file": "dadb75d9.mp3",
+   "text": "시계 여덟 개"
+  },
+  {
+   "file": "3230fdb1.mp3",
+   "text": "시계 여섯 개"
+  },
+  {
+   "file": "7d1b3450.mp3",
+   "text": "시계 열 개"
+  },
+  {
+   "file": "bb086c98.mp3",
+   "text": "시계 일곱 개"
+  },
+  {
+   "file": "dd39c581.mp3",
+   "text": "시계 한 개"
+  },
+  {
+   "file": "47d42e54.mp3",
+   "text": "시계가 검은색이에요"
+  },
+  {
+   "file": "44e6d68a.mp3",
+   "text": "시계가 노란색이에요"
+  },
+  {
+   "file": "6913d4cb.mp3",
+   "text": "시계가 보라색이에요"
+  },
+  {
+   "file": "17ab5085.mp3",
+   "text": "시계가 분홍색이에요"
+  },
+  {
+   "file": "9f054b33.mp3",
+   "text": "시계가 빨간색이에요"
+  },
+  {
+   "file": "d75ad525.mp3",
+   "text": "시계가 예뻐요"
+  },
+  {
+   "file": "b0f275c1.mp3",
+   "text": "시계가 작아요"
+  },
+  {
+   "file": "268d7a01.mp3",
+   "text": "시계가 주황색이에요"
+  },
+  {
+   "file": "3b60b6ee.mp3",
+   "text": "시계가 초록색이에요"
+  },
+  {
+   "file": "353fe670.mp3",
+   "text": "시계가 커요"
+  },
+  {
+   "file": "46abd18b.mp3",
+   "text": "시계가 파란색이에요"
+  },
+  {
+   "file": "3ba6b7b1.mp3",
+   "text": "시계가 흰색이에요"
+  },
+  {
+   "file": "ffc44f57.mp3",
+   "text": "십"
+  },
+  {
+   "file": "13bcd58d.mp3",
+   "text": "십오"
+  },
+  {
+   "file": "75c42b98.mp3",
+   "text": "십일"
+  },
+  {
+   "file": "dcd5615f.mp3",
+   "text": "쌀"
+  },
+  {
+   "file": "4b0e671a.mp3",
+   "text": "아"
+  },
+  {
+   "file": "70827398.mp3",
+   "text": "아기"
+  },
+  {
+   "file": "9b5997da.mp3",
+   "text": "아니요"
+  },
+  {
+   "file": "63c8d19c.mp3",
+   "text": "아들"
+  },
+  {
+   "file": "2427b4fd.mp3",
+   "text": "아들 네 명"
+  },
+  {
+   "file": "a3b73ad0.mp3",
+   "text": "아들 두 명"
+  },
+  {
+   "file": "9c179e78.mp3",
+   "text": "아들 세 명"
+  },
+  {
+   "file": "8d2772c6.mp3",
+   "text": "아들 한 명"
+  },
+  {
+   "file": "df55914c.mp3",
+   "text": "아버지"
+  },
+  {
+   "file": "e44325e3.mp3",
+   "text": "아버지의 이름"
+  },
+  {
+   "file": "db93748a.mp3",
+   "text": "아빠"
+  },
+  {
+   "file": "0673983b.mp3",
+   "text": "아이"
+  },
+  {
+   "file": "eab890ab.mp3",
+   "text": "아침"
+  },
+  {
+   "file": "7b7fecd7.mp3",
+   "text": "아홉"
+  },
+  {
+   "file": "32f56b7b.mp3",
+   "text": "안녕하세요"
+  },
+  {
+   "file": "d050816e.mp3",
+   "text": "안녕히 가세요"
+  },
+  {
+   "file": "cdd4ee89.mp3",
+   "text": "안녕히 계세요"
+  },
+  {
+   "file": "6901fa35.mp3",
+   "text": "알겟씀니다"
+  },
+  {
+   "file": "9a68fd43.mp3",
+   "text": "알겠습니다"
+  },
+  {
+   "file": "390a792d.mp3",
+   "text": "얘"
+  },
+  {
+   "file": "a5cae2d5.mp3",
+   "text": "얘기"
+  },
+  {
+   "file": "b8beba3c.mp3",
+   "text": "어느"
+  },
+  {
+   "file": "4a8e023d.mp3",
+   "text": "어느 나라 사람이에요?"
+  },
+  {
+   "file": "78cef306.mp3",
+   "text": "어디"
+  },
+  {
+   "file": "44610c94.mp3",
+   "text": "어디에 가요?"
+  },
+  {
+   "file": "da4587f8.mp3",
+   "text": "어디에 있어요?"
+  },
+  {
+   "file": "61d06d2a.mp3",
+   "text": "어디에서 먹어요?"
+  },
+  {
+   "file": "fba08ae4.mp3",
+   "text": "어머니"
+  },
+  {
+   "file": "4338c6e3.mp3",
+   "text": "어제"
+  },
+  {
+   "file": "6a2e7405.mp3",
+   "text": "어제 고기를 먹었어요"
+  },
+  {
+   "file": "d4056765.mp3",
+   "text": "어제 과일을 먹었어요"
+  },
+  {
+   "file": "17babc31.mp3",
+   "text": "어제 국을 먹었어요"
+  },
+  {
+   "file": "af591138.mp3",
+   "text": "어제 김밥을 먹었어요"
+  },
+  {
+   "file": "5e8e3430.mp3",
+   "text": "어제 김치를 먹었어요"
+  },
+  {
+   "file": "142c1435.mp3",
+   "text": "어제 딸기를 먹었어요"
+  },
+  {
+   "file": "8384d667.mp3",
+   "text": "어제 라면을 먹었어요"
+  },
+  {
+   "file": "439e088e.mp3",
+   "text": "어제 물을 마셨어요"
+  },
+  {
+   "file": "f4aa99ea.mp3",
+   "text": "어제 밥을 먹고 커피를 마셨어요"
+  },
+  {
+   "file": "4400b293.mp3",
+   "text": "어제 밥을 먹었어요"
+  },
+  {
+   "file": "7a06d1cf.mp3",
+   "text": "어제 배를 먹었어요"
+  },
+  {
+   "file": "4c3a3fa8.mp3",
+   "text": "어제 불고기를 먹었어요"
+  },
+  {
+   "file": "885c05d7.mp3",
+   "text": "어제 비빔밥을 먹었어요"
+  },
+  {
+   "file": "7d6a8f16.mp3",
+   "text": "어제 빵을 먹었어요"
+  },
+  {
+   "file": "2d80adb7.mp3",
+   "text": "어제 사과를 먹었어요"
+  },
+  {
+   "file": "bcb3be48.mp3",
+   "text": "어제 우유를 마셨어요"
+  },
+  {
+   "file": "81180df0.mp3",
+   "text": "어제 차를 마셨어요"
+  },
+  {
+   "file": "fff77a78.mp3",
+   "text": "어제 커피를 마셨어요"
+  },
+  {
+   "file": "40080069.mp3",
+   "text": "언니"
+  },
+  {
+   "file": "4f24666f.mp3",
+   "text": "언제"
+  },
+  {
+   "file": "ef89a0ec.mp3",
+   "text": "언제 먹을 거예요?"
+  },
+  {
+   "file": "46727e70.mp3",
+   "text": "얼마예요?"
+  },
+  {
+   "file": "12fb0e6e.mp3",
+   "text": "엄마"
+  },
+  {
+   "file": "4edb86a6.mp3",
+   "text": "없어요"
+  },
+  {
+   "file": "eb0952cc.mp3",
+   "text": "에"
+  },
+  {
+   "file": "062dca50.mp3",
+   "text": "에서"
+  },
+  {
+   "file": "1f09a4a8.mp3",
+   "text": "여"
+  },
+  {
+   "file": "83a7287e.mp3",
+   "text": "여기"
+  },
+  {
+   "file": "8e51d1e4.mp3",
+   "text": "여기 있어요"
+  },
+  {
+   "file": "512c4590.mp3",
+   "text": "여기요"
+  },
+  {
+   "file": "4e116b39.mp3",
+   "text": "여덟"
+  },
+  {
+   "file": "eafaf115.mp3",
+   "text": "여섯"
+  },
+  {
+   "file": "3811dc32.mp3",
+   "text": "여자"
+  },
+  {
+   "file": "07097ee0.mp3",
+   "text": "열"
+  },
+  {
+   "file": "beee92f2.mp3",
+   "text": "열 살"
+  },
+  {
+   "file": "8f17a7eb.mp3",
+   "text": "예뻐요"
+  },
+  {
+   "file": "ce3619e8.mp3",
+   "text": "예쁜"
+  },
+  {
+   "file": "4852b073.mp3",
+   "text": "예요"
+  },
+  {
+   "file": "88f15f37.mp3",
+   "text": "오"
+  },
+  {
+   "file": "31bc89c6.mp3",
+   "text": "오늘"
+  },
+  {
+   "file": "5c64ea0e.mp3",
+   "text": "오른쪽"
+  },
+  {
+   "file": "a3e20e15.mp3",
+   "text": "오빠"
+  },
+  {
+   "file": "b31c6648.mp3",
+   "text": "오천 원"
+  },
+  {
+   "file": "ae61c5ac.mp3",
+   "text": "와요"
+  },
+  {
+   "file": "1f37c5fd.mp3",
+   "text": "왜요?"
+  },
+  {
+   "file": "0d46e88b.mp3",
+   "text": "왼쪽"
+  },
+  {
+   "file": "6cecb5f5.mp3",
+   "text": "요"
+  },
+  {
+   "file": "99e35528.mp3",
+   "text": "요리"
+  },
+  {
+   "file": "302ff522.mp3",
+   "text": "요즘 어때요?"
+  },
+  {
+   "file": "88ece209.mp3",
+   "text": "우"
+  },
+  {
+   "file": "9a1a6264.mp3",
+   "text": "우리"
+  },
+  {
+   "file": "b814d410.mp3",
+   "text": "우리 가족"
+  },
+  {
+   "file": "c4134182.mp3",
+   "text": "우리 가족은 네 명이에요"
+  },
+  {
+   "file": "88c364fb.mp3",
+   "text": "우유"
+  },
+  {
+   "file": "bc35a422.mp3",
+   "text": "우유 주세요"
+  },
+  {
+   "file": "798197a6.mp3",
+   "text": "워요"
+  },
+  {
+   "file": "22eb95e0.mp3",
+   "text": "원"
+  },
+  {
+   "file": "29f25407.mp3",
+   "text": "월요일"
+  },
+  {
+   "file": "1aeb8948.mp3",
+   "text": "웨"
+  },
+  {
+   "file": "1cfcd58f.mp3",
+   "text": "유"
+  },
+  {
+   "file": "1bfcd3fc.mp3",
+   "text": "육"
+  },
+  {
+   "file": "16f8fa86.mp3",
+   "text": "은"
+  },
+  {
+   "file": "1af900d2.mp3",
+   "text": "을"
+  },
+  {
+   "file": "2ef9204e.mp3",
+   "text": "의"
+  },
+  {
+   "file": "bfc48808.mp3",
+   "text": "의자"
+  },
+  {
+   "file": "967988ff.mp3",
+   "text": "의자 네 개"
+  },
+  {
+   "file": "a88fad75.mp3",
+   "text": "의자 다섯 개"
+  },
+  {
+   "file": "35b2d4aa.mp3",
+   "text": "의자 두 개"
+  },
+  {
+   "file": "87cf5292.mp3",
+   "text": "의자 세 개"
+  },
+  {
+   "file": "6cb6af3c.mp3",
+   "text": "의자 아홉 개"
+  },
+  {
+   "file": "4ecef8e6.mp3",
+   "text": "의자 여덟 개"
+  },
+  {
+   "file": "27e09102.mp3",
+   "text": "의자 여섯 개"
+  },
+  {
+   "file": "b3b6e4c9.mp3",
+   "text": "의자 열 개"
+  },
+  {
+   "file": "a9e0044f.mp3",
+   "text": "의자 일곱 개"
+  },
+  {
+   "file": "042e906c.mp3",
+   "text": "의자 한 개"
+  },
+  {
+   "file": "d230fb6d.mp3",
+   "text": "의자가 검은색이에요"
+  },
+  {
+   "file": "bdffab53.mp3",
+   "text": "의자가 노란색이에요"
+  },
+  {
+   "file": "9bc0e91e.mp3",
+   "text": "의자가 보라색이에요"
+  },
+  {
+   "file": "722f3a3c.mp3",
+   "text": "의자가 분홍색이에요"
+  },
+  {
+   "file": "c13cba96.mp3",
+   "text": "의자가 빨간색이에요"
+  },
+  {
+   "file": "d39c16d2.mp3",
+   "text": "의자가 예뻐요"
+  },
+  {
+   "file": "af81e472.mp3",
+   "text": "의자가 작아요"
+  },
+  {
+   "file": "1d7d6db4.mp3",
+   "text": "의자가 주황색이에요"
+  },
+  {
+   "file": "e9ba4e0f.mp3",
+   "text": "의자가 초록색이에요"
+  },
+  {
+   "file": "7e07ed25.mp3",
+   "text": "의자가 커요"
+  },
+  {
+   "file": "97f20486.mp3",
+   "text": "의자가 파란색이에요"
+  },
+  {
+   "file": "0a5a136a.mp3",
+   "text": "의자가 흰색이에요"
+  },
+  {
+   "file": "0af8e7a2.mp3",
+   "text": "이"
+  },
+  {
+   "file": "063fc12b.mp3",
+   "text": "이 사람"
+  },
+  {
+   "file": "ea52453f.mp3",
+   "text": "이 사람은 누구예요?"
+  },
+  {
+   "file": "b2b9f1a1.mp3",
+   "text": "이거"
+  },
+  {
+   "file": "a14b08fb.mp3",
+   "text": "이것은 뭐예요?"
+  },
+  {
+   "file": "c0b303c9.mp3",
+   "text": "이름"
+  },
+  {
+   "file": "238b95c6.mp3",
+   "text": "이름은 사라예요"
+  },
+  {
+   "file": "d6c9202d.mp3",
+   "text": "이름이 뭐예요?"
+  },
+  {
+   "file": "24958c21.mp3",
+   "text": "이모"
+  },
+  {
+   "file": "20daaa59.mp3",
+   "text": "이분"
+  },
+  {
+   "file": "cf460f39.mp3",
+   "text": "이분은 우리 누나 예요"
+  },
+  {
+   "file": "eef16f79.mp3",
+   "text": "이분은 우리 삼촌 이에요"
+  },
+  {
+   "file": "b11360f2.mp3",
+   "text": "이분은 우리 아버지 예요"
+  },
+  {
+   "file": "22bda888.mp3",
+   "text": "이분은 우리 아빠 예요"
+  },
+  {
+   "file": "74747d0a.mp3",
+   "text": "이분은 우리 어머니 예요"
+  },
+  {
+   "file": "ac92abdd.mp3",
+   "text": "이분은 우리 언니 예요"
+  },
+  {
+   "file": "3144c0cc.mp3",
+   "text": "이분은 우리 엄마 예요"
+  },
+  {
+   "file": "661326b9.mp3",
+   "text": "이분은 우리 오빠 예요"
+  },
+  {
+   "file": "886c37d5.mp3",
+   "text": "이분은 우리 이모 예요"
+  },
+  {
+   "file": "8a97e406.mp3",
+   "text": "이분은 우리 할머니 예요"
+  },
+  {
+   "file": "1ef89462.mp3",
+   "text": "이분은 우리 할아버지 예요"
+  },
+  {
+   "file": "39c89a9d.mp3",
+   "text": "이분은 우리 형 이에요"
+  },
+  {
+   "file": "4868d8da.mp3",
+   "text": "이십"
+  },
+  {
+   "file": "adc16725.mp3",
+   "text": "이에요"
+  },
+  {
+   "file": "12f8f43a.mp3",
+   "text": "일"
+  },
+  {
+   "file": "96c9c258.mp3",
+   "text": "일곱"
+  },
+  {
+   "file": "66a80349.mp3",
+   "text": "일요일"
+  },
+  {
+   "file": "b837b03e.mp3",
+   "text": "일해요"
+  },
+  {
+   "file": "52806d11.mp3",
+   "text": "있어요"
+  },
+  {
+   "file": "00f82c4d.mp3",
+   "text": "자"
+  },
+  {
+   "file": "ffb3688d.mp3",
+   "text": "자요"
+  },
+  {
+   "file": "44db8863.mp3",
+   "text": "작아요"
+  },
+  {
+   "file": "30186517.mp3",
+   "text": "작은"
+  },
+  {
+   "file": "37974f57.mp3",
+   "text": "잘 자요"
+  },
+  {
+   "file": "f670eaaa.mp3",
+   "text": "잘 지내요?"
+  },
+  {
+   "file": "4d314e30.mp3",
+   "text": "잠시만요"
+  },
+  {
+   "file": "0bf83d9e.mp3",
+   "text": "장"
+  },
+  {
+   "file": "352d0523.mp3",
+   "text": "저"
+  },
+  {
+   "file": "ce9e3a24.mp3",
+   "text": "저 사람"
+  },
+  {
+   "file": "066251ea.mp3",
+   "text": "저 사람은 누구예요?"
+  },
+  {
+   "file": "d0d4a7db.mp3",
+   "text": "저기"
+  },
+  {
+   "file": "ecbb8112.mp3",
+   "text": "저녁"
+  },
+  {
+   "file": "ddcb2347.mp3",
+   "text": "저는 고기를 먹어요"
+  },
+  {
+   "file": "8248972b.mp3",
+   "text": "저는 고기를 좋아해요"
+  },
+  {
+   "file": "3854195c.mp3",
+   "text": "저는 공항에 가요"
+  },
+  {
+   "file": "c1db49ab.mp3",
+   "text": "저는 과일을 먹어요"
+  },
+  {
+   "file": "e5012c37.mp3",
+   "text": "저는 과일을 좋아해요"
+  },
+  {
+   "file": "e10c5031.mp3",
+   "text": "저는 국을 먹어요"
+  },
+  {
+   "file": "b36f6e79.mp3",
+   "text": "저는 국을 좋아해요"
+  },
+  {
+   "file": "601f3309.mp3",
+   "text": "저는 기차역에 가요"
+  },
+  {
+   "file": "189de5bc.mp3",
+   "text": "저는 김밥을 먹어요"
+  },
+  {
+   "file": "4bbb36f6.mp3",
+   "text": "저는 김밥을 좋아해요"
+  },
+  {
+   "file": "8b935d28.mp3",
+   "text": "저는 김치를 먹어요"
+  },
+  {
+   "file": "fe8729ba.mp3",
+   "text": "저는 김치를 좋아해요"
+  },
+  {
+   "file": "2a88d145.mp3",
+   "text": "저는 독일 사람이에요"
+  },
+  {
+   "file": "802345ab.mp3",
+   "text": "저는 딸기를 먹어요"
+  },
+  {
+   "file": "614c0037.mp3",
+   "text": "저는 딸기를 좋아해요"
+  },
+  {
+   "file": "52aa3aa1.mp3",
+   "text": "저는 라면을 먹어요"
+  },
+  {
+   "file": "1d74a149.mp3",
+   "text": "저는 라면을 좋아해요"
+  },
+  {
+   "file": "f2f287f3.mp3",
+   "text": "저는 물을 마셔요"
+  },
+  {
+   "file": "7afaea50.mp3",
+   "text": "저는 물을 좋아해요"
+  },
+  {
+   "file": "63e66cd7.mp3",
+   "text": "저는 밥을 먹어요"
+  },
+  {
+   "file": "cdc0245b.mp3",
+   "text": "저는 밥을 좋아해요"
+  },
+  {
+   "file": "a57784ff.mp3",
+   "text": "저는 배를 먹어요"
+  },
+  {
+   "file": "8bfcef93.mp3",
+   "text": "저는 배를 좋아해요"
+  },
+  {
+   "file": "fd5e5f52.mp3",
+   "text": "저는 불고기를 먹어요"
+  },
+  {
+   "file": "3187e9e0.mp3",
+   "text": "저는 불고기를 좋아해요"
+  },
+  {
+   "file": "3a91a00d.mp3",
+   "text": "저는 불고기를 좋아했어요"
+  },
+  {
+   "file": "d5cf4aef.mp3",
+   "text": "저는 비빔밥을 먹어요"
+  },
+  {
+   "file": "f3df6723.mp3",
+   "text": "저는 비빔밥을 좋아해요"
+  },
+  {
+   "file": "93794e98.mp3",
+   "text": "저는 빵을 먹어요"
+  },
+  {
+   "file": "99a1664a.mp3",
+   "text": "저는 빵을 좋아해요"
+  },
+  {
+   "file": "0a8f21d5.mp3",
+   "text": "저는 사과를 먹어요"
+  },
+  {
+   "file": "de036bd5.mp3",
+   "text": "저는 사과를 좋아해요"
+  },
+  {
+   "file": "d86c9cda.mp3",
+   "text": "저는 사라예요"
+  },
+  {
+   "file": "2457a252.mp3",
+   "text": "저는 선생님 이에요"
+  },
+  {
+   "file": "8c0b5471.mp3",
+   "text": "저는 선생님이 아니에요"
+  },
+  {
+   "file": "30f52a87.mp3",
+   "text": "저는 우유를 마셔요"
+  },
+  {
+   "file": "b49a48a4.mp3",
+   "text": "저는 우유를 좋아해요"
+  },
+  {
+   "file": "17eb555f.mp3",
+   "text": "저는 집에 가요"
+  },
+  {
+   "file": "edbececd.mp3",
+   "text": "저는 차를 마셔요"
+  },
+  {
+   "file": "651c8c36.mp3",
+   "text": "저는 차를 좋아해요"
+  },
+  {
+   "file": "7728d8c4.mp3",
+   "text": "저는 친구 예요"
+  },
+  {
+   "file": "3ab4f0d7.mp3",
+   "text": "저는 커피를 마셔요"
+  },
+  {
+   "file": "54853414.mp3",
+   "text": "저는 커피를 좋아해요"
+  },
+  {
+   "file": "b4b2d49c.mp3",
+   "text": "저는 표가 있어요"
+  },
+  {
+   "file": "819c6973.mp3",
+   "text": "저는 학생 이에요"
+  },
+  {
+   "file": "5e5909a5.mp3",
+   "text": "저는 학생이에요"
+  },
+  {
+   "file": "cfa75d0a.mp3",
+   "text": "저는 학생입니다"
+  },
+  {
+   "file": "47557239.mp3",
+   "text": "저는 한국 사람이에요"
+  },
+  {
+   "file": "69b16878.mp3",
+   "text": "저는 호텔에 가요"
+  },
+  {
+   "file": "dd696549.mp3",
+   "text": "저는 화장실에 가요"
+  },
+  {
+   "file": "6639945c.mp3",
+   "text": "저는 회사원 이에요"
+  },
+  {
+   "file": "332b9243.mp3",
+   "text": "저도요"
+  },
+  {
+   "file": "77e5a9ea.mp3",
+   "text": "저분"
+  },
+  {
+   "file": "7db1c69b.mp3",
+   "text": "저희"
+  },
+  {
+   "file": "e45c7d0d.mp3",
+   "text": "전화번호"
+  },
+  {
+   "file": "e757c478.mp3",
+   "text": "전화번호가 뭐예요?"
+  },
+  {
+   "file": "6d1babba.mp3",
+   "text": "점심"
+  },
+  {
+   "file": "312cfed7.mp3",
+   "text": "제"
+  },
+  {
+   "file": "9bb58142.mp3",
+   "text": "제 동생"
+  },
+  {
+   "file": "2b2cfad6.mp3",
+   "text": "제 이름은 사라예요"
+  },
+  {
+   "file": "3eabcbd5.mp3",
+   "text": "제 이름은 사라입니다"
+  },
+  {
+   "file": "ddc6f88f.mp3",
+   "text": "조심하세요"
+  },
+  {
+   "file": "958fcdb3.mp3",
+   "text": "조아요"
+  },
+  {
+   "file": "85d895f5.mp3",
+   "text": "좋아요"
+  },
+  {
+   "file": "05ad2421.mp3",
+   "text": "좋아해요"
+  },
+  {
+   "file": "fbe1899a.mp3",
+   "text": "죄송합니다"
+  },
+  {
+   "file": "350fa682.mp3",
+   "text": "주말"
+  },
+  {
+   "file": "2c82823e.mp3",
+   "text": "주세요"
+  },
+  {
+   "file": "4859f933.mp3",
+   "text": "주황색"
+  },
+  {
+   "file": "5b31128c.mp3",
+   "text": "지"
+  },
+  {
+   "file": "49e0b822.mp3",
+   "text": "지금"
+  },
+  {
+   "file": "f27ddfff.mp3",
+   "text": "지금 물을 마셔요"
+  },
+  {
+   "file": "d4ae1e1e.mp3",
+   "text": "지만"
+  },
+  {
+   "file": "7cf38624.mp3",
+   "text": "지하철"
+  },
+  {
+   "file": "6c312d4f.mp3",
+   "text": "집"
+  },
+  {
+   "file": "1935c834.mp3",
+   "text": "집에 있어요"
+  },
+  {
+   "file": "e06eb20f.mp3",
+   "text": "집에서 커피를 마셔요"
+  },
+  {
+   "file": "6f313208.mp3",
+   "text": "짜"
+  },
+  {
+   "file": "23e7d84b.mp3",
+   "text": "짜장면"
+  },
+  {
+   "file": "7d5485eb.mp3",
+   "text": "차"
+  },
+  {
+   "file": "9d99ec92.mp3",
+   "text": "차 주세요"
+  },
+  {
+   "file": "ae9eef64.mp3",
+   "text": "처음 뵙겠습니다"
+  },
+  {
+   "file": "354f9765.mp3",
+   "text": "천"
+  },
+  {
+   "file": "fa8eefba.mp3",
+   "text": "천만에요"
+  },
+  {
+   "file": "05ad06ce.mp3",
+   "text": "초록"
+  },
+  {
+   "file": "79e512f7.mp3",
+   "text": "초록 딸기"
+  },
+  {
+   "file": "aae03bcb.mp3",
+   "text": "초록 배"
+  },
+  {
+   "file": "b1f18ff1.mp3",
+   "text": "초록 빵"
+  },
+  {
+   "file": "088d2435.mp3",
+   "text": "초록 사과"
+  },
+  {
+   "file": "bf7fbbee.mp3",
+   "text": "초록 스웨터"
+  },
+  {
+   "file": "5b89c4aa.mp3",
+   "text": "초록 시계"
+  },
+  {
+   "file": "53a1249f.mp3",
+   "text": "초록 의자"
+  },
+  {
+   "file": "b3460b62.mp3",
+   "text": "초록색"
+  },
+  {
+   "file": "373e516a.mp3",
+   "text": "치"
+  },
+  {
+   "file": "72f23de5.mp3",
+   "text": "친구"
+  },
+  {
+   "file": "c864f11b.mp3",
+   "text": "친구는 라면을 먹어요"
+  },
+  {
+   "file": "98e7f0a5.mp3",
+   "text": "친구의 어머니"
+  },
+  {
+   "file": "1f3e2ba2.mp3",
+   "text": "칠"
+  },
+  {
+   "file": "1169cd1e.mp3",
+   "text": "커요"
+  },
+  {
+   "file": "570d2a0b.mp3",
+   "text": "커피"
+  },
+  {
+   "file": "be332b72.mp3",
+   "text": "커피 주세요"
+  },
+  {
+   "file": "2bfac691.mp3",
+   "text": "큰"
+  },
+  {
+   "file": "253ca5ff.mp3",
+   "text": "택시"
+  },
+  {
+   "file": "9e0235cc.mp3",
+   "text": "터"
+  },
+  {
+   "file": "a06d52e5.mp3",
+   "text": "토요일"
+  },
+  {
+   "file": "6f711377.mp3",
+   "text": "파란"
+  },
+  {
+   "file": "7dabe83c.mp3",
+   "text": "파란 딸기"
+  },
+  {
+   "file": "1a3edc8a.mp3",
+   "text": "파란 배"
+  },
+  {
+   "file": "132d8864.mp3",
+   "text": "파란 빵"
+  },
+  {
+   "file": "42a8eb32.mp3",
+   "text": "파란 사과"
+  },
+  {
+   "file": "dd5c2423.mp3",
+   "text": "파란 스웨터"
+  },
+  {
+   "file": "dbf4608d.mp3",
+   "text": "파란 시계"
+  },
+  {
+   "file": "86e84ef8.mp3",
+   "text": "파란 의자"
+  },
+  {
+   "file": "8e5712fd.mp3",
+   "text": "파란색"
+  },
+  {
+   "file": "89ecfb98.mp3",
+   "text": "팔"
+  },
+  {
+   "file": "07d37e75.mp3",
+   "text": "표"
+  },
+  {
+   "file": "c1ca68c3.mp3",
+   "text": "표가 없어서 집에 가요"
+  },
+  {
+   "file": "8bdbb59d.mp3",
+   "text": "하"
+  },
+  {
+   "file": "8000de88.mp3",
+   "text": "하나"
+  },
+  {
+   "file": "de5c5d55.mp3",
+   "text": "하마"
+  },
+  {
+   "file": "07c6cbe6.mp3",
+   "text": "하지만"
+  },
+  {
+   "file": "feba7f7a.mp3",
+   "text": "학생"
+  },
+  {
+   "file": "727983ba.mp3",
+   "text": "학생 두 명"
+  },
+  {
+   "file": "87dbaf51.mp3",
+   "text": "한"
+  },
+  {
+   "file": "39d14b27.mp3",
+   "text": "한 개"
+  },
+  {
+   "file": "06d3d09a.mp3",
+   "text": "한 시"
+  },
+  {
+   "file": "fba43543.mp3",
+   "text": "한 시 사십 분"
+  },
+  {
+   "file": "75425833.mp3",
+   "text": "한 시 삼십 분"
+  },
+  {
+   "file": "7ff5abc1.mp3",
+   "text": "한 시 십 분"
+  },
+  {
+   "file": "18b2c605.mp3",
+   "text": "한 시 오십 분"
+  },
+  {
+   "file": "6e19557a.mp3",
+   "text": "한 시 이십 분"
+  },
+  {
+   "file": "a4096447.mp3",
+   "text": "한구거"
+  },
+  {
+   "file": "347b42ca.mp3",
+   "text": "한국 사람이에요"
+  },
+  {
+   "file": "0120831f.mp3",
+   "text": "한국어"
+  },
+  {
+   "file": "64779620.mp3",
+   "text": "할머니"
+  },
+  {
+   "file": "68c59bfc.mp3",
+   "text": "할아버지"
+  },
+  {
+   "file": "8af28421.mp3",
+   "text": "해요"
+  },
+  {
+   "file": "bcf85568.mp3",
+   "text": "해요체 (-아요/-어요)"
+  },
+  {
+   "file": "babd3eef.mp3",
+   "text": "형"
+  },
+  {
+   "file": "06afce2e.mp3",
+   "text": "호텔"
+  },
+  {
+   "file": "e3d1090b.mp3",
+   "text": "호텔에 가요"
+  },
+  {
+   "file": "58222b6a.mp3",
+   "text": "화요일"
+  },
+  {
+   "file": "33094509.mp3",
+   "text": "화이팅!"
+  },
+  {
+   "file": "817faf79.mp3",
+   "text": "화장실"
+  },
+  {
+   "file": "e3e52e8f.mp3",
+   "text": "화장실이 어디에 있어요?"
+  },
+  {
+   "file": "f5c218fe.mp3",
+   "text": "회"
+  },
+  {
+   "file": "e3c81e37.mp3",
+   "text": "회사원"
+  },
+  {
+   "file": "33c7a35d.mp3",
+   "text": "흰"
+  },
+  {
+   "file": "8f6b7dce.mp3",
+   "text": "흰 딸기"
+  },
+  {
+   "file": "57001ac4.mp3",
+   "text": "흰 배"
+  },
+  {
+   "file": "c81692f6.mp3",
+   "text": "흰 빵"
+  },
+  {
+   "file": "e94374d8.mp3",
+   "text": "흰 사과"
+  },
+  {
+   "file": "ad68ca89.mp3",
+   "text": "흰 스웨터"
+  },
+  {
+   "file": "5608ef93.mp3",
+   "text": "흰 시계"
+  },
+  {
+   "file": "5e66e779.mp3",
+   "text": "흰 우유"
+  },
+  {
+   "file": "85fdaed6.mp3",
+   "text": "흰 의자"
+  },
+  {
+   "file": "c7b3ebcb.mp3",
+   "text": "흰색"
+  }
+ ]
 }
