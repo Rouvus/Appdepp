@@ -309,6 +309,12 @@
   .prompt-card{ background:var(--card-bg); border-radius:16px; padding:20px; text-align:center; margin-bottom:22px;}
   .prompt-kr{ font-size:clamp(20px,7vw,34px); font-weight:800; margin-bottom:6px; line-height:1.25; word-break:keep-all;}
   .prompt-roman{ font-size:0.875rem; color:var(--gray-dark); font-style:italic;}
+  /* Warnung bei Umschriften, die sich nur in der Reihenfolge unterscheiden
+     (eo/oe). Bewusst zurückhaltend: Es ist ein Hinweis, keine Fehlermeldung
+     — die Aufgabe ist noch gar nicht beantwortet. */
+  .prompt-hinweis{ font-size:0.8125rem; color:var(--gray-dark); margin-top:6px;
+    letter-spacing:.01em;}
+  .prompt-hinweis::before{ content:'⚠︎'; margin-right:5px; opacity:.7;}
   /* Info-Karten (Einführung / Wiederholung): zeigen Bedeutung + Kontext, keine Abfrage */
   .info-reveal{ text-align:center; font-size:1.0625rem; margin-bottom:10px;}
   .info-reveal strong{ color:var(--green-dark);}
@@ -1461,8 +1467,8 @@
    öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
    statt eine leere Zeile zu zeigen.
    ========================================================= */
-const APP_VERSION = '1.20.0';
-const APP_BUILD = '900c8d94f6ad';
+const APP_VERSION = '1.21.0';
+const APP_BUILD = 'b7cb99302ecc';
 /* Die Felder folgen dem, was § 5 DDG (früher § 5 TMG) für ein Impressum
    verlangt — die frühere Fassung hatte nur Name, Ort und Mail, und das
    reicht nachweislich nicht:
@@ -1612,6 +1618,7 @@ function appBuildLabel(){
    will, was ihm entgeht. Bewusst nur die letzten Einträge — eine
    vollständige Chronik gehört ins Projekt-Dokument, nicht in die App. */
 const CHANGELOG = [
+  { v:'1.21.0', text:'Doppelkonsonanten (ㄲ ㄸ ㅃ ㅆ ㅉ) werden auch erkannt, wenn beide Hälften dicht beieinander stehen. Und beim Zeichenmalen warnt die Aufgabe jetzt vor Umschriften, die sich nur in der Reihenfolge unterscheiden — „oe" ist nicht „eo".' },
   { v:'1.20.0', text:'Die Zeichenerkennung achtet jetzt darauf, dass jede Hand die Ästchen anders ansetzt — höher, tiefer, enger beieinander — und dass die zweite Senkrechte bei ㅐ ㅔ ㅖ unterschiedlich weit absteht. Gemessen an echten abgelehnten Zeichnungen, nicht an geratenen.' },
   { v:'1.19.0', text:'Die Zeichenerkennung beim Malen versteht mehr Handschriften: gemessen statt geraten, mit einem Prüfstand über tausende künstliche Handschriften. Wird eine Zeichnung trotzdem abgelehnt, hebt die App sie auf dem Gerät auf — daraus wird die Erkennung weiter verbessert.' },
   { v:'1.18.0', text:'Vorbereitet für die App-Fassung: Die App erkennt jetzt, ob sie als Webseite oder in einer App-Hülle läuft, und sagt in beiden Fällen die Wahrheit darüber, woher Aktualisierungen kommen.' },
@@ -5479,7 +5486,19 @@ const JAMO_FORMEN = {
 
 /* Die Doppelkonsonanten sind zwei Ausfertigungen desselben Buchstabens
    nebeneinander — die lassen sich aus dem Grundbuchstaben errechnen,
-   statt sie ein zweites Mal von Hand einzutragen. */
+   statt sie ein zweites Mal von Hand einzutragen.
+
+   WIE VIEL LUFT dazwischen bleibt, ist allerdings Handschrift. Eine echte
+   Zeichnung vom 30.08.2026 zeigte ein sauberes ㄸ, dessen beide ㄷ fast
+   aneinanderstießen (Lücke 6 % der Breite statt 27 % wie hier) — nach der
+   Weichzeichnung verschmolzen sie zu einem breiten ㄷ, und genau als
+   solches wurde es gelesen. Deshalb gibt es zu jedem Doppelkonsonanten
+   zusätzlich eine enge und eine weite Fassung. Enger als 6 % wird
+   bewusst nicht gebaut: Ab da IST es ein einfacher Buchstabe, und die
+   Vorlage würde anfangen, dem einfachen die Zeichnungen wegzunehmen. */
+const DOPPEL_ABSTAENDE = [0.36, 0.52, 0.64];   // Versatz der zweiten Ausfertigung
+const DOPPEL_VARIANTEN = {};
+
 ['ㄱ','ㄷ','ㅂ','ㅅ','ㅈ'].forEach((basis, i) => {
   const doppelt = ['ㄲ','ㄸ','ㅃ','ㅆ','ㅉ'][i];
   const eins = JAMO_FORMEN[basis];
@@ -5490,7 +5509,11 @@ const JAMO_FORMEN = {
     }
     return strich.map(([x, y]) => [x * 0.46 + versatz, y]);
   });
-  JAMO_FORMEN[doppelt] = stauchen(0.02).concat(stauchen(0.52));
+  const bauen = (versatz2) => stauchen(0.02).concat(stauchen(versatz2));
+  JAMO_FORMEN[doppelt] = bauen(0.52);
+  DOPPEL_VARIANTEN[doppelt] = DOPPEL_ABSTAENDE
+    .filter(v => v !== 0.52)
+    .map(v => ({ form: bauen(v), verhaeltnis: (v - 0.02) / 0.50 }));
 });
 
 /* Kreise werden als Linienzug ausgerollt — der Erkenner kennt nur Punkte. */
@@ -5884,17 +5907,27 @@ function aesteVerschieben(form, verschiebung, spreizung){
 
 /* Zweitformen: die freistehende Senkrechte näher oder weiter weg.
 
-   Auch das kommt aus denselben sechs echten Zeichnungen (30.08.2026).
-   Alle drei ㅔ darin haben ihre beiden Senkrechten 0,10 bis 0,18
-   auseinander, die Vorlage 0,32 — bei gleich langem Ästchen. Die
-   Proportionen-Vorlagen helfen dagegen nicht: Sie dehnen die GANZE Form
-   in der Breite, und damit wandert das Ästchen genauso mit wie die
-   Senkrechte. Das Verhältnis von Ästchenlänge zu Senkrechten-Abstand
-   bleibt dabei unverändert — und genau dieses Verhältnis war anders.
+   Aus denselben sechs echten Zeichnungen (30.08.2026): Alle drei ㅔ darin
+   haben ihre beiden Senkrechten 0,10 bis 0,18 auseinander, die Vorlage
+   0,32 — bei gleich langem Ästchen. Die Proportionen-Vorlagen helfen
+   dagegen nicht: Sie dehnen die GANZE Form in der Breite, wodurch das
+   Ästchen genauso mitwandert wie die Senkrechte. Das Verhältnis von
+   Ästchenlänge zu Senkrechten-Abstand bleibt unverändert — und genau
+   dieses Verhältnis war anders.
 
    Verschoben wird nur, was frei steht: die zweite Senkrechte von ㅐ ㅔ ㅒ
    ㅖ ㅚ ㅟ, an der kein Ästchen hängt. Der Stamm mit den Ästchen bleibt,
-   wo er ist, sonst würde das Ästchen von ihm abreißen. */
+   wo er ist, sonst risse das Ästchen von ihm ab.
+
+   VERSUCHT UND VERWORFEN (30.08.2026, zweite Sammlung): dasselbe
+   allgemeiner zu fassen — die größte waagerechte Lücke aus der Form
+   selbst suchen und DIE dehnen, egal ob dahinter eine Senkrechte steckt
+   oder die zweite Hälfte eines ㄸ. Klingt sauberer und ist es auch, nur
+   misst es sich schlechter: Es half den Fällen nicht, für die es gedacht
+   war (ㄸ und ㅢ blieben auf den Hundertstel genau, wo sie waren), und
+   kostete einen bereits reparierten ㅔ-Fall, weil ㅞ mit zusammen-
+   geschobenen Teilen ihn wieder wegschnappte. Allgemeiner heißt eben
+   auch: mehr Buchstaben mit mehr Losen. */
 const STAMM_ABSTAENDE = [0.5, 1, 1.45];
 
 function stammAbstand(form, faktor){
@@ -5932,6 +5965,7 @@ const RABATT_PROPORTION = 0.045;   // mal |ln(Streckfaktor)|
 const RABATT_AST_LAGE = 0.10;      // mal Verschiebung der Ästchen (Anteil Stammhöhe)
 const RABATT_AST_ABSTAND = 0.035;  // mal |ln(Spreizung)|
 const RABATT_STAMM_ABSTAND = 0.055;// mal |ln(Abstandsfaktor)|
+const RABATT_DOPPEL_ABSTAND = 0.055;// mal |ln(Abstandsverhältnis)| bei ㄲ ㄸ ㅃ ㅆ ㅉ
 
 /* Die verschobenen Ästchen-Formen bekommen nur drei statt fünf
    Proportionen. Sonst vervielfachen sich die Vorlagen: Ein ㅖ käme auf
@@ -5971,6 +6005,16 @@ function vorlagen(){
         proportionen: PROPORTIONEN_KURZ
       });
     });
+    /* Doppelkonsonanten enger/weiter aneinander (s. DOPPEL_ABSTAENDE). */
+    /* Hier die VOLLEN Proportionen, nicht die kurzen: Eine echte
+       Zeichnung vom 30.08.2026 war fast doppelt so breit wie hoch
+       (Verhältnis 1,8). Mit der kurzen Liste reicht die Dehnung nur bis
+       1,46 — die passende Vorlage wäre also gar nicht dabei gewesen. */
+    (DOPPEL_VARIANTEN[ch] || []).forEach(v => formen.push({
+      striche: formZuStrichen(v.form),
+      rabatt: 1 - RABATT_DOPPEL_ABSTAND * Math.abs(Math.log(v.verhaeltnis)),
+      proportionen: PROPORTIONEN
+    }));
     /* Ästchen höher/tiefer und enger/weiter (s. AST_VERSCHIEBUNGEN). */
     AST_VERSCHIEBUNGEN.forEach(dy => AST_SPREIZUNGEN.forEach(sp => {
       if(dy === 0 && sp === 1) return;                  // das ist die Grundform
@@ -9157,6 +9201,37 @@ function rebuildExerciseFromMistake(m){
 /* Eine Mal-Übung. Der gesuchte Buchstabe ist bekannt — deshalb prüft
    der Erkenner nur, ob das Gemalte zu IHM passt und zu keinem anderen
    besser (s. pruefeGemaltesJamo). */
+/* Zwei Umschriften, die aus DENSELBEN Buchstaben in anderer Reihenfolge
+   bestehen — „eo" und „oe", „ui" und „wi".
+
+   Anlass sind zwei echte Fehlversuche vom 30.08.2026: Gefragt war ㅚ
+   („oe"), gemalt wurde beide Male ein sauberes ㅓ („eo"). Der Erkenner
+   hatte völlig recht; die Aufgabe war nicht eindeutig genug. Seit der
+   Malaufgabe nur noch der Laut gezeigt wird (und das ist richtig so —
+   das Zeichen soll aus dem Kopf kommen), steht dort eben „oe", und wer
+   das in einer stillen Sekunde als „eo" liest, malt den falschen
+   Buchstaben und lernt aus der Rückmeldung das Falsche.
+
+   Es sind im ganzen Kurs genau zwei solche Paare, und beide sind in
+   derselben Sammlung aufgetaucht. Trotzdem werden sie nicht aufgezählt,
+   sondern gesucht: Kommt eine dritte Umschrift dazu, ist sie von allein
+   dabei. Ein Hinweis auf die Verwechslungsgefahr verrät auch nichts über
+   die FORM — die Aufgabe bleibt so schwer, wie sie sein soll. */
+function umschriftZwilling(roman){
+  if(!roman) return null;
+  const sortiert = (s) => String(s).toLowerCase().split('').sort().join('');
+  const meins = sortiert(roman);
+  let treffer = null;
+  COURSE.forEach(l => {
+    if(!l.letters) return;
+    l.letters.forEach(a => {
+      if(!a.roman || a.roman === roman) return;
+      if(sortiert(a.roman) === meins) treffer = a.roman;
+    });
+  });
+  return treffer;
+}
+
 function makeDrawExercise(letter, phase, idOverride){
   return {
     phase: phase || 'hangultrainer',
@@ -9172,6 +9247,14 @@ function makeDrawExercise(letter, phase, idOverride){
     prompt: letter.roman,
     promptIsKr: false,
     sub: null,
+    /* Eigenes Feld statt sub: Der Hinweis muss AUCH dann erscheinen, wenn
+       die Umschrift-Anzeige in den Einstellungen aus ist. Bei dieser
+       Übung IST die Umschrift ja die Aufgabe — sie steht so oder so da,
+       und dann muss auch die Warnung davor dastehen. */
+    hinweis: (() => {
+      const zwilling = umschriftZwilling(letter.roman);
+      return zwilling ? `nicht ${zwilling} — auf die Reihenfolge achten` : null;
+    })(),
     roman: letter.roman,
     correct: letter.ch,
     letterKind: letter.kind || null,
@@ -11397,7 +11480,8 @@ function renderExercise(){
   const card = document.createElement('div');
   card.className = 'prompt-card';
   card.innerHTML = `<div class="prompt-kr-row"><span class="prompt-kr">${ex.prompt}</span>${ex.promptIsKr ? speakBtnHtml(ex.prompt) : ''}</div>`
-    + (ex.sub ? romanHtml(ex.sub) : '');
+    + (ex.sub ? romanHtml(ex.sub) : '')
+    + (ex.hinweis ? `<div class="prompt-hinweis">${escapeHtml(ex.hinweis)}</div>` : '');
   area.appendChild(card);
   if(ex.kind === 'mc'){
     const opts = document.createElement('div');
