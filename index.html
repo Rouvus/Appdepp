@@ -1461,8 +1461,8 @@
    öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
    statt eine leere Zeile zu zeigen.
    ========================================================= */
-const APP_VERSION = '1.19.0';
-const APP_BUILD = '828ff0d402b1';
+const APP_VERSION = '1.20.0';
+const APP_BUILD = '900c8d94f6ad';
 /* Die Felder folgen dem, was § 5 DDG (früher § 5 TMG) für ein Impressum
    verlangt — die frühere Fassung hatte nur Name, Ort und Mail, und das
    reicht nachweislich nicht:
@@ -1612,6 +1612,7 @@ function appBuildLabel(){
    will, was ihm entgeht. Bewusst nur die letzten Einträge — eine
    vollständige Chronik gehört ins Projekt-Dokument, nicht in die App. */
 const CHANGELOG = [
+  { v:'1.20.0', text:'Die Zeichenerkennung achtet jetzt darauf, dass jede Hand die Ästchen anders ansetzt — höher, tiefer, enger beieinander — und dass die zweite Senkrechte bei ㅐ ㅔ ㅖ unterschiedlich weit absteht. Gemessen an echten abgelehnten Zeichnungen, nicht an geratenen.' },
   { v:'1.19.0', text:'Die Zeichenerkennung beim Malen versteht mehr Handschriften: gemessen statt geraten, mit einem Prüfstand über tausende künstliche Handschriften. Wird eine Zeichnung trotzdem abgelehnt, hebt die App sie auf dem Gerät auf — daraus wird die Erkennung weiter verbessert.' },
   { v:'1.18.0', text:'Vorbereitet für die App-Fassung: Die App erkennt jetzt, ob sie als Webseite oder in einer App-Hülle läuft, und sagt in beiden Fällen die Wahrheit darüber, woher Aktualisierungen kommen.' },
   { v:'1.17.0', text:'Neue Lektionen kommen jetzt ohne neue App: In den Einstellungen kannst du nach ihnen suchen. Von selbst fragt die App nirgends nach — sie erinnert nur alle vier Wochen beim Starten daran.' },
@@ -5744,16 +5745,25 @@ function dehneForm(striche, faktor){
    denen der Stamm oben, unten oder beidseitig bündig mit dem
    äußersten Ästchen endet.
 
-   Betroffen sind genau die Buchstaben mit ZWEI Ästchen an einem
-   durchgehenden Stamm (ㅑ ㅕ ㅒ ㅖ) — dort ist die Lage der Ästchen
-   im Stamm mehrdeutig. Bei einem einzelnen Ästchen (ㅏ ㅓ ㅐ ㅔ) sitzt
-   es ohnehin auf halber Höhe; dort wird nichts hinzugefügt, damit
-   ㅔ dem ㅖ nicht die Zeichnung wegschnappt. Die Erkennung der Fälle
+   Anfangs galt das NUR für Buchstaben mit zwei Ästchen (ㅑ ㅕ ㅒ ㅖ),
+   in der Annahme, bei einem einzelnen Ästchen (ㅏ ㅓ ㅐ ㅔ) sitze es
+   ohnehin auf halber Höhe — und ㅔ solle dem ㅖ nicht die Zeichnung
+   wegschnappen. Gemessen am 30.08.2026 war genau das Gegenteil der
+   Fall: Weil ㅔ ohne Zweitformen mit fünf Vorlagen antrat und ㅖ mit
+   fünfundzwanzig, hat ㅖ dem ㅔ die Zeichnungen weggeschnappt — jedes
+   ㅔ, dessen Ästchen nicht genau auf halber Höhe saß, wurde als ㅖ
+   gelesen. Die Sparsamkeit war also keine Vorsicht, sondern eine
+   einseitige Bevorzugung. Seit es den Abschlag für gebogene Vorlagen
+   gibt (s. RABATT_BUENDIG), darf jeder Buchstabe mit Ästchen seine
+   Zweitformen haben, und es entscheidet wieder die Form. Die Erkennung der Fälle
    passiert unten aus der Form selbst, nicht über eine Namensliste:
    Ein Ästchen ist ein waagerechter Strich, der an einem Ende auf
    einem Stamm sitzt und am anderen frei endet — daran scheitert
    z. B. ㅂ, dessen Querstriche beidseitig angebunden sind. */
-function stammBuendig(form, obenBuendig, untenBuendig, alleStaemme){
+/* Zerlegt eine Form in Stämme und Ästchen — die gemeinsame Grundlage
+   von stammBuendig und aesteVerschieben. Beide Zweitformen-Familien
+   brauchen dieselbe Frage beantwortet: Was ist hier Stamm, was Ästchen? */
+function astTeile(form){
   const striche = form.filter(s => typeof s !== 'string');
   if(striche.length !== form.length) return null;   // Kreise: kein Stamm
   let yMin = Infinity, yMax = -Infinity;
@@ -5776,7 +5786,7 @@ function stammBuendig(form, obenBuendig, untenBuendig, alleStaemme){
     if(Math.abs(b[1] - a[1]) > 0.12 * hoehe) return false;      // muss waagerecht sein
     return aufStamm(a) !== aufStamm(b);                        // genau ein Ende angebunden
   });
-  if(aeste.length < 2) return null;
+  if(!aeste.length) return null;
 
   /* NUR der Stamm, an dem die Ästchen wirklich hängen, wird gekürzt.
      Nicht jeder senkrechte Strich ist dieser Stamm: ㅒ und ㅖ haben
@@ -5788,10 +5798,27 @@ function stammBuendig(form, obenBuendig, untenBuendig, alleStaemme){
      dieser verunglückten ㅒ-Zweitform passte als zur eigenen Vorlage.
      Die zweite Senkrechte behält deshalb ihre volle Länge. */
   const haengtAn = (st, ast) => enden(ast).some(p => Math.abs(st[0][0] - p[0]) < 0.06);
-  const mitAst = staemme.filter(st => aeste.filter(a => haengtAn(st, a)).length >= 2);
+  const mitAst = staemme.filter(st => aeste.some(a => haengtAn(st, a)));
   if(!mitAst.length) return null;
-  const traeger = alleStaemme ? staemme : mitAst;
 
+  return { striche, staemme, aeste, mitAst, yMin, yMax };
+}
+
+function stammBuendig(form, obenBuendig, untenBuendig, alleStaemme){
+  const teile = astTeile(form);
+  if(!teile) return null;
+  const { staemme, aeste, mitAst, yMin, yMax } = teile;
+  /* Nur bei ZWEI Ästchen an einem Stamm. Bei einem einzigen wäre das
+     Ergebnis entartet: Ein ㅏ, dessen Stamm bündig am Ästchen endet, ist
+     ein L — also ein ㄴ. Am 30.08.2026 einmal versuchsweise erlaubt und
+     sofort gemessen: ㄴ wurde in 16 von 40 Fällen als ㅏ gelesen.
+     Buchstaben mit einem Ästchen (ㅏ ㅓ ㅐ ㅔ) brauchen das auch nicht —
+     für sie gibt es die verschobenen Ästchen-Vorlagen, die dasselbe
+     Bedürfnis abdecken, ohne die Form zu entstellen. */
+  if(aeste.length < 2) return null;
+  const traeger = alleStaemme ? staemme : mitAst;
+  const haengtAn = (st, ast) => [ast[0], ast[ast.length - 1]]
+    .some(p => Math.abs(st[0][0] - p[0]) < 0.06);
   const eigene = aeste.filter(a => mitAst.some(st => haengtAn(st, a)));
   const astOben = Math.min(...eigene.map(s => s[0][1]));
   const astUnten = Math.max(...eigene.map(s => s[0][1]));
@@ -5799,6 +5826,86 @@ function stammBuendig(form, obenBuendig, untenBuendig, alleStaemme){
   const bis = untenBuendig ? astUnten : yMax;
   return form.map(s => traeger.indexOf(s) >= 0
     ? s.map(([x, y]) => [x, Math.min(bis, Math.max(von, y))])
+    : s);
+}
+
+/* Zweitformen: Ästchen höher oder tiefer, enger oder weiter.
+
+   Anlass sind SECHS ECHTE Zeichnungen (30.08.2026, aus der Sammlung
+   abgelehnter Malversuche — dem ersten Mal, dass hier an echter
+   Handschrift gemessen wurde statt an ausgedachter). Alle sechs zeigen
+   dieselbe Gewohnheit:
+
+     ㅔ — Ästchen auf 30 % und 33 % der Stammhöhe (Vorlage: 50 %)
+     ㅕ — Ästchen auf 24 % und 51 % bzw. 23 % und 43 % (Vorlage: 34/66 %)
+
+   Es waren also keine schlechten Zeichnungen. Es war eine Handschrift,
+   die die Ästchen weiter oben ansetzt und bei ㅕ enger zusammenlegt —
+   für ein menschliches Auge zweifelsfrei ㅔ und ㅕ, für den Erkenner
+   ㅖ, ㅙ, ㅞ, ㅓ und ㅟ.
+
+   WO am Stamm die Ästchen sitzen und WIE WEIT sie auseinanderliegen, ist
+   damit dasselbe wie die Strichlänge und die Proportion vorher: eine
+   Eigenheit der Hand, kein Fehler. Also bekommt sie dieselbe Antwort wie
+   diese — zusätzliche Vorlagen, gegen die mitverglichen wird, jede mit
+   dem Abschlag fürs Verbiegen.
+
+   Verschoben werden nur die Ästchen, nicht der Stamm; und sie bleiben
+   innerhalb des Stammes, weil ein Ästchen, das über sein Ende
+   hinausrutscht, kein Ästchen mehr wäre. */
+const AST_VERSCHIEBUNGEN = [-0.16, 0, 0.16];   // Anteil der Stammhöhe
+const AST_SPREIZUNGEN = [0.55, 1, 1.45];       // Abstand der Ästchen zueinander
+
+function aesteVerschieben(form, verschiebung, spreizung){
+  const teile = astTeile(form);
+  if(!teile) return null;
+  const { aeste, mitAst } = teile;
+  if(spreizung !== 1 && aeste.length < 2) return null;   // ein Ästchen hat keinen Abstand
+  let sMin = Infinity, sMax = -Infinity;
+  mitAst.forEach(s => s.forEach(([, y]) => {
+    if(y < sMin) sMin = y;
+    if(y > sMax) sMax = y;
+  }));
+  const stammHoehe = sMax - sMin;
+  if(stammHoehe <= 0) return null;
+  const lagen = aeste.map(s => s[0][1]);
+  const mitte = (Math.min(...lagen) + Math.max(...lagen)) / 2;
+  const rand = 0.03 * stammHoehe;
+  const versetzt = new Map();
+  aeste.forEach(s => {
+    const alt = s[0][1];
+    const roh = mitte + verschiebung * stammHoehe + (alt - mitte) * spreizung;
+    versetzt.set(s, Math.min(sMax - rand, Math.max(sMin + rand, roh)) - alt);
+  });
+  return form.map(s => versetzt.has(s)
+    ? s.map(([x, y]) => [x, y + versetzt.get(s)])
+    : s);
+}
+
+/* Zweitformen: die freistehende Senkrechte näher oder weiter weg.
+
+   Auch das kommt aus denselben sechs echten Zeichnungen (30.08.2026).
+   Alle drei ㅔ darin haben ihre beiden Senkrechten 0,10 bis 0,18
+   auseinander, die Vorlage 0,32 — bei gleich langem Ästchen. Die
+   Proportionen-Vorlagen helfen dagegen nicht: Sie dehnen die GANZE Form
+   in der Breite, und damit wandert das Ästchen genauso mit wie die
+   Senkrechte. Das Verhältnis von Ästchenlänge zu Senkrechten-Abstand
+   bleibt dabei unverändert — und genau dieses Verhältnis war anders.
+
+   Verschoben wird nur, was frei steht: die zweite Senkrechte von ㅐ ㅔ ㅒ
+   ㅖ ㅚ ㅟ, an der kein Ästchen hängt. Der Stamm mit den Ästchen bleibt,
+   wo er ist, sonst würde das Ästchen von ihm abreißen. */
+const STAMM_ABSTAENDE = [0.5, 1, 1.45];
+
+function stammAbstand(form, faktor){
+  const teile = astTeile(form);
+  if(!teile) return null;
+  const { staemme, mitAst } = teile;
+  const frei = staemme.filter(s => mitAst.indexOf(s) < 0);
+  if(!frei.length) return null;
+  const cx = mitAst[0][0][0];
+  return form.map(s => frei.indexOf(s) >= 0
+    ? s.map(([x, y]) => [cx + (x - cx) * faktor, y])
     : s);
 }
 
@@ -5822,6 +5929,16 @@ function stammBuendig(form, obenBuendig, untenBuendig, alleStaemme){
    Zweitformen ja. */
 const RABATT_BUENDIG = 0.030;      // je Stufe: Stamm gekürzt / alle Stämme gekürzt
 const RABATT_PROPORTION = 0.045;   // mal |ln(Streckfaktor)|
+const RABATT_AST_LAGE = 0.10;      // mal Verschiebung der Ästchen (Anteil Stammhöhe)
+const RABATT_AST_ABSTAND = 0.035;  // mal |ln(Spreizung)|
+const RABATT_STAMM_ABSTAND = 0.055;// mal |ln(Abstandsfaktor)|
+
+/* Die verschobenen Ästchen-Formen bekommen nur drei statt fünf
+   Proportionen. Sonst vervielfachen sich die Vorlagen: Ein ㅖ käme auf
+   über siebzig, und jede kostet beim ersten Aufruf Rechenzeit und
+   dauerhaft Speicher — auf einem Telefon beides knapp. Drei decken den
+   Bereich ab, die Feinabstufung leistet ohnehin die Weichzeichnung. */
+const PROPORTIONEN_KURZ = [0.75, 1, 1.4];
 
 let jamoVorlagen = null;
 function vorlagen(){
@@ -5831,7 +5948,7 @@ function vorlagen(){
     const grund = formZuStrichen(JAMO_FORMEN[ch]);
     /* stufe = wie stark gebogen: 0 Grundform, 1 der tragende Stamm
        gekürzt, 2 alle Stämme gekürzt. */
-    const formen = [{ striche: grund, stufe: 0 }];
+    const formen = [{ striche: grund, rabatt: 1, proportionen: PROPORTIONEN }];
     /* Nur EINE Seite bündig. Beidseitig bündig schrumpft den Stamm auf
        den Abstand der Ästchen zusammen — das Ergebnis ist so klein und
        so gedrungen, dass es nach der Normierung anderen Buchstaben
@@ -5840,14 +5957,34 @@ function vorlagen(){
     [[true, false], [false, true]].forEach(([o, u]) => {
       [false, true].forEach((alle, i) => {
         const v = stammBuendig(grund, o, u, alle);
-        if(v) formen.push({ striche: v, stufe: i + 1 });
+        if(v) formen.push({ striche: v, rabatt: 1 - RABATT_BUENDIG * (i + 1),
+                            proportionen: PROPORTIONEN });
       });
     });
+    /* Freistehende Senkrechte näher/weiter (s. STAMM_ABSTAENDE). */
+    STAMM_ABSTAENDE.forEach(fa => {
+      if(fa === 1) return;
+      const v = stammAbstand(grund, fa);
+      if(v) formen.push({
+        striche: v,
+        rabatt: 1 - RABATT_STAMM_ABSTAND * Math.abs(Math.log(fa)),
+        proportionen: PROPORTIONEN_KURZ
+      });
+    });
+    /* Ästchen höher/tiefer und enger/weiter (s. AST_VERSCHIEBUNGEN). */
+    AST_VERSCHIEBUNGEN.forEach(dy => AST_SPREIZUNGEN.forEach(sp => {
+      if(dy === 0 && sp === 1) return;                  // das ist die Grundform
+      const v = aesteVerschieben(grund, dy, sp);
+      if(v) formen.push({
+        striche: v,
+        rabatt: 1 - RABATT_AST_LAGE * Math.abs(dy) - RABATT_AST_ABSTAND * Math.abs(Math.log(sp)),
+        proportionen: PROPORTIONEN_KURZ
+      });
+    }));
     jamoVorlagen[ch] = [];
-    formen.forEach(f0 => PROPORTIONEN.forEach(f => jamoVorlagen[ch].push({
+    formen.forEach(f0 => f0.proportionen.forEach(f => jamoVorlagen[ch].push({
       raster: rasterAus(normiereStriche(dehneForm(f0.striche, f))),
-      rabatt: (1 - RABATT_BUENDIG * f0.stufe)
-            * (1 - RABATT_PROPORTION * Math.abs(Math.log(f)))
+      rabatt: f0.rabatt * (1 - RABATT_PROPORTION * Math.abs(Math.log(f)))
     })));
   });
   return jamoVorlagen;
@@ -5861,8 +5998,8 @@ function erkenneJamo(striche){
   const meins = rasterAus(normiereStriche(gefiltert));
   const v = vorlagen();
   return Object.keys(v)
-    .map(ch => ({ ch, wert: v[ch].reduce((best, vor) =>
-      Math.max(best, kosinus(meins, vor.raster) * vor.rabatt), 0) }))
+    .map(ch => ({ ch, wert: v[ch].reduce((best, vor) => Math.max(best,
+      kosinus(meins, vor.raster) * vor.rabatt), 0) }))
     .sort((a, b) => b.wert - a.wert);
 }
 
