@@ -1461,12 +1461,36 @@
    öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
    statt eine leere Zeile zu zeigen.
    ========================================================= */
-const APP_VERSION = '1.17.0';
-const APP_BUILD = 'dc4ad9fc887e';
+const APP_VERSION = '1.18.0';
+const APP_BUILD = '6835a7fcdcf3';
+/* Die Felder folgen dem, was § 5 DDG (früher § 5 TMG) für ein Impressum
+   verlangt — die frühere Fassung hatte nur Name, Ort und Mail, und das
+   reicht nachweislich nicht:
+
+     * Eine LADUNGSFÄHIGE ANSCHRIFT heißt Straße und Hausnummer. Ein
+       Postfach genügt ausdrücklich nicht, ein bloßer Ortsname erst recht.
+     * Verlangt sind ZWEI Wege der Kontaktaufnahme, und der zweite muss
+       „unmittelbar" sein — eine Telefonnummer erfüllt das sicher, ein
+       Rückrufformular je nach Auslegung. Eine Mailadresse allein nicht.
+     * Bei redaktionellen Inhalten kommt § 18 Abs. 2 MStV dazu: ein
+       Verantwortlicher mit Namen und Anschrift. Die Kulturrollen und die
+       Grammatik-Erklärungen sind redaktioneller Inhalt.
+
+   Leer lassen ist erlaubt, solange die App nicht öffentlich erreichbar
+   ist — sie sagt dann offen, dass hier nichts steht, statt eine leere
+   Zeile zu zeigen. Sobald sie öffentlich liegt, gehört das ausgefüllt.
+   Näheres in claude/rechte-durchsicht.md. */
 const APP_CONTACT = {
-  name: '',                 // z. B. 'Vorname Nachname'
-  ort: '',                  // z. B. 'Musterstadt' (nur wenn du ein Impressum führst)
-  mail: '',                 // z. B. 'ich@example.org' — auch für "Problem melden"
+  name: '',                 // Vor- und Nachname; bei Firmen Name + Rechtsform
+  strasse: '',              // 'Musterweg 12' — Postfach genügt NICHT
+  plz: '',                  // '12345'
+  ort: '',                  // 'Musterstadt'
+  land: '',                 // nur ausfüllen, wenn nicht Deutschland
+  mail: '',                 // Pflicht; wird auch für „Problem melden" benutzt
+  zweiterWeg: '',           // Pflicht: zweiter, unmittelbarer Weg — z. B.
+                            // 'Telefon: +49 30 123456'
+  ustId: '',                // nur falls vorhanden ('DE123456789')
+  verantwortlich: '',       // § 18 Abs. 2 MStV; leer = wie 'name' oben
 };
 
 /* Der vollständige Lizenztext der mitgelieferten Schrift.
@@ -1584,6 +1608,7 @@ function appBuildLabel(){
    will, was ihm entgeht. Bewusst nur die letzten Einträge — eine
    vollständige Chronik gehört ins Projekt-Dokument, nicht in die App. */
 const CHANGELOG = [
+  { v:'1.18.0', text:'Vorbereitet für die App-Fassung: Die App erkennt jetzt, ob sie als Webseite oder in einer App-Hülle läuft, und sagt in beiden Fällen die Wahrheit darüber, woher Aktualisierungen kommen.' },
   { v:'1.17.0', text:'Neue Lektionen kommen jetzt ohne neue App: In den Einstellungen kannst du nach ihnen suchen. Von selbst fragt die App nirgends nach — sie erinnert nur alle vier Wochen beim Starten daran.' },
   { v:'1.16.0', text:'Die App kennt jetzt ihren Kursstand und liefert den Inhalt zusätzlich als reine Daten mit — die Grundlage dafür, dass neue Lektionen später ohne neues Programm nachkommen können.' },
   { v:'1.15.0', text:'Eine ganz gemeisterte Einheit wird abgestempelt: der rote Abdruck 완료, klein und schief, irgendwo auf ihrem Zähler — bei jeder Einheit anders, aber immer an derselben Stelle.' },
@@ -4643,6 +4668,45 @@ const KURS_STAND = {"nummer": 1, "datum": "2026-08-28", "pruefsumme": "6a762403a
    der Inhaltsblock von `const` auf `let` umgeschrieben werden, und die
    Inhaltsdatei würde damit um einer Programmfrage willen angefasst.
    ========================================================= */
+/* Läuft die App in einer nativen Hülle (Capacitor)?
+
+   Wichtig für zwei Entscheidungen weiter unten, und wichtig genug, sie
+   an EINER Stelle zu treffen. Capacitor legt ein globales Objekt an; die
+   Abfrage ist absichtlich defensiv, weil ihre Gestalt sich zwischen
+   Fassungen geändert hat und ein Fehler hier die ganze App aufhielte. */
+function nativeHuelle(){
+  try{
+    const c = window.Capacitor;
+    if(!c) return false;
+    return typeof c.isNativePlatform === 'function' ? c.isNativePlatform() : !!c.isNative;
+  }catch(e){ return false; }
+}
+/* Woher der Kurs nachgeladen wird.
+
+   LEER heißt: neben der App selbst. Das ist in der PWA genau richtig —
+   dort liegt kurs.json neben index.html, und eine relative Anfrage findet
+   sie.
+
+   In der nativen Hülle wäre es falsch: Dort liegt kurs.json MIT IM PAKET,
+   eine relative Anfrage fände also ewig die eingebaute Fassung und die
+   App meldete für immer „dein Kurs ist aktuell". Für die Store-Fassung
+   gehört hier die absolute Adresse hin, unter der die veröffentlichte
+   kurs.json liegt, mit Schrägstrich am Ende:
+
+       const KURS_QUELLE = 'https://beispiel.de/appdepp/';
+
+   Sie steht dann in einer Fassung, die im Store liegt und sich nicht mal
+   eben ändern lässt — deshalb bewusst wählen, nicht schnell eintragen. */
+const KURS_QUELLE = '';
+
+/* Alle drei stehen hier oben und nicht bei den Funktionen, die sie
+   brauchen: Der Startlauf und das Zeichnen der Einstellungen rufen
+   jene Funktionen auf, bevor der Programmtext bei ihrer eigenen
+   Stelle angekommen ist. Funktionen werden vorgezogen, `const`
+   nicht. Genau dieser Fehler ist hier schon zweimal aufgetreten —
+   beim ersten Mal fiel er nur auf, weil der Rauchtest die App auch
+   über eine Adresse öffnet, beim zweiten Mal, weil er die
+   Einstellungen mitten im Zurücksetzen zeichnet. */
 const KURS_SPEICHER = 'koreanKursInhalt_v1';
 /* Steht hier oben und nicht unten bei kursErinnerungVielleicht(),
    obwohl er nur dort gebraucht wird: Der Startlauf ruft diese
@@ -5964,11 +6028,24 @@ function courseFacts(){
    genau das soll dort auch stehen, nachprüfbar formuliert. */
 function legalHtml(){
   const k = APP_CONTACT;
+  /* Nur ausfüllen, was da ist — eine Zeile „ , " für eine fehlende PLZ
+     sähe schlimmer aus als gar keine Adresse. */
+  const zeile = (...teile) => teile.filter(Boolean).join(' ');
   const kontakt = (k.name || k.mail)
-    ? `<p>${k.name ? k.name + '<br>' : ''}${k.ort ? k.ort + '<br>' : ''}`
-      + `${k.mail ? '<a href="mailto:' + k.mail + '">' + k.mail + '</a>' : ''}</p>`
-    : '<p><em>Noch nicht ausgefüllt. Wer die App öffentlich bereitstellt, trägt Name und '
-      + 'Kontakt in <code>APP_CONTACT</code> am Anfang der Datei ein.</em></p>';
+    ? '<p>' + [
+        escapeHtml(k.name),
+        escapeHtml(zeile(k.strasse)),
+        escapeHtml(zeile(k.plz, k.ort)),
+        escapeHtml(k.land),
+        k.mail ? `<a href="mailto:${escapeAttr(k.mail)}">${escapeHtml(k.mail)}</a>` : '',
+        escapeHtml(k.zweiterWeg),
+        k.ustId ? 'USt-IdNr.: ' + escapeHtml(k.ustId) : '',
+        k.verantwortlich && k.verantwortlich !== k.name
+          ? 'Verantwortlich nach § 18 Abs. 2 MStV: ' + escapeHtml(k.verantwortlich) : ''
+      ].filter(Boolean).join('<br>') + '</p>'
+    : '<p><em>Noch nicht ausgefüllt. Wer die App öffentlich bereitstellt, trägt Name, '
+      + 'vollständige Anschrift und zwei Kontaktwege in <code>APP_CONTACT</code> am Anfang '
+      + 'der Datei ein.</em></p>';
   return `<div class="legal-box">
     <h4>Deine Daten</h4>
     <p>Diese App hat keine Konten, keine Anmeldung und keine Auswertung. Dein gesamter
@@ -12400,9 +12477,15 @@ async function serverBuild(){
 async function checkForUpdate(stillePruefung){
   if(!updatesMoeglich()){
     if(!stillePruefung) showChoiceDialog({
-      title:'Keine Aktualisierung möglich',
-      message:'Diese App läuft gerade als einzelne Datei und nicht über eine Adresse. '
-        + 'Eine neue Fassung bekommst du hier nur, indem du die Datei ersetzt.',
+      title: nativeHuelle() ? 'Aktualisierung über den Store' : 'Keine Aktualisierung möglich',
+      /* In der nativen Hülle gibt es keinen Service Worker — das Programm
+         kommt dort aus dem Store. Die alte Meldung („läuft als einzelne
+         Datei") wäre dort schlicht gelogen. */
+      message: nativeHuelle()
+        ? 'Neue Fassungen dieser App bekommst du über den App Store deines Geräts. '
+          + 'Neue Lektionen kommen unabhängig davon — dafür gibt es den Knopf darunter.'
+        : 'Diese App läuft gerade als einzelne Datei und nicht über eine Adresse. '
+          + 'Eine neue Fassung bekommst du hier nur, indem du die Datei ersetzt.',
       buttons:[{ label:'Verstanden', className:'btn-primary' }]
     });
     return;
@@ -12497,7 +12580,17 @@ async function applyUpdateAndReload(reg, erwartet){
    ist ihre Frage neu und will einmal beantwortet werden. Das ist ehrlich
    so gewollt: Der Zähler zeigt dann 221/223 und lädt ein, das Neue
    nachzuholen. */
-function kursSucheMoeglich(){ return location.protocol.startsWith('http'); }
+/* Kann überhaupt nach neuem Inhalt gesucht werden?
+
+   Früher stand hier nur `location.protocol.startsWith('http')`. In der
+   nativen Hülle ist das auf iOS `capacitor://localhost` (falsch) und auf
+   Android `http://localhost` (wahr) — dieselbe Fassung hätte sich auf den
+   beiden Systemen verschieden verhalten, und auf dem iPhone wäre die
+   Suche stillschweigend abgeschaltet gewesen. Entscheidend ist nicht das
+   Protokoll, sondern ob es eine Bezugsquelle gibt. */
+function kursSucheMoeglich(){
+  return !!KURS_QUELLE || (!nativeHuelle() && location.protocol.startsWith('http'));
+}
 function kursstandSatz(st){
   return `Stand ${st.nummer} vom ${new Date(st.datum + 'T00:00:00').toLocaleDateString('de-DE')}`;
 }
@@ -12517,7 +12610,7 @@ function kursSucheSatz(){
    zurück (der Service Worker bedient diese eine Datei deshalb auch
    zuerst aus dem Netz). */
 async function kursPaketHolen(){
-  const res = await fetch('kurs.json?stand=' + Date.now(), { cache:'no-store' });
+  const res = await fetch(KURS_QUELLE + 'kurs.json?stand=' + Date.now(), { cache:'no-store' });
   if(!res.ok) throw new Error('HTTP ' + res.status);
   return res.json();
 }
@@ -12525,8 +12618,11 @@ async function kursAbgleich(){
   if(!kursSucheMoeglich()){
     showChoiceDialog({
       title:'Keine Suche möglich',
-      message:'Diese App läuft gerade als einzelne Datei und nicht über eine Adresse. '
-        + 'Neue Lektionen bekommst du hier nur, indem du die Datei ersetzt.',
+      message: nativeHuelle()
+        ? 'In dieser Fassung ist keine Bezugsadresse für neue Lektionen hinterlegt. '
+          + 'Sie kommen dann mit der nächsten Aktualisierung der App aus dem Store.'
+        : 'Diese App läuft gerade als einzelne Datei und nicht über eine Adresse. '
+          + 'Neue Lektionen bekommst du hier nur, indem du die Datei ersetzt.',
       buttons:[{ label:'Verstanden', className:'btn-primary' }]
     });
     return;
