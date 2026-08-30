@@ -1467,8 +1467,8 @@
    öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
    statt eine leere Zeile zu zeigen.
    ========================================================= */
-const APP_VERSION = '1.21.0';
-const APP_BUILD = 'b7cb99302ecc';
+const APP_VERSION = '1.22.0';
+const APP_BUILD = 'd49363fa4be3';
 /* Die Felder folgen dem, was § 5 DDG (früher § 5 TMG) für ein Impressum
    verlangt — die frühere Fassung hatte nur Name, Ort und Mail, und das
    reicht nachweislich nicht:
@@ -1618,6 +1618,7 @@ function appBuildLabel(){
    will, was ihm entgeht. Bewusst nur die letzten Einträge — eine
    vollständige Chronik gehört ins Projekt-Dokument, nicht in die App. */
 const CHANGELOG = [
+  { v:'1.22.0', text:'Wieder an echten Zeichnungen nachgemessen: Der innere Querstrich von ㅌ darf höher sitzen, der Stiel von ㅗ ㅜ ㅛ ㅠ muss nicht mittig auf dem Balken stehen. Und die Malaufgabe warnt jetzt vor allen drei Lautpaaren, die sich beim flüchtigen Lesen ähneln — oe/eo, ui/wi, yo/yu.' },
   { v:'1.21.0', text:'Doppelkonsonanten (ㄲ ㄸ ㅃ ㅆ ㅉ) werden auch erkannt, wenn beide Hälften dicht beieinander stehen. Und beim Zeichenmalen warnt die Aufgabe jetzt vor Umschriften, die sich nur in der Reihenfolge unterscheiden — „oe" ist nicht „eo".' },
   { v:'1.20.0', text:'Die Zeichenerkennung achtet jetzt darauf, dass jede Hand die Ästchen anders ansetzt — höher, tiefer, enger beieinander — und dass die zweite Senkrechte bei ㅐ ㅔ ㅖ unterschiedlich weit absteht. Gemessen an echten abgelehnten Zeichnungen, nicht an geratenen.' },
   { v:'1.19.0', text:'Die Zeichenerkennung beim Malen versteht mehr Handschriften: gemessen statt geraten, mit einem Prüfstand über tausende künstliche Handschriften. Wird eine Zeichnung trotzdem abgelehnt, hebt die App sie auf dem Gerät auf — daraus wird die Erkennung weiter verbessert.' },
@@ -5942,6 +5943,87 @@ function stammAbstand(form, faktor){
     : s);
 }
 
+/* Zweitformen: innenliegende Querstriche höher oder tiefer.
+
+   Das ist dieselbe Eigenheit wie bei den Ästchen, nur an Buchstaben, die
+   gar keinen Stamm haben. Beim ㅌ liegt der mittlere Querstrich in der
+   Vorlage genau auf halber Höhe; in einer echten Zeichnung vom
+   30.08.2026 saß er auf 36 % — und ㅌ wurde als ㄷ gelesen, weil der
+   Balken zu weit oben klebte, um noch als „Mitte" zu zählen.
+
+   Bewegt werden nur Querstriche, die WEDER der oberste NOCH der unterste
+   sind. Der oberste und der unterste bilden den Rahmen des Zeichens; wer
+   die verschiebt, ändert nicht die Handschrift, sondern den Buchstaben.
+   Betroffen sind damit von allein ㅌ, ㅂ, ㅊ und ㅎ — ㅍ zum Beispiel
+   nicht, dessen beide Balken ja Rahmen sind. */
+const QUER_VERSCHIEBUNGEN = [-0.14, 0, 0.14];   // Anteil der Zeichenhöhe
+
+function querVerschieben(form, anteil){
+  const striche = form.filter(s => typeof s !== 'string');
+  if(striche.length !== form.length) return null;
+  let yMin = Infinity, yMax = -Infinity;
+  striche.forEach(s => s.forEach(([, y]) => {
+    if(y < yMin) yMin = y;
+    if(y > yMax) yMax = y;
+  }));
+  const hoehe = yMax - yMin;
+  if(hoehe <= 0) return null;
+
+  const quer = striche.filter(s => {
+    let x1 = Infinity, x2 = -Infinity, y1 = Infinity, y2 = -Infinity;
+    s.forEach(([x, y]) => {
+      if(x < x1) x1 = x; if(x > x2) x2 = x;
+      if(y < y1) y1 = y; if(y > y2) y2 = y;
+    });
+    if(y2 - y1 > 0.10 * hoehe) return false;          // muss waagerecht sein
+    if(x2 - x1 < 0.25) return false;                  // und ein Balken, kein Tupfer
+    const m = (y1 + y2) / 2;
+    return m > yMin + 0.12 * hoehe && m < yMax - 0.12 * hoehe;   // innenliegend
+  });
+  if(!quer.length) return null;
+  const d = anteil * hoehe;
+  return form.map(s => quer.indexOf(s) >= 0 ? s.map(([x, y]) => [x, y + d]) : s);
+}
+
+/* Zweitformen: der Stiel sitzt nicht genau in der Mitte des Balkens.
+
+   ㅗ ㅜ ㅛ ㅠ bestehen aus einem langen Balken und einem kurzen Stiel
+   senkrecht darauf. In der Vorlage steht der Stiel exakt mittig. In einer
+   echten Zeichnung vom 30.08.2026 stand er bei 64 % der Balkenlänge —
+   und das ㅜ wurde als ㄱ gelesen, also als der Buchstabe, bei dem der
+   Abstrich ganz am Ende sitzt.
+
+   Verschoben werden alle Stiele gemeinsam und höchstens um 15 % der
+   Balkenlänge. Weiter wäre gefährlich: Ein ㅜ, dessen Stiel am Rand
+   klebt, IST optisch ein ㄱ, und die Vorlage finge an, dem ㄱ die
+   Zeichnungen wegzunehmen. */
+const STIEL_VERSCHIEBUNGEN = [-0.15, 0, 0.15];   // Anteil der Balkenlänge
+
+function stielVerschieben(form, anteil){
+  const striche = form.filter(s => typeof s !== 'string');
+  if(striche.length !== form.length) return null;
+  const masse = striche.map(s => {
+    let x1 = Infinity, x2 = -Infinity, y1 = Infinity, y2 = -Infinity;
+    s.forEach(([x, y]) => {
+      if(x < x1) x1 = x; if(x > x2) x2 = x;
+      if(y < y1) y1 = y; if(y > y2) y2 = y;
+    });
+    return { s, x1, x2, y1, y2 };
+  });
+  const balken = masse.filter(m => (m.y2 - m.y1) < 0.10 && (m.x2 - m.x1) > 0.5);
+  if(balken.length !== 1) return null;
+  const b = balken[0];
+  const stiele = masse.filter(m => m !== b
+    && (m.x2 - m.x1) < 0.10                                   // senkrecht
+    && Math.min(Math.abs(m.y1 - b.y1), Math.abs(m.y2 - b.y2)) < 0.06   // sitzt auf dem Balken
+    && m.x1 > b.x1 + 0.05 && m.x2 < b.x2 - 0.05);             // und zwar innen
+  if(!stiele.length || stiele.length + 1 !== masse.length) return null;
+  const d = anteil * (b.x2 - b.x1);
+  return form.map(s => stiele.some(m => m.s === s)
+    ? s.map(([x, y]) => [x + d, y])
+    : s);
+}
+
 /* Abschlag für gebogene Vorlagen.
 
    Anlass (30.08.2026, gemessen): ㅒ und ㅖ treten mit 25 Vorlagen an
@@ -5966,6 +6048,8 @@ const RABATT_AST_LAGE = 0.10;      // mal Verschiebung der Ästchen (Anteil Stam
 const RABATT_AST_ABSTAND = 0.035;  // mal |ln(Spreizung)|
 const RABATT_STAMM_ABSTAND = 0.055;// mal |ln(Abstandsfaktor)|
 const RABATT_DOPPEL_ABSTAND = 0.055;// mal |ln(Abstandsverhältnis)| bei ㄲ ㄸ ㅃ ㅆ ㅉ
+const RABATT_QUER_LAGE = 0.10;     // mal Verschiebung des inneren Querstrichs
+const RABATT_STIEL_LAGE = 0.10;    // mal Verschiebung des Stiels auf dem Balken
 
 /* Die verschobenen Ästchen-Formen bekommen nur drei statt fünf
    Proportionen. Sonst vervielfachen sich die Vorlagen: Ein ㅖ käme auf
@@ -6005,6 +6089,25 @@ function vorlagen(){
         proportionen: PROPORTIONEN_KURZ
       });
     });
+    /* Innenliegende Querstriche höher/tiefer (s. QUER_VERSCHIEBUNGEN). */
+    QUER_VERSCHIEBUNGEN.forEach(dy => {
+      if(dy === 0) return;
+      const v = querVerschieben(grund, dy);
+      if(v) formen.push({ striche: v, rabatt: 1 - RABATT_QUER_LAGE * Math.abs(dy),
+                          proportionen: PROPORTIONEN_KURZ });
+    });
+    /* Stiel nicht mittig auf dem Balken (s. STIEL_VERSCHIEBUNGEN). */
+    STIEL_VERSCHIEBUNGEN.forEach(dx => {
+      if(dx === 0) return;
+      const v = stielVerschieben(grund, dx);
+      /* Volle Proportionen, nicht die kurzen: In der echten Zeichnung war
+         der Stiel nicht nur seitlich versetzt, er war auch fast so lang
+         wie der Balken (Vorlage: halb so lang). Beides zusammen trifft
+         nur eine Vorlage, die versetzt UND schmal ist — mit der kurzen
+         Liste (bis 0,75) wäre sie gar nicht dabei. */
+      if(v) formen.push({ striche: v, rabatt: 1 - RABATT_STIEL_LAGE * Math.abs(dx),
+                          proportionen: PROPORTIONEN });
+    });
     /* Doppelkonsonanten enger/weiter aneinander (s. DOPPEL_ABSTAENDE). */
     /* Hier die VOLLEN Proportionen, nicht die kurzen: Eine echte
        Zeichnung vom 30.08.2026 war fast doppelt so breit wie hoch
@@ -6034,6 +6137,34 @@ function vorlagen(){
   return jamoVorlagen;
 }
 function kannGemaltWerden(ch){ return !!JAMO_FORMEN[ch]; }
+
+/* SACKGASSE, dreimal gemessen — bitte nicht wieder ausgraben.
+
+   Die Idee: Der Kosinus ist nachsichtig gegenüber Vorlagen, die mehr
+   oder weniger behaupten als da ist. Was nur eine Seite hat, drückt bloß
+   deren Länge im Nenner; ein Strich mehr oder weniger kostet erstaunlich
+   wenig. Und genau daran scheitern echte Zeichnungen, in BEIDEN
+   Richtungen (30.08.2026):
+
+     ㅔ verlor gegen ㅖ — die Vorlage hatte ein Ästchen ZU VIEL.
+     ㅌ verlor gegen ㄷ — die Vorlage hatte einen Querstrich ZU WENIG.
+
+   Also lag nahe, die nicht gemeinsame Tinte zu bestrafen. Drei Anläufe:
+
+     nur „Vorlage hat zu viel"     +1 echter Fall, −1,5 Punkte gesamt
+     nur „Zeichnung hat zu viel"   kippt dieselbe Ungerechtigkeit bloß um
+     beides symmetrisch            +1 echter Fall, −2,5 Punkte gesamt
+
+   Immer dasselbe Bild. Der Grund, im Nachhinein einleuchtend: Nicht
+   gemeinsame Tinte ist bei Handschrift der NORMALFALL — ein Überstand,
+   ein Schlenker, ein Ästchen, das die Senkrechte knapp verfehlt. Das
+   Maß bestraft also am zuverlässigsten das, was wir gerade verzeihen
+   wollen. Es trifft die wenigen Fälle mit einem echten Strich Unterschied
+   nur nebenbei mit.
+
+   Was stattdessen hilft, steht unten bei QUER_VERSCHIEBUNGEN und
+   STIEL_VERSCHIEBUNGEN: nicht messen, wie viel anders ist, sondern die
+   Vorlage dorthin biegen, wo die Hand sie tatsächlich hinsetzt. */
 
 /* Liefert alle Buchstaben nach Ähnlichkeit sortiert. */
 function erkenneJamo(striche){
@@ -9201,35 +9332,37 @@ function rebuildExerciseFromMistake(m){
 /* Eine Mal-Übung. Der gesuchte Buchstabe ist bekannt — deshalb prüft
    der Erkenner nur, ob das Gemalte zu IHM passt und zu keinem anderen
    besser (s. pruefeGemaltesJamo). */
-/* Zwei Umschriften, die aus DENSELBEN Buchstaben in anderer Reihenfolge
-   bestehen — „eo" und „oe", „ui" und „wi".
+/* Umschriften, die beim flüchtigen Lesen ineinander rutschen.
 
-   Anlass sind zwei echte Fehlversuche vom 30.08.2026: Gefragt war ㅚ
-   („oe"), gemalt wurde beide Male ein sauberes ㅓ („eo"). Der Erkenner
-   hatte völlig recht; die Aufgabe war nicht eindeutig genug. Seit der
-   Malaufgabe nur noch der Laut gezeigt wird (und das ist richtig so —
-   das Zeichen soll aus dem Kopf kommen), steht dort eben „oe", und wer
-   das in einer stillen Sekunde als „eo" liest, malt den falschen
-   Buchstaben und lernt aus der Rückmeldung das Falsche.
+   Anlass sind echte Fehlversuche vom 30.08.2026: Gefragt war ㅚ („oe"),
+   gemalt wurde zweimal ein sauberes ㅓ („eo"). Gefragt war ㅢ („ui"),
+   gemalt wurde ein ㅟ („wi"). Gefragt war ㅛ („yo"), gemalt wurde zweimal
+   ein ㅠ („yu"). Der Erkenner hatte jedes Mal recht; die Aufgabe war
+   nicht eindeutig genug. Seit die Malaufgabe nur den Laut zeigt (und das
+   ist richtig so — das Zeichen soll aus dem Kopf kommen), steht dort eben
+   „oe", und wer das in einer stillen Sekunde als „eo" liest, malt den
+   falschen Buchstaben und lernt aus der Rückmeldung das Falsche.
 
-   Es sind im ganzen Kurs genau zwei solche Paare, und beide sind in
-   derselben Sammlung aufgetaucht. Trotzdem werden sie nicht aufgezählt,
-   sondern gesucht: Kommt eine dritte Umschrift dazu, ist sie von allein
-   dabei. Ein Hinweis auf die Verwechslungsgefahr verrät auch nichts über
-   die FORM — die Aufgabe bleibt so schwer, wie sie sein soll. */
+   Erst stand hier eine BERECHNETE Regel: Umschriften, die aus denselben
+   Buchstaben in anderer Reihenfolge bestehen. Die fand eo/oe und sonst
+   nichts — ui/wi und yo/yu sind keine Anagramme. Jede Verallgemeinerung,
+   die auch die traf („gleich lang und in einer Stelle verschieden"),
+   warnte prompt bei ya/yo/yu/ye kreuz und quer, also bei der Hälfte der
+   Vokale. Ein Hinweis, der überall klebt, wird nicht mehr gelesen.
+
+   Deshalb steht hier jetzt eine kurze Liste statt einer klugen Regel.
+   Jedes Paar ist belegt, keines geraten. Wer ein weiteres beobachtet,
+   trägt es dazu — und schreibt dazu, wo es aufgefallen ist. */
+const UMSCHRIFT_ZWILLINGE = [
+  ['eo', 'oe'],   // ㅓ / ㅚ  — zweimal beobachtet
+  ['ui', 'wi'],   // ㅢ / ㅟ  — einmal beobachtet
+  ['yo', 'yu'],   // ㅛ / ㅠ  — zweimal beobachtet
+];
+
 function umschriftZwilling(roman){
   if(!roman) return null;
-  const sortiert = (s) => String(s).toLowerCase().split('').sort().join('');
-  const meins = sortiert(roman);
-  let treffer = null;
-  COURSE.forEach(l => {
-    if(!l.letters) return;
-    l.letters.forEach(a => {
-      if(!a.roman || a.roman === roman) return;
-      if(sortiert(a.roman) === meins) treffer = a.roman;
-    });
-  });
-  return treffer;
+  const paar = UMSCHRIFT_ZWILLINGE.find(p => p.indexOf(roman) >= 0);
+  return paar ? paar.find(r => r !== roman) : null;
 }
 
 function makeDrawExercise(letter, phase, idOverride){
@@ -9253,7 +9386,7 @@ function makeDrawExercise(letter, phase, idOverride){
        und dann muss auch die Warnung davor dastehen. */
     hinweis: (() => {
       const zwilling = umschriftZwilling(letter.roman);
-      return zwilling ? `nicht ${zwilling} — auf die Reihenfolge achten` : null;
+      return zwilling ? `nicht mit »${zwilling}« verwechseln` : null;
     })(),
     roman: letter.roman,
     correct: letter.ch,
