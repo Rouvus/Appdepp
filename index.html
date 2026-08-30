@@ -1461,8 +1461,8 @@
    öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
    statt eine leere Zeile zu zeigen.
    ========================================================= */
-const APP_VERSION = '1.18.0';
-const APP_BUILD = '6835a7fcdcf3';
+const APP_VERSION = '1.19.0';
+const APP_BUILD = '828ff0d402b1';
 /* Die Felder folgen dem, was § 5 DDG (früher § 5 TMG) für ein Impressum
    verlangt — die frühere Fassung hatte nur Name, Ort und Mail, und das
    reicht nachweislich nicht:
@@ -1481,16 +1481,20 @@ const APP_BUILD = '6835a7fcdcf3';
    Zeile zu zeigen. Sobald sie öffentlich liegt, gehört das ausgefüllt.
    Näheres in claude/rechte-durchsicht.md. */
 const APP_CONTACT = {
-  name: '',                 // Vor- und Nachname; bei Firmen Name + Rechtsform
-  strasse: '',              // 'Musterweg 12' — Postfach genügt NICHT
-  plz: '',                  // '12345'
-  ort: '',                  // 'Musterstadt'
-  land: '',                 // nur ausfüllen, wenn nicht Deutschland
-  mail: '',                 // Pflicht; wird auch für „Problem melden" benutzt
-  zweiterWeg: '',           // Pflicht: zweiter, unmittelbarer Weg — z. B.
-                            // 'Telefon: +49 30 123456'
-  ustId: '',                // nur falls vorhanden ('DE123456789')
-  verantwortlich: '',       // § 18 Abs. 2 MStV; leer = wie 'name' oben
+  name: 'Rouven Knörzer Dilo',
+  /* zusatz steht zwischen Name und Straße: 'c/o …', 'Wohnung 4b' und
+     Ähnliches. Eigenes Feld, weil so etwas in der Straßenzeile beim
+     Umbruch auf schmalen Geräten zerreißt. Leer lassen, wenn nichts
+     dazwischen gehört. */
+  zusatz: 'c/o RD&RD Verwaltungs-GmbH',
+  strasse: 'Im Hohenend 11',
+  plz: '69412',
+  ort: 'Eberbach',
+  land: '',
+  mail: 'Rouven.Knoerzer@gmx.de',
+  zweiterWeg: 'Telefon: +49 6221 411552',
+  ustId: '',
+  verantwortlich: '',
 };
 
 /* Der vollständige Lizenztext der mitgelieferten Schrift.
@@ -1608,6 +1612,7 @@ function appBuildLabel(){
    will, was ihm entgeht. Bewusst nur die letzten Einträge — eine
    vollständige Chronik gehört ins Projekt-Dokument, nicht in die App. */
 const CHANGELOG = [
+  { v:'1.19.0', text:'Die Zeichenerkennung beim Malen versteht mehr Handschriften: gemessen statt geraten, mit einem Prüfstand über tausende künstliche Handschriften. Wird eine Zeichnung trotzdem abgelehnt, hebt die App sie auf dem Gerät auf — daraus wird die Erkennung weiter verbessert.' },
   { v:'1.18.0', text:'Vorbereitet für die App-Fassung: Die App erkennt jetzt, ob sie als Webseite oder in einer App-Hülle läuft, und sagt in beiden Fällen die Wahrheit darüber, woher Aktualisierungen kommen.' },
   { v:'1.17.0', text:'Neue Lektionen kommen jetzt ohne neue App: In den Einstellungen kannst du nach ihnen suchen. Von selbst fragt die App nirgends nach — sie erinnert nur alle vier Wochen beim Starten daran.' },
   { v:'1.16.0', text:'Die App kennt jetzt ihren Kursstand und liefert den Inhalt zusätzlich als reine Daten mit — die Grundlage dafür, dass neue Lektionen später ohne neues Programm nachkommen können.' },
@@ -2157,7 +2162,7 @@ const MUENZE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100
   <!-- 常平通寶 — gelesen oben, unten, rechts, links -->
   <g fill="var(--mz-schrift, #5b3a10)">
     <g transform="translate(39.50 32.32) scale(0.02100 -0.02100)">
-      <path d="M223 825 212 817C252 783 295 722 300 672C367 622 423 767 223 825ZM176 247V-34H186C213 -34 241 -21 241 -14V218H465V-76H475C508 -76 529 -56 529 -51V218H760V65C760 52 755 46 738 46C714 46 615 53 615 53V38C659 33 685 23 699 13C712 3 718 -14 720 -33C814 -25 825 8 825 58V206C845 209 862 218 868 225L783 287L750 247H529V351H684V313H693C714 313 747 328 748 334V497C766 500 780 508 786 515L709 573L675 536H323L254 567V303H263C289 303 318 317 318 323V351H465V247H247L176 280ZM318 380V506H684V380ZM710 828C686 775 647 704 614 653H531V799C556 803 565 812 567 826L466 836V653H184C183 668 180 684 175 701H158C160 633 121 571 82 546C61 534 48 513 58 492C70 469 104 472 129 490C158 510 186 556 186 624H840C828 590 811 548 797 521L811 513C846 538 895 581 921 612C940 613 952 615 959 622L882 697L838 653H644C691 690 739 737 771 772C791 769 805 776 810 786Z"/>
+      <path d="M223 825 212 817C252 783 295 722 300 672C367 622 423 767 223 825ZM176 247V-34H186C213 -34 241 -21 241 -14V218H465V-76H475C508 -76 529 -56 529 -51V218H760V65C760 52 755 46 738 46C714 46 615 53 615 53V38C659 33 685 23 699 13C712 3 718 -14 720 -33C814 -25 825 8 825 58V206C845 209 862 218 868 225L783 287L750 247H529V351H684V313H693C714 313 747 328 748 334V497C766 500 780 508 786 515L709 573L675 536H323L254 567V303H263C289 303 318 317 318 323V351H465V247H247L176 280ZM318 380V506H684V380ZM710 828C686 775 647 704 614 653H531V799C556 803 565 812 567 826L466 836V653H184C183 668 180 684 175 701H158C160 633 121 571 82 546C61 534 48 513 58 492C70 469 104 472 129 490C158 510 186 556 186 624H840C828 590 811 548 797 521L811 513C846 538 895 581 921 612C940 613 952 615 959 622L882 697L838 653H644C691 690 739 737 771 772C790 769 805 776 810 786Z"/>
     </g>
     <g transform="translate(39.50 85.32) scale(0.02100 -0.02100)">
       <path d="M614 661 603 652C671 599 757 505 780 431C860 382 898 559 614 661ZM295 673C252 564 185 460 124 398L137 386C218 435 299 515 358 612C378 609 392 617 397 627ZM106 759 115 730H467V331H42L51 302H467V-79H477C511 -79 533 -62 533 -57V302H931C946 302 956 306 958 317C922 350 864 394 864 394L812 331H533V730H875C889 730 899 735 901 746C866 778 807 823 807 823L755 759Z"/>
@@ -2770,7 +2775,7 @@ const ERLEDIGT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 1
   <!-- 완료 — erhaben geschnitten (양각), also in der Farbe der Paste. -->
   <g fill="url(#er-paste)">
     <g transform="translate(17.75 62.60) scale(0.03000 -0.03000)">
-      <path d="M473 590C473 517 412 472 333 472C254 472 193 517 193 590C193 664 254 709 333 709C412 709 473 664 473 590ZM546 590C546 691 453 760 333 760C213 760 120 691 120 590C120 500 196 435 299 424V304C237 299 180 295 136 294C104 293 65 297 34 303L27 290C25 285 26 283 30 279C55 259 90 237 123 223C141 230 180 238 200 240C326 249 566 285 685 314V298C685 252 686 165 690 125H732C747 175 756 253 756 323V423L929 426C936 426 944 428 948 431C955 436 961 449 960 467C960 475 954 481 946 484C928 488 887 490 858 489L826 470L756 467V755L758 807C758 817 755 824 746 827C718 839 655 852 619 853C611 853 609 851 608 848L600 824C635 812 667 794 685 773V351C606 336 484 321 368 310V424C471 436 546 500 546 590ZM350 41V91L351 135C351 146 347 152 337 154C312 160 255 163 222 163C216 163 212 161 211 157L206 135C233 129 261 119 277 106V-3C277 -58 300 -80 366 -80L807 -77C812 -77 817 -76 820 -73C825 -69 831 -56 831 -38C831 -30 826 -25 818 -24C799 -19 755 -16 726 -16L694 -34C633 -37 442 -38 375 -37C357 -37 350 -30 350 -12Z"/>
+      <path d="M473 590C473 517 412 472 333 472C254 472 193 517 193 590C193 664 254 709 333 709C412 709 473 664 473 590ZM546 590C546 691 453 760 333 760C213 760 120 691 120 590C120 500 196 435 299 424V304C237 299 180 295 136 294C104 293 65 297 34 303L27 290C25 285 26 283 30 279C55 259 90 237 123 223C141 230 180 238 200 240C326 249 566 285 685 314V298C685 252 686 165 690 125H732C747 175 756 253 756 323V423L929 426C936 426 944 428 948 431C955 436 961 449 960 467C960 475 954 481 946 484C928 488 887 490 858 489L826 470L756 467V755L758 807C758 817 755 824 746 827C718 839 655 852 619 853C611 853 609 851 608 848L600 824C635 812 667 794 685 773V351C606 336 484 321 368 310V424C471 436 546 500 546 590ZM350 41V91L351 135C351 146 347 152 337 154C312 160 255 163 222 163C216 163 212 161 211 157L206 135C233 129 261 119 277 106V-3C277 -58 300 -80 366 -80L807 -77C812 -77 817 -76 820 -73C825 -69 831 -56 831 -38C831 -30 826 -25 818 -24C799 -20 755 -16 726 -16L694 -34C633 -37 442 -38 375 -37C357 -37 350 -30 350 -12Z"/>
     </g>
     <g transform="translate(52.25 62.60) scale(0.03000 -0.03000)">
       <path d="M756 699 768 728C770 734 770 739 766 742C757 748 737 758 726 764C720 766 714 766 709 764L674 747C601 744 328 741 271 742C245 742 204 745 176 750L170 738C168 734 169 731 173 728C196 710 225 693 257 681C283 689 324 697 343 698C389 700 607 703 675 702C677 673 675 594 672 562L651 555C604 553 365 549 292 550C267 553 201 555 173 555C167 555 164 552 163 549L159 529C182 524 203 515 217 504V375C217 326 235 306 290 305L792 313C797 313 802 314 805 317C810 321 815 333 815 350C815 357 811 362 803 364C784 368 739 372 709 371L681 355C613 351 397 348 310 349C296 349 290 356 290 369V468V508L748 515C753 519 758 530 758 542C758 546 757 549 753 551L734 560C742 594 754 661 756 699ZM390 187 393 229C393 237 391 242 383 245C358 253 307 258 276 258C267 258 265 256 264 253L260 230C283 224 307 211 318 197L323 94L144 93C113 93 66 97 33 103L26 89C25 86 26 83 29 80C54 60 91 39 127 28C151 36 202 45 227 47C280 50 738 56 808 55C838 55 897 53 924 50C933 55 945 70 945 87C945 95 939 101 932 104C909 111 856 117 820 119L784 103L679 100L690 200L696 239C698 246 695 251 687 255C663 265 618 276 587 280C581 280 577 278 576 275L567 256C590 245 610 229 619 213L616 99L388 95Z"/>
@@ -5503,6 +5508,18 @@ function formZuStrichen(form){
 
 const RASTER = 22;          // Auflösung des Vergleichsrasters
 const RASTER_RAND = 0.10;   // Rand, damit Striche am Bildrand nicht abgeschnitten werden
+/* Wie oft weichgezeichnet wird. Das IST die Toleranz des Erkenners: Jeder
+   Durchgang verzeiht, dass ein Strich ein Rasterfeld danebenliegt.
+
+   Von 2 auf 3 erhöht am 30.08.2026, gemessen mit tools/mal-messen.mjs.
+   Das war die wirksamste einzelne Änderung des Tages: ㄷ stieg bei
+   normaler Handschrift von 65 % auf 78 %, das Gesamtergebnis von 96,9 %
+   auf 97,3 %. Wichtig war die Gegenprobe, dass dabei nicht ㅁ→ㅇ
+   zurückkehrt — genau die Verwechslung, wegen der es die vier
+   Richtungsraster überhaupt gibt. Sie kam nicht zurück (2 Fälle von
+   1600). Vier Durchgänge bringen nichts mehr; danach ist alles ein
+   Fleck. */
+const WEICH_DURCHGAENGE = 3;
 
 /* Normiert Striche auf das Einheitsquadrat — unter Beibehaltung des
    Seitenverhältnisses (s. Kommentar oben: ㅡ gegen ㅣ). */
@@ -5559,6 +5576,29 @@ const RICHTUNGEN = 4;
 const RICHTUNGS_GEWICHT = 1.35;   // wie stark die Richtung gegenüber der reinen Lage zählt
 const FENSTER = 3;                // über wie viele Abtastpunkte die Richtung gemittelt wird
 
+/* ZWEI VERWORFENE IDEEN — hier festgehalten, damit sie niemand (ich
+   eingeschlossen) ein zweites Mal für gut hält. Beide klangen richtig,
+   beide wurden am 30.08.2026 mit tools/mal-messen.mjs gemessen, beide
+   haben verloren:
+
+   1. Ein sechstes Raster für FREIE STRICHENDEN. Gedanke: ㄷ ist ein
+      rechts offener Kasten, ㅁ ein geschlossener — die Weichzeichnung
+      zieht die Lücke zu, also miss die Offenheit direkt. Ergebnis: +0,3 %
+      bei sauberer Schrift, −4 % bei schlampiger. Der Grund ist einleuchtend,
+      sobald man ihn sieht: Wer schlampig malt, setzt mitten im Strich ab
+      und erzeugt freie Enden, die es in keiner Vorlage gibt. Das Raster
+      hat also am zuverlässigsten das gemessen, was wir gerade verzeihen
+      wollen.
+
+   2. Die TINTENMENGE (belegte Rasterzellen) als sanfter Dämpfer, gedacht
+      für Paare wie ㅝ/ㅟ oder ㅖ/ㅔ, die sich nur um ein Ästchen
+      unterscheiden. Ergebnis bei jedem Gewicht dasselbe Muster: +0,1 %
+      sauber, −7 % schlampig. Wie groß jemand die Teile eines Buchstabens
+      malt, ist eben Handschrift.
+
+   Was stattdessen geholfen hat, steht bei WEICH_DURCHGAENGE und in
+   stammBuendig. */
+
 /* Striche gleichmäßig neu abtasten. Ein Finger liefert je nach Tempo mal
    dichte, mal weit auseinanderliegende Punkte — für die Richtungs-
    messung ist gleichmäßiger Abstand die Voraussetzung. */
@@ -5597,8 +5637,9 @@ function rasterAus(striche){
     if(feld[i] < wert) feld[i] = wert;
   };
 
-  striche.forEach(roh => {
-    const s = neuAbtasten(roh, 1 / (n * 2));
+  const abgetastet = striche.map(roh => neuAbtasten(roh, 1 / (n * 2)));
+
+  abgetastet.forEach(s => {
     if(s.length === 1){ setze(lage, s[0][0], s[0][1], 1); return; }
     for(let i = 0; i < s.length; i++){
       const [x, y] = s[i];
@@ -5623,12 +5664,21 @@ function rasterAus(striche){
     }
   });
 
-  const teile = [weichzeichnen(weichzeichnen(lage, n), n)];
-  richtung.forEach(f => teile.push(weichzeichnen(weichzeichnen(f, n), n)));
-  const gesamt = new Float32Array(n * n * (1 + RICHTUNGEN));
+  const weich = (feld) => {
+    let f = feld;
+    for(let i = 0; i < WEICH_DURCHGAENGE; i++) f = weichzeichnen(f, n);
+    return f;
+  };
+  const teile = [weich(lage)];
+  const gewichte = [1];
+  richtung.forEach(f => {
+    teile.push(weich(f));
+    gewichte.push(RICHTUNGS_GEWICHT);
+  });
+
+  const gesamt = new Float32Array(n * n * teile.length);
   teile.forEach((feld, k) => {
-    const gewicht = k === 0 ? 1 : RICHTUNGS_GEWICHT;
-    for(let i = 0; i < feld.length; i++) gesamt[k * n * n + i] = feld[i] * gewicht;
+    for(let i = 0; i < feld.length; i++) gesamt[k * n * n + i] = feld[i] * gewichte[k];
   });
   return gesamt;
 }
@@ -5703,7 +5753,7 @@ function dehneForm(striche, faktor){
    Ein Ästchen ist ein waagerechter Strich, der an einem Ende auf
    einem Stamm sitzt und am anderen frei endet — daran scheitert
    z. B. ㅂ, dessen Querstriche beidseitig angebunden sind. */
-function stammBuendig(form, obenBuendig, untenBuendig){
+function stammBuendig(form, obenBuendig, untenBuendig, alleStaemme){
   const striche = form.filter(s => typeof s !== 'string');
   if(striche.length !== form.length) return null;   // Kreise: kein Stamm
   let yMin = Infinity, yMax = -Infinity;
@@ -5728,14 +5778,50 @@ function stammBuendig(form, obenBuendig, untenBuendig){
   });
   if(aeste.length < 2) return null;
 
-  const astOben = Math.min(...aeste.map(s => s[0][1]));
-  const astUnten = Math.max(...aeste.map(s => s[0][1]));
+  /* NUR der Stamm, an dem die Ästchen wirklich hängen, wird gekürzt.
+     Nicht jeder senkrechte Strich ist dieser Stamm: ㅒ und ㅖ haben
+     rechts noch eine zweite, freistehende Senkrechte, an der gar kein
+     Ästchen sitzt. Kürzte man die mit, sähe die Zweitform von ㅒ aus wie
+     ein ㅂ — zwei gleich hohe Senkrechte mit zwei Querstrichen dazwischen.
+     Genau das ist passiert: Gemessen am 30.08.2026 wurde ein sauber
+     gemaltes ㅂ in 25 % der Fälle als ㅒ gelesen, weil es besser zu
+     dieser verunglückten ㅒ-Zweitform passte als zur eigenen Vorlage.
+     Die zweite Senkrechte behält deshalb ihre volle Länge. */
+  const haengtAn = (st, ast) => enden(ast).some(p => Math.abs(st[0][0] - p[0]) < 0.06);
+  const mitAst = staemme.filter(st => aeste.filter(a => haengtAn(st, a)).length >= 2);
+  if(!mitAst.length) return null;
+  const traeger = alleStaemme ? staemme : mitAst;
+
+  const eigene = aeste.filter(a => mitAst.some(st => haengtAn(st, a)));
+  const astOben = Math.min(...eigene.map(s => s[0][1]));
+  const astUnten = Math.max(...eigene.map(s => s[0][1]));
   const von = obenBuendig ? astOben : yMin;
   const bis = untenBuendig ? astUnten : yMax;
-  return form.map(s => istStamm(s)
+  return form.map(s => traeger.indexOf(s) >= 0
     ? s.map(([x, y]) => [x, Math.min(bis, Math.max(von, y))])
     : s);
 }
+
+/* Abschlag für gebogene Vorlagen.
+
+   Anlass (30.08.2026, gemessen): ㅒ und ㅖ treten mit 25 Vorlagen an
+   (Grundform, vier bündige Zweitformen, jede in fünf Proportionen), ㅂ
+   nur mit fünf. Weil immer die BESTE zählt, zieht ㅒ fünfmal so viele
+   Lose — und gewann damit reihenweise Zeichnungen, die ein Mensch
+   zweifelsfrei als ㅂ liest.
+
+   Der Abschlag stellt das gerade: Je weiter eine Vorlage von der
+   Grundform des Buchstabens weg gebogen wurde, desto weniger zählt ihr
+   Treffer. Eine Zeichnung, die zur unveränderten Grundform passt, ist
+   eben ein besseres Argument als eine, die nur zur stark verbogenen
+   Fassung passt.
+
+   Die Zahlen sind klein und sollen es sein. Sie entscheiden nur, wenn es
+   ohnehin knapp ist — sie sollen keinen Buchstaben aussperren, dessen
+   Handschrift halt anders proportioniert ist. Genau dafür gibt es die
+   Zweitformen ja. */
+const RABATT_BUENDIG = 0.030;      // je Stufe: Stamm gekürzt / alle Stämme gekürzt
+const RABATT_PROPORTION = 0.045;   // mal |ln(Streckfaktor)|
 
 let jamoVorlagen = null;
 function vorlagen(){
@@ -5743,19 +5829,26 @@ function vorlagen(){
   jamoVorlagen = {};
   Object.keys(JAMO_FORMEN).forEach(ch => {
     const grund = formZuStrichen(JAMO_FORMEN[ch]);
-    const formen = [grund];
+    /* stufe = wie stark gebogen: 0 Grundform, 1 der tragende Stamm
+       gekürzt, 2 alle Stämme gekürzt. */
+    const formen = [{ striche: grund, stufe: 0 }];
     /* Nur EINE Seite bündig. Beidseitig bündig schrumpft den Stamm auf
        den Abstand der Ästchen zusammen — das Ergebnis ist so klein und
        so gedrungen, dass es nach der Normierung anderen Buchstaben
        ähnlicher wird als sich selbst (gemessen: ein ㅁ verlor dadurch
        zwei Drittel seines Vorsprungs, ㄷ fiel ganz durch). */
     [[true, false], [false, true]].forEach(([o, u]) => {
-      const v = stammBuendig(grund, o, u);
-      if(v) formen.push(v);
+      [false, true].forEach((alle, i) => {
+        const v = stammBuendig(grund, o, u, alle);
+        if(v) formen.push({ striche: v, stufe: i + 1 });
+      });
     });
     jamoVorlagen[ch] = [];
-    formen.forEach(f0 => PROPORTIONEN.forEach(f =>
-      jamoVorlagen[ch].push(rasterAus(normiereStriche(dehneForm(f0, f))))));
+    formen.forEach(f0 => PROPORTIONEN.forEach(f => jamoVorlagen[ch].push({
+      raster: rasterAus(normiereStriche(dehneForm(f0.striche, f))),
+      rabatt: (1 - RABATT_BUENDIG * f0.stufe)
+            * (1 - RABATT_PROPORTION * Math.abs(Math.log(f)))
+    })));
   });
   return jamoVorlagen;
 }
@@ -5768,7 +5861,8 @@ function erkenneJamo(striche){
   const meins = rasterAus(normiereStriche(gefiltert));
   const v = vorlagen();
   return Object.keys(v)
-    .map(ch => ({ ch, wert: v[ch].reduce((best, raster) => Math.max(best, kosinus(meins, raster)), 0) }))
+    .map(ch => ({ ch, wert: v[ch].reduce((best, vor) =>
+      Math.max(best, kosinus(meins, vor.raster) * vor.rabatt), 0) }))
     .sort((a, b) => b.wert - a.wert);
 }
 
@@ -5791,6 +5885,73 @@ function pruefeGemaltesJamo(striche, ziel){
     wert: zielWert,
     verwechseltMit: (!richtig && beste.ch !== ziel && beste.wert >= MAL_SCHWELLE) ? beste.ch : null
   };
+}
+
+/* =========================================================
+   FEHLVERSUCHE SAMMELN — die Grundlage fürs nächste Nachjustieren
+   =========================================================
+   Bis heute wurde die Erkennung nach Zuruf verbessert: „ein ㅁ wurde als
+   ㅇ abgelehnt", dann suchte ich die Ursache. Das hat jedes Mal
+   funktioniert, ist aber mühsam und trifft nur, was jemand zufällig
+   berichtet. Seit heute gibt es dazu einen Prüfstand
+   (tools/mal-messen.mjs) — der misst allerdings gegen KÜNSTLICHE
+   Handschrift, die ich mir ausgedacht habe. Er ist ein Frühwarner, kein
+   Beweis.
+
+   Was fehlt, ist echte Handschrift. Also merkt sich die App jeden
+   abgelehnten Malversuch — die Fingerspur, den gesuchten Buchstaben und
+   das Urteil. Daraus wird beim nächsten Mal gemessen statt geraten.
+
+   Drei Festlegungen, die dabei nicht verhandelbar waren:
+
+     * Es bleibt auf dem Gerät. Nichts wird gesendet, von nichts und
+       niemandem. Wer die Sammlung hergeben will, tippt in den
+       Einstellungen darauf und bekommt eine Datei — eine bewusste
+       Handlung, kein Hintergrundvorgang. Das ist dieselbe Zusage wie im
+       Rest der App, und sie gilt auch für unbequeme Fälle.
+     * Nur Fehlversuche, und nur die letzten dreißig. Es ist ein
+       Werkzeug, kein Tagebuch.
+     * Geht das Speichern schief, passiert nichts weiter. Eine volle
+       Speicherecke darf keine Übung stören. */
+const MAL_FEHLER_SPEICHER = 'koreanMalFehler_v1';
+const MAL_FEHLER_MAX = 30;
+
+function malFehlerLesen(){
+  try{
+    const daten = JSON.parse(localStorage.getItem(MAL_FEHLER_SPEICHER) || '[]');
+    return Array.isArray(daten) ? daten : [];
+  }catch(e){ return []; }
+}
+function malFehlerLeeren(){
+  try{ localStorage.removeItem(MAL_FEHLER_SPEICHER); }catch(e){ /* egal */ }
+}
+/* Eine Fingerspur hat je nach Tempo hunderte Punkte. Für die Form
+   genügen zweiunddreißig — und drei Nachkommastellen sind bei einer
+   Malfläche von wenigen hundert Pixeln schon feiner als der Finger. */
+function spurAusduennen(strich, hoechstens){
+  const gerundet = (s) => s.map(([x, y]) =>
+    [Math.round(x * 1000) / 1000, Math.round(y * 1000) / 1000]);
+  if(strich.length <= hoechstens) return gerundet(strich);
+  const raus = [];
+  const schritt = (strich.length - 1) / (hoechstens - 1);
+  for(let i = 0; i < hoechstens; i++) raus.push(strich[Math.round(i * schritt)]);
+  return gerundet(raus);
+}
+function malFehlerMerken(striche, ziel, urteil){
+  if(!striche || !striche.length || !urteil || urteil.leer) return;
+  try{
+    const liste = malFehlerLesen();
+    liste.push({
+      z: ziel,
+      g: urteil.verwechseltMit || '',
+      w: Math.round((urteil.wert || 0) * 1000) / 1000,
+      d: todayStr(),
+      v: APP_VERSION,
+      s: striche.map(s => spurAusduennen(s, 32))
+    });
+    while(liste.length > MAL_FEHLER_MAX) liste.shift();
+    localStorage.setItem(MAL_FEHLER_SPEICHER, JSON.stringify(liste));
+  }catch(e){ /* Speicher voll o. Ä. — darf die Übung nicht stören */ }
 }
 
 /* =========================================================
@@ -6034,6 +6195,7 @@ function legalHtml(){
   const kontakt = (k.name || k.mail)
     ? '<p>' + [
         escapeHtml(k.name),
+        escapeHtml(k.zusatz),
         escapeHtml(zeile(k.strasse)),
         escapeHtml(zeile(k.plz, k.ort)),
         escapeHtml(k.land),
@@ -6066,6 +6228,13 @@ function legalHtml(){
     nachsehen könntest; auch diese Erinnerung sucht nichts, sie fragt nur dich.</p>
     <p>Die Aussprache erzeugt dein Gerät selbst oder sie kommt aus mitgelieferten
     Aufnahmen. Es wird dafür nichts an einen Sprachdienst geschickt.</p>
+    <p><strong>Abgelehnte Malversuche:</strong> Erkennt die App beim Zeichenmalen deine
+    Zeichnung nicht, hebt sie die Fingerspur auf — die letzten dreißig, zusammen mit dem
+    gesuchten Buchstaben. Damit lässt sich die Erkennung an echter Handschrift verbessern
+    statt an geratener. Auch das liegt ausschließlich auf deinem Gerät und wird von allein
+    an niemanden gesendet. In den Einstellungen kannst du die Sammlung ansehen, als Datei
+    herausgeben oder löschen; „Fortschritt zurücksetzen“ und das Löschen der Browserdaten
+    entfernen sie ebenfalls.</p>
     <p><strong>Löschen:</strong> Browserdaten für diese Seite löschen entfernt alles
     restlos. Vorher lohnt sich „Fortschritt sichern“ weiter oben.</p>
     <h4>Verantwortlich</h4>
@@ -6184,7 +6353,12 @@ function escapeAttr(str){
   return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
 }
 function escapeHtml(str){
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  /* null/undefined werden zu '' statt zu den Wörtern "null"/"undefined".
+     Sonst schreibt ein fehlendes Feld — etwa ein aus einer älteren
+     Fassung übernommenes APP_CONTACT ohne 'zusatz' — das Wort
+     "undefined" ins Impressum, und .filter(Boolean) fängt das nicht ab,
+     weil die Zeichenkette ja nicht leer ist. */
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 /* Eigener Dialog-Baustein für Bestätigungen UND Mehrfach-Auswahl (z. B.
    die Vorkenntnis-/Schwierigkeits-Abfrage beim ersten Einstieg). Bewusst
@@ -6253,6 +6427,65 @@ function backupSummary(state){
   const questions = (state.masteredQuestions || []).length;
   return `${lessons} abgeschlossene ${lessons === 1 ? 'Lektion' : 'Lektionen'}, ${questions} gemeisterte Fragen`;
 }
+/* Die gesammelten Fehlversuche hergeben — dieselbe Machart wie
+   „Fortschritt sichern": erst der Versuch eines Downloads, und für die
+   Fälle, in denen der Browser ihn verweigert (in eingebetteten Ansichten
+   und auf manchen iPhones die Regel), derselbe Text zum Kopieren. */
+function exportMalFehler(){
+  const liste = malFehlerLesen();
+  if(!liste.length){
+    showChoiceDialog({
+      title:'Nichts zu senden',
+      message:'Es sind keine abgelehnten Malversuche gespeichert. Das ist die gute Nachricht.',
+      buttons:[{ label:'Gut', className:'btn-primary', onClick:null }]
+    });
+    return;
+  }
+  const json = JSON.stringify({ app: APP_VERSION, stand: todayStr(), fehler: liste });
+  const name = `koreanisch-malfehler-${todayStr()}.json`;
+  let downloadOk = false;
+  try{
+    const blob = new Blob([json], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    downloadOk = true;
+  }catch(e){ downloadOk = false; }
+  const gezaehlt = {};
+  liste.forEach(f => { gezaehlt[f.z] = (gezaehlt[f.z] || 0) + 1; });
+  const haeufig = Object.entries(gezaehlt).sort((a, b) => b[1] - a[1]).slice(0, 6)
+    .map(([ch, n]) => ch + ' ×' + n).join(' · ');
+  showChoiceDialog({
+    title:'Malversuche zum Weitergeben',
+    message:`<strong>${liste.length}</strong> abgelehnte Zeichnungen, am häufigsten: ${escapeHtml(haeufig)}.<br><br>`
+      + (downloadOk
+        ? `Die Datei <strong>${name}</strong> sollte in deinen Downloads liegen.`
+        : `Dein Browser erlaubt hier keinen Download — kopier den Text unten.`)
+      + ` Damit lässt sich die Erkennung an ECHTER Handschrift nachmessen statt an ausgedachter.`,
+    buttons:[
+      { label:'Fertig', className:'btn-primary', onClick:null },
+      { label:'Sammlung leeren', className:'btn-gray', onClick: () => { malFehlerLeeren(); renderSettings(); } }
+    ],
+    extraHtml: `<textarea class="backup-box" id="malfehlerText" readonly></textarea>
+      <button class="btn btn-gray" id="malfehlerCopyBtn" style="margin-top:10px;">In die Zwischenablage kopieren</button>`,
+    onReady: (box) => {
+      box.querySelector('#malfehlerText').value = json;
+      box.querySelector('#malfehlerCopyBtn').onclick = async (ev) => {
+        const ta = box.querySelector('#malfehlerText');
+        ta.select();
+        let ok = false;
+        try{ await navigator.clipboard.writeText(json); ok = true; }
+        catch(e){ try{ ok = document.execCommand('copy'); }catch(e2){ ok = false; } }
+        ev.target.textContent = ok ? '✓ Kopiert' : 'Bitte von Hand markieren und kopieren';
+      };
+    }
+  });
+}
+
 function setBackupNote(text, kind){
   const el = $('backupNote');
   if(!el) return;
@@ -10056,6 +10289,10 @@ function renderDictionaryList(){
    Einstieg erneut erscheinen. Der Lernpfad beginnt danach wieder ganz
    von vorn. */
 function resetAllProgress(){
+  /* Auch die gesammelten Malversuche. Der Datenschutztext sagt zu, dass
+     „Fortschritt zurücksetzen" sie entfernt — also muss es hier stehen
+     und nicht nur dort. */
+  malFehlerLeeren();
   xp = 0;
   streak = 0;
   lastActiveDate = null;
@@ -10528,6 +10765,9 @@ function renderSettings(){
         ? '<button class="btn btn-gray" id="kursResetBtn">Eingebauten Kurs verwenden</button>' : ''}
       <button class="btn btn-gray" id="legalBtn">Datenschutz &amp; Rechtliches</button>
       <button class="btn btn-gray" id="reportBtn">Problem melden</button>
+      ${malFehlerLesen().length
+        ? `<button class="btn btn-gray" id="malfehlerBtn">Abgelehnte Malversuche (${malFehlerLesen().length})</button>`
+        : ''}
     </div>
   `;
   el.appendChild(aboutCard);
@@ -10536,6 +10776,7 @@ function renderSettings(){
   if($('kursResetBtn')) $('kursResetBtn').onclick = kursZuruecksetzen;
   $('legalBtn').onclick = showLegalDialog;
   $('reportBtn').onclick = showReportDialog;
+  if($('malfehlerBtn')) $('malfehlerBtn').onclick = exportMalFehler;
 
   // ---- Gefahrenzone: alle Lerninhalt-Fortschritte zurücksetzen ----
   const dangerCard = document.createElement('div');
@@ -12025,6 +12266,11 @@ function handleCheck(){
       });
     } else if(ex.kind === 'draw'){
       const urteil = pruefeGemaltesJamo(drawState ? drawState.striche : [], ex.correct);
+      /* Abgelehnte Zeichnungen aufheben (s. FEHLVERSUCHE SAMMELN). Vor
+         forcedWrong geprüft: Ein absichtlich falsch gewertetes Beispiel
+         ist kein Erkennungsfehler und hätte in der Sammlung nichts zu
+         suchen. */
+      if(!urteil.richtig) malFehlerMerken(drawState ? drawState.striche : [], ex.correct, urteil);
       isCorrect = !forcedWrong && urteil.richtig;
       userVal = urteil.verwechseltMit || (isCorrect ? ex.correct : '');
       /* Die richtige Form über die eigene Zeichnung legen — das ist die
