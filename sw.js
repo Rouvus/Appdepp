@@ -15,7 +15,7 @@
    VERSION wird beim Bauen (build-pwa.sh) automatisch gesetzt. Ändert
    sich die App, ändert sich die Version, und der alte Speicher wird
    verworfen. */
-const VERSION = '98aef1cd9afc';
+const VERSION = 'dc4ad9fc887e';
 const CACHE = 'koreanisch-' + VERSION;
 const ASSETS = [
   './',
@@ -88,14 +88,16 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  /* kurs.json ist die EINZIGE Datei, bei der zuerst gefragt wird, ob es
-     etwas Neueres gibt. Sie ist der Inhaltsstand zum Nachladen — würde
-     sie wie alles andere zuerst aus dem Vorrat bedient, käme auf genau
-     die Anfrage, die nach einer neueren Fassung sucht, verlässlich die
-     alte zurück. Der Vorrat bleibt trotzdem der Rückfall: ohne Netz
-     antwortet die zuletzt geholte Fassung, und die App bleibt offline
-     vollständig benutzbar. */
-  if (url.pathname.endsWith('/kurs.json')) {
+  /* Zwei Verzeichnisdateien, ein Grund: Beide sagen, WAS es gibt — die
+     eine, welcher Kursstand draußen liegt, die andere, welche Aufnahmen
+     vorhanden sind. Aus dem Vorrat bedient würden sie melden, was es
+     GESTERN gab. Bei den Aufnahmen fällt das besonders unangenehm auf,
+     wenn später mit einer anderen Stimme neu erzeugt wird: Die App läse
+     weiter das alte Verzeichnis und spielte Dateien ab, die es so nicht
+     mehr gibt. Die MP3s selbst bleiben ausdrücklich beim Vorrat zuerst —
+     sie ändern sich nicht, und sie sind der Grund, warum die App auch im
+     Zug ohne Netz klingt. */
+  if (url.pathname.endsWith('/kurs.json') || url.pathname.endsWith('/audio/index.json')) {
     event.respondWith(
       fetch(req).then((res) => {
         if (res && res.ok) {
