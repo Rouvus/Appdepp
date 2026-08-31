@@ -1467,8 +1467,8 @@
    öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
    statt eine leere Zeile zu zeigen.
    ========================================================= */
-const APP_VERSION = '1.22.0';
-const APP_BUILD = 'd49363fa4be3';
+const APP_VERSION = '1.23.0';
+const APP_BUILD = '72bd65bf4ee5';
 /* Die Felder folgen dem, was § 5 DDG (früher § 5 TMG) für ein Impressum
    verlangt — die frühere Fassung hatte nur Name, Ort und Mail, und das
    reicht nachweislich nicht:
@@ -1618,6 +1618,7 @@ function appBuildLabel(){
    will, was ihm entgeht. Bewusst nur die letzten Einträge — eine
    vollständige Chronik gehört ins Projekt-Dokument, nicht in die App. */
 const CHANGELOG = [
+  { v:'1.23.0', text:'Was über den Rand der Malfläche hinausgezogen wird, verzerrt die Erkennung nicht mehr — gewertet wird, was man sieht. Und die Doppelkonsonanten werden auch dann erkannt, wenn sie sehr breit und flach geraten.' },
   { v:'1.22.0', text:'Wieder an echten Zeichnungen nachgemessen: Der innere Querstrich von ㅌ darf höher sitzen, der Stiel von ㅗ ㅜ ㅛ ㅠ muss nicht mittig auf dem Balken stehen. Und die Malaufgabe warnt jetzt vor allen drei Lautpaaren, die sich beim flüchtigen Lesen ähneln — oe/eo, ui/wi, yo/yu.' },
   { v:'1.21.0', text:'Doppelkonsonanten (ㄲ ㄸ ㅃ ㅆ ㅉ) werden auch erkannt, wenn beide Hälften dicht beieinander stehen. Und beim Zeichenmalen warnt die Aufgabe jetzt vor Umschriften, die sich nur in der Reihenfolge unterscheiden — „oe" ist nicht „eo".' },
   { v:'1.20.0', text:'Die Zeichenerkennung achtet jetzt darauf, dass jede Hand die Ästchen anders ansetzt — höher, tiefer, enger beieinander — und dass die zweite Senkrechte bei ㅐ ㅔ ㅖ unterschiedlich weit absteht. Gemessen an echten abgelehnten Zeichnungen, nicht an geratenen.' },
@@ -5748,6 +5749,11 @@ function kosinus(a, b){
    toleriert Proportionen, ohne die Form selbst aufzuweichen — ein
    gestauchtes ㅛ bleibt ein ㅛ und wird nicht zum ㅐ. */
 const PROPORTIONEN = [1, 0.55, 0.75, 1.4, 1.9];
+/* Die Doppelkonsonanten bekommen zusätzlich eine sehr breite Stufe. Sie
+   sind von Natur aus die breitesten Zeichen — zwei Buchstaben nebeneinander
+   —, und eine echte Zeichnung vom 30.08.2026 war fast dreimal so breit wie
+   hoch. Für die übrigen Buchstaben wäre so eine Stufe unsinnig. */
+const PROPORTIONEN_DOPPELT = [0.75, 1, 1.4, 1.9, 2.6];
 
 function dehneForm(striche, faktor){
   return striche.map(s => s.map(([x, y]) => [x * faktor, y]));
@@ -6116,7 +6122,7 @@ function vorlagen(){
     (DOPPEL_VARIANTEN[ch] || []).forEach(v => formen.push({
       striche: formZuStrichen(v.form),
       rabatt: 1 - RABATT_DOPPEL_ABSTAND * Math.abs(Math.log(v.verhaeltnis)),
-      proportionen: PROPORTIONEN
+      proportionen: PROPORTIONEN_DOPPELT
     }));
     /* Ästchen höher/tiefer und enger/weiter (s. AST_VERSCHIEBUNGEN). */
     AST_VERSCHIEBUNGEN.forEach(dy => AST_SPREIZUNGEN.forEach(sp => {
@@ -12016,9 +12022,19 @@ function renderDrawStep(ex, area){
   drawState = { striche: [], aktiv: null, ctx, canvas: cv, w: seite, h: seite, vorlage: null };
   drawFlaecheMalen();
 
+  /* Auf die Malfläche begrenzen. Der Finger wird beim Zeichnen mit
+     setPointerCapture festgehalten, also kommen auch Punkte AUSSERHALB
+     an — und in echten Zeichnungen vom 30.08.2026 lagen sie bis 0,05
+     jenseits des Randes. Sichtbar ist davon nichts; die Fläche schneidet
+     ab. Für den Erkenner zählten sie aber voll mit und zogen das
+     umschließende Rechteck auf, an dem alles normiert wird: Ein Zeichen,
+     das rechts einen Zentimeter überstand, wurde dadurch als Ganzes
+     gestaucht. Gewertet wird deshalb, was man SIEHT. */
   const punktAus = (e) => {
     const r = cv.getBoundingClientRect();
-    return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height];
+    const klemm = (v) => v < 0 ? 0 : (v > 1 ? 1 : v);
+    return [klemm((e.clientX - r.left) / r.width),
+            klemm((e.clientY - r.top) / r.height)];
   };
   cv.addEventListener('pointerdown', (e) => {
     if(answered) return;
