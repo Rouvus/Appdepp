@@ -1467,8 +1467,8 @@
    öffentlich erreichbar ist. Bleibt es leer, sagt die App das offen,
    statt eine leere Zeile zu zeigen.
    ========================================================= */
-const APP_VERSION = '1.23.0';
-const APP_BUILD = '72bd65bf4ee5';
+const APP_VERSION = '1.25.0';
+const APP_BUILD = '16963183decb';
 /* Die Felder folgen dem, was § 5 DDG (früher § 5 TMG) für ein Impressum
    verlangt — die frühere Fassung hatte nur Name, Ort und Mail, und das
    reicht nachweislich nicht:
@@ -1618,6 +1618,8 @@ function appBuildLabel(){
    will, was ihm entgeht. Bewusst nur die letzten Einträge — eine
    vollständige Chronik gehört ins Projekt-Dokument, nicht in die App. */
 const CHANGELOG = [
+  { v:'1.25.0', text:'Wichtige Korrektur beim Zeichenmalen: ㅘ ㅙ ㅚ ㅝ ㅞ ㅟ unterscheiden sich nur darin, ob der Stiel über oder unter dem Querstrich sitzt — diese Unterscheidung war zuletzt aufgeweicht und ist wiederhergestellt.' },
+  { v:'1.24.0', text:'Beim Zeichenmalen sagt die App jetzt klar, wenn du einen anderen Buchstaben gemalt hast, statt „die Form stimmt noch nicht ganz" — dann liegt es nämlich nicht an deiner Strichführung.' },
   { v:'1.23.0', text:'Was über den Rand der Malfläche hinausgezogen wird, verzerrt die Erkennung nicht mehr — gewertet wird, was man sieht. Und die Doppelkonsonanten werden auch dann erkannt, wenn sie sehr breit und flach geraten.' },
   { v:'1.22.0', text:'Wieder an echten Zeichnungen nachgemessen: Der innere Querstrich von ㅌ darf höher sitzen, der Stiel von ㅗ ㅜ ㅛ ㅠ muss nicht mittig auf dem Balken stehen. Und die Malaufgabe warnt jetzt vor allen drei Lautpaaren, die sich beim flüchtigen Lesen ähneln — oe/eo, ui/wi, yo/yu.' },
   { v:'1.21.0', text:'Doppelkonsonanten (ㄲ ㄸ ㅃ ㅆ ㅉ) werden auch erkannt, wenn beide Hälften dicht beieinander stehen. Und beim Zeichenmalen warnt die Aufgabe jetzt vor Umschriften, die sich nur in der Reihenfolge unterscheiden — „oe" ist nicht „eo".' },
@@ -5960,8 +5962,24 @@ function stammAbstand(form, faktor){
    Bewegt werden nur Querstriche, die WEDER der oberste NOCH der unterste
    sind. Der oberste und der unterste bilden den Rahmen des Zeichens; wer
    die verschiebt, ändert nicht die Handschrift, sondern den Buchstaben.
-   Betroffen sind damit von allein ㅌ, ㅂ, ㅊ und ㅎ — ㅍ zum Beispiel
-   nicht, dessen beide Balken ja Rahmen sind. */
+
+   UND: kein Balken, auf dem ein Stiel steht.
+
+   Das war zuerst vergessen und ist am 31.08.2026 nach einem Hinweis aus
+   dem Alltag aufgefallen — die Vermutung lautete, die Toleranz für „was
+   über und unter dem Querstrich liegt" sei zu groß. Sie war es, und zwar
+   durch genau diese Funktion: Bei ㅘ ㅙ ㅚ ㅝ ㅞ ㅟ wanderte der Balken des
+   ㅗ- bzw. ㅜ-Teils mit. Verschiebt man ihn nach oben, hängt der Stiel
+   plötzlich zur Hälfte darunter — die Vorlage für ㅘ fing an, wie ㅝ
+   auszusehen. Ausgerechnet der Strich, der über OBEN oder UNTEN
+   entscheidet, wurde also weichgespült. Gemessen: Der Abstand zwischen
+   ㅚ und ㅟ schrumpfte dadurch von 0,26 auf 0,21.
+
+   Ein Balken mit Stiel ist kein Detail der Handschrift, sondern das
+   Kennzeichen des Buchstabens. Er bleibt, wo er ist. Der Mittelbalken
+   von ㅌ und der Querstrich von ㅂ tragen keinen Stiel (bei ㅂ sind die
+   Senkrechten durchgehend, nicht angesetzt) — die dürfen weiter wandern,
+   und genau dafür gibt es die Familie ja. */
 const QUER_VERSCHIEBUNGEN = [-0.14, 0, 0.14];   // Anteil der Zeichenhöhe
 
 function querVerschieben(form, anteil){
@@ -5987,8 +6005,45 @@ function querVerschieben(form, anteil){
     return m > yMin + 0.12 * hoehe && m < yMax - 0.12 * hoehe;   // innenliegend
   });
   if(!quer.length) return null;
+
+  /* Wer auf einem Balken steht, wandert MIT.
+
+     Ein Stiel ist senkrecht, steht mit einem Ende auf dem Balken und
+     innerhalb seiner Enden — bei ㅘ ㅙ ㅚ ㅝ ㅞ ㅟ ist das der Strich des
+     ㅗ- bzw. ㅜ-Teils. Ließe man ihn stehen, während der Balken wandert,
+     geriete er zur Hälfte auf die andere Seite: Aus der ㅘ-Vorlage würde
+     etwas ㅝ-Ähnliches. Genau das war bis zum 31.08.2026 der Fall, und
+     der Abstand zwischen ㅚ und ㅟ schrumpfte dadurch von 0,26 auf 0,21 —
+     ohne dass irgendeine andere Zahl es angezeigt hätte.
+
+     Zusammen verschoben bleibt der Buchstabe dagegen, was er ist. Wo der
+     ㅗ-Teil in der Höhe sitzt, IST Handschrift; auf welcher Seite der
+     Stiel hängt, ist es nicht. */
+  const gruppe = [];
+  const masse = (k) => {
+    let x1 = Infinity, x2 = -Infinity, y1 = Infinity, y2 = -Infinity;
+    k.forEach(([x, y]) => {
+      if(x < x1) x1 = x; if(x > x2) x2 = x;
+      if(y < y1) y1 = y; if(y > y2) y2 = y;
+    });
+    return { x1, x2, y1, y2 };
+  };
+  quer.forEach(b => {
+    const mb = masse(b);
+    const m = (mb.y1 + mb.y2) / 2;
+    if(gruppe.indexOf(b) < 0) gruppe.push(b);
+    striche.forEach(k => {
+      if(k === b || gruppe.indexOf(k) >= 0) return;
+      const mk = masse(k);
+      if(mk.x2 - mk.x1 > 0.10) return;                          // muss senkrecht sein
+      if(mk.x1 < mb.x1 - 0.02 || mk.x2 > mb.x2 + 0.02) return;  // und auf dem Balken stehen
+      if(Math.min(Math.abs(mk.y1 - m), Math.abs(mk.y2 - m)) >= 0.06) return;
+      gruppe.push(k);
+    });
+  });
+
   const d = anteil * hoehe;
-  return form.map(s => quer.indexOf(s) >= 0 ? s.map(([x, y]) => [x, y + d]) : s);
+  return form.map(s => gruppe.indexOf(s) >= 0 ? s.map(([x, y]) => [x, y + d]) : s);
 }
 
 /* Zweitformen: der Stiel sitzt nicht genau in der Mitte des Balkens.
@@ -6005,7 +6060,12 @@ function querVerschieben(form, anteil){
    Zeichnungen wegzunehmen. */
 const STIEL_VERSCHIEBUNGEN = [-0.15, 0, 0.15];   // Anteil der Balkenlänge
 
-function stielVerschieben(form, anteil){
+
+/* Gemeinsame Erkennung für beide Stiel-Familien: Was ist hier Balken,
+   was Stiel? Ein Balken ist lang und waagerecht; ein Stiel ist kurz,
+   senkrecht, sitzt mit einem Ende auf dem Balken und steht innerhalb
+   seiner Enden (sonst wäre es der Abstrich eines ㄱ). */
+function stielTeile(form){
   const striche = form.filter(s => typeof s !== 'string');
   if(striche.length !== form.length) return null;
   const masse = striche.map(s => {
@@ -6016,14 +6076,27 @@ function stielVerschieben(form, anteil){
     });
     return { s, x1, x2, y1, y2 };
   });
+  /* Der Balken muss das Zeichen tragen (ㅗ ㅜ ㅛ ㅠ) — sonst verschöbe
+     man bei ㅙ das halbe Zeichen. */
   const balken = masse.filter(m => (m.y2 - m.y1) < 0.10 && (m.x2 - m.x1) > 0.5);
   if(balken.length !== 1) return null;
   const b = balken[0];
   const stiele = masse.filter(m => m !== b
-    && (m.x2 - m.x1) < 0.10                                   // senkrecht
-    && Math.min(Math.abs(m.y1 - b.y1), Math.abs(m.y2 - b.y2)) < 0.06   // sitzt auf dem Balken
-    && m.x1 > b.x1 + 0.05 && m.x2 < b.x2 - 0.05);             // und zwar innen
+    && (m.x2 - m.x1) < 0.10
+    /* Kürzer als der Balken: Das trennt den STIEL eines ㅗ von der
+       durchgehenden Senkrechten eines ㅂ, die zufällig auch mit einem
+       Ende an einem Querstrich sitzt. */
+    && (m.y2 - m.y1) < (b.x2 - b.x1)
+    && Math.min(Math.abs(m.y1 - b.y1), Math.abs(m.y2 - b.y2)) < 0.06
+    && m.x1 > b.x1 + 0.05 && m.x2 < b.x2 - 0.05);
   if(!stiele.length || stiele.length + 1 !== masse.length) return null;
+  return { balken: b, stiele };
+}
+
+function stielVerschieben(form, anteil){
+  const teile = stielTeile(form);
+  if(!teile) return null;
+  const { balken: b, stiele } = teile;
   const d = anteil * (b.x2 - b.x1);
   return form.map(s => stiele.some(m => m.s === s)
     ? s.map(([x, y]) => [x + d, y])
@@ -6191,17 +6264,48 @@ function erkenneJamo(striche){
    - Verfehlt man ihn, aber ein anderer Buchstabe passt deutlich, ist
      das die nützlichste Rückmeldung überhaupt: "das sieht aus wie ㅓ". */
 const MAL_SCHWELLE = 0.62;
+/* Wann ist eine Zeichnung nicht misslungen, sondern schlicht der FALSCHE
+   BUCHSTABE? Das verlangt eine andere Antwort — und die Unterscheidung ist
+   heikler, als sie aussieht.
+
+   Grundlage sind 43 gesammelte Fehlversuche (30./31.08.2026). 23 davon
+   zeigten einen anderen Buchstaben als den gefragten; der wurde jedes Mal
+   sicher erkannt (0,73 bis 0,87), während das Gefragte weit abgeschlagen
+   auf Rang 8 bis 25 lag. „Die Form stimmt noch nicht ganz" ist dafür die
+   falsche Antwort: Sie klingt nach Ungeschick, wo eine Verwechslung
+   vorliegt. Wer ㅈ malt, wo ㅅ gefragt war, muss das erfahren — und nicht
+   an seiner Strichführung zweifeln.
+
+   Der WERT des anderen Buchstabens allein genügt dafür aber nicht. Bei
+   einem echten Beinahe-Treffer liegt der Gegner genauso hoch (ein
+   abgelehntes ㅌ verlor gegen ㄷ mit 0,88). Der Unterschied steckt im
+   ABSTAND: Beim falschen Buchstaben liegt das Gefragte 0,17 bis 0,36
+   zurück, beim Beinahe-Treffer 0,005 bis 0,09. Deshalb beide Bedingungen.
+
+   Im Zweifel bleibt es bei der vorsichtigen Formulierung. Jemandem zu
+   sagen „das ist ein sauberes ㄷ", wenn er in Wahrheit ein passables ㅌ
+   gemalt hat, wäre schlimmer als die unbestimmte Auskunft. */
+const MAL_DEUTLICH = 0.70;    // so sicher muss der andere erkannt sein
+const MAL_ABSTAND = 0.15;     // und so weit muss das Gefragte zurückliegen
 function pruefeGemaltesJamo(striche, ziel){
   const liste = erkenneJamo(striche);
   if(!liste.length) return { richtig:false, leer:true };
   const beste = liste[0];
   const zielWert = (liste.find(e => e.ch === ziel) || { wert:0 }).wert;
   const richtig = beste.ch === ziel && zielWert >= MAL_SCHWELLE;
+  const verwechselt = (!richtig && beste.ch !== ziel && beste.wert >= MAL_SCHWELLE) ? beste.ch : null;
   return {
     richtig,
     leer: false,
     wert: zielWert,
-    verwechseltMit: (!richtig && beste.ch !== ziel && beste.wert >= MAL_SCHWELLE) ? beste.ch : null
+    verwechseltMit: verwechselt,
+    /* Wie sicher der andere Buchstabe erkannt wurde. Braucht die
+       Rückmeldung, um zwei ganz verschiedene Fälle zu unterscheiden —
+       s. MAL_DEUTLICH. */
+    verwechseltWert: verwechselt ? beste.wert : 0,
+    /* Zweifelsfrei ein anderer Buchstabe (s. MAL_DEUTLICH/MAL_ABSTAND). */
+    andererBuchstabe: !!verwechselt && beste.wert >= MAL_DEUTLICH
+                      && (beste.wert - zielWert) >= MAL_ABSTAND
   };
 }
 
@@ -12653,7 +12757,9 @@ function handleCheck(){
       /* Verwechslungen sind die nützlichste Rückmeldung überhaupt —
          "sieht aus wie ㅓ" sagt mehr als "falsch". */
       ex.explain = urteil.verwechseltMit
-        ? `deine Zeichnung sieht eher aus wie ${urteil.verwechseltMit}`
+        ? (urteil.andererBuchstabe
+            ? `das ist ein sauber gemaltes ${urteil.verwechseltMit} — gefragt war ${ex.correct}`
+            : `deine Zeichnung sieht eher aus wie ${urteil.verwechseltMit}`)
         : (urteil.leer ? 'da war noch nichts gemalt' : 'die Form stimmt noch nicht ganz');
     } else if(ex.kind === 'sentence'){
       userVal = sentenceState ? sentenceState.chosen.join(' ') : '';
